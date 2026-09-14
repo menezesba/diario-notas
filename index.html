@@ -9,16 +9,7 @@
                  maximum-scale=1.0,
                  user-scalable=no">
 
-  <meta name="theme-color" content="#0B3D91">
-
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
   <title>Diário de Notas - Radiologia</title>
-
-  <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
   <style>
     html, body {
@@ -27,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #eef1f5;
+      background-color: #eef1f5;
     }
 
     iframe {
@@ -36,10 +27,81 @@
       border: 0;
       display: block;
     }
+
+    /* ==========================================
+       MODAL DE OPÇÕES DO PDF
+       ========================================== */
+
+    #modalPDFApp {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: rgba(0, 0, 0, 0.65);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #modalPDFApp .modal-box {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-sizing: border-box;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+
+    #modalPDFApp h2 {
+      margin: 0 0 10px 0;
+      font-size: 22px;
+      color: #222;
+    }
+
+    #modalPDFApp p {
+      margin: 0 0 20px 0;
+      color: #666;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    #modalPDFApp button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #btnCompartilharPDFApp {
+      background: #0B3D91;
+      color: white;
+    }
+
+    #btnBaixarPDFAapp {
+      background: #18864b;
+      color: white;
+    }
+
+    #btnCancelarPDFApp {
+      background: #eeeeee;
+      color: #333;
+    }
   </style>
 </head>
 
 <body>
+
+  <!-- ==========================================
+       APLICATIVO PRINCIPAL
+       ========================================== -->
 
   <iframe
     src="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec"
@@ -47,15 +109,281 @@
     loading="eager">
   </iframe>
 
+
+  <!-- ==========================================
+       MODAL DE PDF
+       FICA NA PÁGINA PRINCIPAL DO GITHUB
+       ========================================== -->
+
+  <div id="modalPDFApp">
+
+    <div class="modal-box">
+
+      <h2>📄 PDF gerado com sucesso</h2>
+
+      <p>
+        O Diário de Notas foi gerado.
+        Escolha o que deseja fazer:
+      </p>
+
+      <button
+        id="btnCompartilharPDFApp"
+        onclick="compartilharPDFAplicativo()">
+        📤 Compartilhar PDF
+      </button>
+
+      <button
+        id="btnBaixarPDFAapp"
+        onclick="baixarPDFAplicativo()">
+        📥 Baixar PDF
+      </button>
+
+      <button
+        id="btnCancelarPDFApp"
+        onclick="fecharModalPDFAplicativo()">
+        ❌ Cancelar
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       JAVASCRIPT DO APLICATIVO
+       ========================================== -->
+
   <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js")
-          .catch(error => {
-            console.log("Service Worker:", error);
-          });
-      });
+
+    /*
+     * PDF recebido do Google Apps Script.
+     */
+    let pdfRecebidoApp = null;
+
+    let nomePdfRecebidoApp = "Diario_de_Notas.pdf";
+
+
+    /*
+     * Recebe a mensagem enviada pelo Google Apps Script.
+     */
+    window.addEventListener("message", function(event) {
+
+      const dados = event.data;
+
+      if (!dados || dados.type !== "DIARIO_PDF_PRONTO") {
+        return;
+      }
+
+      /*
+       * Recebemos o Blob do PDF.
+       */
+      if (dados.blob) {
+
+        pdfRecebidoApp = dados.blob;
+
+        nomePdfRecebidoApp =
+          dados.filename || "Diario_de_Notas.pdf";
+
+        /*
+         * Mostra o modal na página principal.
+         */
+        document.getElementById("modalPDFApp").style.display = "flex";
+      }
+
+    });
+
+
+    /*
+     * Fecha a janela de opções.
+     */
+    function fecharModalPDFAplicativo() {
+
+      document.getElementById("modalPDFApp").style.display = "none";
+
+      pdfRecebidoApp = null;
+
+      nomePdfRecebidoApp = "Diario_de_Notas.pdf";
     }
+
+
+    /*
+     * Compartilha o PDF usando o compartilhamento
+     * nativo do Android/Samsung.
+     */
+    async function compartilharPDFAplicativo() {
+
+      if (!pdfRecebidoApp) {
+
+        alert(
+          "O PDF não está disponível. " +
+          "Gere o PDF novamente."
+        );
+
+        return;
+      }
+
+
+      const arquivo = new File(
+        [pdfRecebidoApp],
+        nomePdfRecebidoApp,
+        {
+          type: "application/pdf"
+        }
+      );
+
+
+      /*
+       * Verifica se o navegador suporta
+       * compartilhamento de arquivos.
+       */
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({
+          files: [arquivo]
+        })
+      ) {
+
+        try {
+
+          await navigator.share({
+
+            files: [arquivo],
+
+            title: "Diário de Notas",
+
+            text: "Diário de Notas"
+
+          });
+
+
+          /*
+           * Se compartilhou com sucesso,
+           * fecha a janela.
+           */
+          fecharModalPDFAplicativo();
+
+        }
+
+        catch (erro) {
+
+          /*
+           * O usuário apertou cancelar
+           * na tela de compartilhamento.
+           */
+          if (
+            erro &&
+            erro.name === "AbortError"
+          ) {
+
+            return;
+          }
+
+
+          alert(
+            "Não foi possível compartilhar o PDF. " +
+            "Você pode utilizar a opção " +
+            "\"Baixar PDF\"."
+          );
+
+        }
+
+      }
+
+      else {
+
+        alert(
+          "O compartilhamento direto de arquivos " +
+          "não está disponível neste dispositivo. " +
+          "Use \"Baixar PDF\" e depois compartilhe o arquivo."
+        );
+
+      }
+
+    }
+
+
+    /*
+     * Faz o download do PDF.
+     */
+    function baixarPDFAplicativo() {
+
+      if (!pdfRecebidoApp) {
+
+        alert(
+          "O PDF não está disponível. " +
+          "Gere o PDF novamente."
+        );
+
+        return;
+      }
+
+
+      const url = URL.createObjectURL(
+        pdfRecebidoApp
+      );
+
+
+      const link =
+        document.createElement("a");
+
+
+      link.href = url;
+
+      link.download =
+        nomePdfRecebidoApp ||
+        "Diario_de_Notas.pdf";
+
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      document.body.removeChild(link);
+
+
+      /*
+       * Libera a memória depois do download.
+       */
+      setTimeout(function() {
+
+        URL.revokeObjectURL(url);
+
+      }, 1000);
+
+
+      fecharModalPDFAplicativo();
+
+    }
+
+  </script>
+
+
+  <!-- ==========================================
+       SERVICE WORKER
+       ========================================== -->
+
+  <script>
+
+    if ("serviceWorker" in navigator) {
+
+      window.addEventListener("load", function() {
+
+        navigator.serviceWorker
+          .register("./service-worker.js")
+          .catch(function(error) {
+
+            console.log(
+              "Service Worker:",
+              error
+            );
+
+          });
+
+      });
+
+    }
+
   </script>
 
 </body>
