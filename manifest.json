@@ -1,7 +1,7 @@
 {
-  "name": "Diário de Notas - Radiologia",
-  "short_name": "Diário Radiologia",
-  "description": "Diário de notas e gerenciamento de turmas do curso de Radiologia.",
+  "name": "Diário de Notas do Professor",
+  "short_name": "Diário de Notas",
+  "description": "Diário de notas e gerenciamento de turmas do professor.",
   "start_url": "./",
   "display": "standalone",
   "orientation": "any",
@@ -10,13 +10,13 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
