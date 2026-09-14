@@ -41,21 +41,143 @@
 <body>
 
   <iframe
+    id="appFrame"
     src="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec"
     allow="clipboard-read; clipboard-write; web-share"
     loading="eager">
   </iframe>
 
+
+  <!-- =====================================================
+       RECEBE PDF E BACKUP GERADOS PELO GOOGLE APPS SCRIPT
+       ===================================================== -->
   <script>
+
+    window.addEventListener("message", function(event) {
+
+      const dados = event.data;
+
+      if (!dados || !dados.type) {
+        return;
+      }
+
+
+      /* ===================================================
+         PDF
+         =================================================== */
+
+      if (dados.type === "DIARIO_PDF_PRONTO") {
+
+        try {
+
+          if (!dados.dataUrl) {
+            alert("O PDF foi gerado, mas o arquivo não foi recebido.");
+            return;
+          }
+
+          const link = document.createElement("a");
+
+          link.href = dados.dataUrl;
+
+          link.download =
+            dados.filename || "Diario_de_Notas.pdf";
+
+          document.body.appendChild(link);
+
+          link.click();
+
+          document.body.removeChild(link);
+
+        } catch (erro) {
+
+          console.error("Erro ao baixar PDF:", erro);
+
+          alert(
+            "O PDF foi gerado, mas ocorreu um erro ao iniciar o download."
+          );
+        }
+
+        return;
+      }
+
+
+      /* ===================================================
+         BACKUP
+         =================================================== */
+
+      if (dados.type === "DIARIO_BACKUP_PRONTO") {
+
+        try {
+
+          if (!dados.conteudo) {
+            alert("O backup foi gerado, mas o arquivo não foi recebido.");
+            return;
+          }
+
+          const blob = new Blob(
+            [dados.conteudo],
+            {
+              type: "application/json;charset=utf-8"
+            }
+          );
+
+          const url = URL.createObjectURL(blob);
+
+          const link = document.createElement("a");
+
+          link.href = url;
+
+          link.download =
+            dados.filename || "backup_diario_notas.json";
+
+          document.body.appendChild(link);
+
+          link.click();
+
+          document.body.removeChild(link);
+
+          setTimeout(function() {
+            URL.revokeObjectURL(url);
+          }, 1000);
+
+        } catch (erro) {
+
+          console.error("Erro ao baixar backup:", erro);
+
+          alert(
+            "O backup foi gerado, mas ocorreu um erro ao iniciar o download."
+          );
+        }
+
+        return;
+      }
+
+    });
+
+
+    /* =====================================================
+       SERVICE WORKER
+       ===================================================== */
+
     if ("serviceWorker" in navigator) {
+
       window.addEventListener("load", function() {
+
         navigator.serviceWorker
           .register("./service-worker.js")
           .catch(function(error) {
-            console.log("Service Worker:", error);
+
+            console.log(
+              "Service Worker:",
+              error
+            );
+
           });
+
       });
+
     }
+
   </script>
 
 </body>
