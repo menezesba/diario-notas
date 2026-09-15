@@ -16,11 +16,13 @@
 
   <title>Diário de Notas - Radiologia</title>
 
+  <!-- PWA -->
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
 
   <style>
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -40,125 +42,93 @@
 
 <body>
 
+  <!-- SISTEMA PRINCIPAL -->
   <iframe
-    id="appFrame"
-    src="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec"
+    src="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKK9R9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec"
     allow="clipboard-read; clipboard-write; web-share"
     loading="eager">
   </iframe>
 
 
-  <!-- =====================================================
-       RECEBE PDF E BACKUP GERADOS PELO GOOGLE APPS SCRIPT
-       ===================================================== -->
+  <!--
+    RECEBE O PDF GERADO PELO SISTEMA
+    DENTRO DO GOOGLE APPS SCRIPT
+  -->
   <script>
-
     window.addEventListener("message", function(event) {
 
-      const dados = event.data;
-
-      if (!dados || !dados.type) {
+      /*
+       * Só aceita a mensagem enviada pelo
+       * sistema do Google Apps Script.
+       */
+      if (!event.data ||
+          event.data.type !== "DIARIO_PDF_PRONTO") {
         return;
       }
 
+      /*
+       * Segurança:
+       * aceita somente mensagens vindas
+       * dos domínios utilizados pelo Apps Script.
+       */
+      if (
+        event.origin !== "https://script.google.com" &&
+        event.origin !== "https://script.googleusercontent.com"
+      ) {
+        return;
+      }
 
-      /* ===================================================
-         PDF
-         =================================================== */
+      const dataUri = event.data.dataUri;
+      const filename =
+        event.data.filename || "Diario_de_Notas.pdf";
 
-      if (dados.type === "DIARIO_PDF_PRONTO") {
+      if (!dataUri) {
+        alert("Não foi possível receber o PDF.");
+        return;
+      }
 
+      /*
+       * Cria o download do PDF.
+       */
+      try {
+
+        const link = document.createElement("a");
+
+        link.href = dataUri;
+        link.download = filename;
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+      } catch (erro) {
+
+        console.error(
+          "Erro ao baixar PDF:",
+          erro
+        );
+
+        /*
+         * Fallback:
+         * abre o PDF caso o navegador bloqueie
+         * o download automático.
+         */
         try {
-
-          if (!dados.dataUrl) {
-            alert("O PDF foi gerado, mas o arquivo não foi recebido.");
-            return;
-          }
-
-          const link = document.createElement("a");
-
-          link.href = dados.dataUrl;
-
-          link.download =
-            dados.filename || "Diario_de_Notas.pdf";
-
-          document.body.appendChild(link);
-
-          link.click();
-
-          document.body.removeChild(link);
-
-        } catch (erro) {
-
-          console.error("Erro ao baixar PDF:", erro);
-
+          window.open(dataUri, "_blank");
+        } catch (e) {
           alert(
-            "O PDF foi gerado, mas ocorreu um erro ao iniciar o download."
+            "O PDF foi gerado, mas o navegador bloqueou o download automático."
           );
         }
-
-        return;
       }
-
-
-      /* ===================================================
-         BACKUP
-         =================================================== */
-
-      if (dados.type === "DIARIO_BACKUP_PRONTO") {
-
-        try {
-
-          if (!dados.conteudo) {
-            alert("O backup foi gerado, mas o arquivo não foi recebido.");
-            return;
-          }
-
-          const blob = new Blob(
-            [dados.conteudo],
-            {
-              type: "application/json;charset=utf-8"
-            }
-          );
-
-          const url = URL.createObjectURL(blob);
-
-          const link = document.createElement("a");
-
-          link.href = url;
-
-          link.download =
-            dados.filename || "backup_diario_notas.json";
-
-          document.body.appendChild(link);
-
-          link.click();
-
-          document.body.removeChild(link);
-
-          setTimeout(function() {
-            URL.revokeObjectURL(url);
-          }, 1000);
-
-        } catch (erro) {
-
-          console.error("Erro ao baixar backup:", erro);
-
-          alert(
-            "O backup foi gerado, mas ocorreu um erro ao iniciar o download."
-          );
-        }
-
-        return;
-      }
-
     });
+  </script>
 
 
-    /* =====================================================
-       SERVICE WORKER
-       ===================================================== */
-
+  <!-- SERVICE WORKER / PWA -->
+  <script>
     if ("serviceWorker" in navigator) {
 
       window.addEventListener("load", function() {
@@ -177,7 +147,6 @@
       });
 
     }
-
   </script>
 
 </body>
