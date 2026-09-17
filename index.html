@@ -5,43 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0B3D91">
   <title>Diário de Notas do Professor</title>
-  <meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec">
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #eef1f5;
-      font-family: Arial, sans-serif;
-      color: #333;
-      text-align: center;
+      background: linear-gradient(135deg, #eef1f5, #dfe7f2);
+      font-family: Arial, Helvetica, sans-serif;
+      color: #243447;
+      padding: 20px;
     }
-    .box { max-width: 420px; padding: 28px; }
-    h1 { color: #0B3D91; font-size: 22px; }
-    p { line-height: 1.5; }
-    a {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 13px 20px;
-      border-radius: 10px;
+    .card {
+      width: 100%;
+      max-width: 430px;
+      background: #fff;
+      border-radius: 22px;
+      padding: 34px 26px 30px;
+      text-align: center;
+      box-shadow: 0 10px 35px rgba(0,0,0,.12);
+    }
+    .logo {
+      width: 86px;
+      height: 86px;
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      color: #0B3D91;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+    .sub {
+      margin: 0 0 26px;
+      color: #5f6b78;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 12px;
       background: #0B3D91;
       color: #fff;
       text-decoration: none;
+      font-size: 17px;
       font-weight: 700;
+      box-shadow: 0 4px 12px rgba(11,61,145,.25);
+    }
+    .btn:active { transform: scale(.99); }
+    .note {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #7a8490;
+      line-height: 1.45;
     }
   </style>
 </head>
 <body>
-  <div class="box">
+  <main class="card">
+    <img class="logo" src="./icon-192.png" alt="Diário de Notas">
     <h1>Diário de Notas do Professor</h1>
-    <p>Entrando no sistema...</p>
-    <p>Se a abertura automática não acontecer, toque no botão abaixo.</p>
-    <a href="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec">Abrir Diário de Notas</a>
-  </div>
-  <script>
-    window.location.replace("https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec");
-  </script>
+    <p class="sub">Acesse seu diário de notas de forma segura e simples.</p>
+    <a class="btn" href="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec">ENTRAR NO DIÁRIO DE NOTAS</a>
+    <p class="note">Ao tocar em entrar, o sistema será aberto no navegador e utilizará sua conta Google.</p>
+  </main>
 </body>
 </html>
