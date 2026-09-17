@@ -2,65 +2,50 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-  <title>Diário de Notas - Radiologia</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0B3D91">
+  <title>Diário de Notas do Professor</title>
+  <meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKK9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec">
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: #eef1f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #eef1f5;
+      font-family: Arial, sans-serif;
+      color: #333;
+      text-align: center;
     }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: 0;
-      display: block;
+    .box {
+      max-width: 420px;
+      padding: 28px;
+    }
+    h1 { color: #0B3D91; font-size: 22px; }
+    p { line-height: 1.5; }
+    a {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 13px 20px;
+      border-radius: 10px;
+      background: #0B3D91;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
     }
   </style>
 </head>
-
 <body>
+  <div class="box">
+    <h1>Diário de Notas do Professor</h1>
+    <p>Entrando no sistema...</p>
+    <p>Se a abertura automática não acontecer, toque no botão abaixo.</p>
+    <a href="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKK9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec">Abrir Diário de Notas</a>
+  </div>
 
-  <!-- SISTEMA PRINCIPAL -->
-  <iframe
-    src="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec"
-    allow="clipboard-read; clipboard-write; web-share"
-    loading="eager">
-  </iframe>
-
-
-  <!--
-    RECEBE O PDF GERADO PELO SISTEMA
-    DENTRO DO GOOGLE APPS SCRIPT
-  -->
   <script>
-    window.addEventListener("message", function(event) {
-
-      /*
-       * Só aceita a mensagem enviada pelo
-       * sistema do Google Apps Script.
-       */
-      if (
-        !event.data ||
-        event.data.type !== "DIARIO_PDF_PRONTO"
-      ) {
-        return;
-      }
-
-      /*
-       * Aqui podemos receber futuramente
-       * informações do PDF gerado pelo sistema.
-       */
-      console.log("PDF recebido:", event.data);
-
-    });
+    window.location.replace("https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKK9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec");
   </script>
-
 </body>
 </html>
