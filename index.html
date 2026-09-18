@@ -2,77 +2,140 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0B3D91">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Diário de Notas do Professor</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
+    html, body {
       margin: 0;
-      min-height: 100vh;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #eef1f5;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    #carregando {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #eef1f5, #dfe7f2);
-      font-family: Arial, Helvetica, sans-serif;
-      color: #243447;
-      padding: 20px;
-    }
-    .card {
-      width: 100%;
-      max-width: 430px;
-      background: #fff;
-      border-radius: 22px;
-      padding: 34px 26px 30px;
+      background: #eef1f5;
+      color: #0B3D91;
       text-align: center;
-      box-shadow: 0 10px 35px rgba(0,0,0,.12);
+      padding: 24px;
+    }
+    .box {
+      max-width: 360px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px 22px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.12);
     }
     .logo {
-      width: 86px;
-      height: 86px;
+      width: 74px;
+      height: 74px;
       object-fit: contain;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     h1 {
+      font-size: 20px;
       margin: 0 0 8px;
-      color: #0B3D91;
-      font-size: 25px;
-      line-height: 1.2;
     }
-    .sub {
-      margin: 0 0 26px;
-      color: #5f6b78;
-      font-size: 15px;
-      line-height: 1.5;
+    p {
+      color: #687482;
+      font-size: 14px;
+      line-height: 1.45;
+      margin: 0;
     }
-    .btn {
-      display: block;
+    .spinner {
+      width: 28px;
+      height: 28px;
+      margin: 18px auto 0;
+      border: 3px solid #dbe5f2;
+      border-top-color: #0B3D91;
+      border-radius: 50%;
+      animation: giro .8s linear infinite;
+    }
+    @keyframes giro { to { transform: rotate(360deg); } }
+    #app {
       width: 100%;
-      padding: 16px 18px;
+      height: 100%;
+      border: 0;
+      display: block;
+      visibility: hidden;
+      background: #eef1f5;
+    }
+    #fallback {
+      display: none;
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      z-index: 20;
+      background: #fff;
       border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 5px 22px rgba(0,0,0,.18);
+      font-size: 13px;
+      color: #44515e;
+    }
+    #fallback a {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 9px 12px;
+      border-radius: 8px;
       background: #0B3D91;
       color: #fff;
       text-decoration: none;
-      font-size: 17px;
       font-weight: 700;
-      box-shadow: 0 4px 12px rgba(11,61,145,.25);
-    }
-    .btn:active { transform: scale(.99); }
-    .note {
-      margin-top: 18px;
-      font-size: 12px;
-      color: #7a8490;
-      line-height: 1.45;
     }
   </style>
 </head>
 <body>
-  <main class="card">
-    <img class="logo" src="./icon-192.png" alt="Diário de Notas">
-    <h1>Diário de Notas do Professor</h1>
-    <p class="sub">Acesse seu diário de notas de forma segura e simples.</p>
-    <a class="btn" href="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec">ENTRAR NO DIÁRIO DE NOTAS</a>
-    <p class="note">Ao tocar em entrar, o sistema será aberto no navegador e utilizará sua conta Google.</p>
-  </main>
+
+  <div id="carregando">
+    <div class="box">
+      <img class="logo" src="./icon-192.png" alt="Diário de Notas">
+      <h1>Diário de Notas do Professor</h1>
+      <p>Carregando seu diário...</p>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <iframe
+    id="app"
+    title="Diário de Notas do Professor"
+    src="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec"
+    allow="storage-access; clipboard-read; clipboard-write"
+    referrerpolicy="strict-origin-when-cross-origin"
+    loading="eager">
+  </iframe>
+
+  <div id="fallback">
+    Se o diário não carregar, toque abaixo para abrir a versão direta.
+    <br>
+    <a href="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec">Abrir Diário de Notas</a>
+  </div>
+
+  <script>
+    const iframe = document.getElementById('app');
+    const carregando = document.getElementById('carregando');
+    const fallback = document.getElementById('fallback');
+
+    iframe.addEventListener('load', function () {
+      carregando.style.display = 'none';
+      iframe.style.visibility = 'visible';
+    });
+
+    // Apenas como plano B. Não altera o funcionamento do aplicativo.
+    setTimeout(function () {
+      fallback.style.display = 'block';
+    }, 12000);
+  </script>
 </body>
 </html>
