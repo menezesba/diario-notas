@@ -1,76 +1,1158 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0B3D91">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Diário de Notas do Professor</title>
-  <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; font-family: Arial, Helvetica, sans-serif; background: #eef1f5; color: #16324f; }
-    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .card { width: min(520px, 100%); background: #fff; border-radius: 20px; box-shadow: 0 10px 35px rgba(0,0,0,.14); overflow: hidden; text-align: center; }
-    .header { background: linear-gradient(135deg,#0B3D91,#168dca); color: #fff; padding: 30px 22px 26px; }
-    .logo { width: 88px; height: 88px; object-fit: contain; display: block; margin: 0 auto 14px; }
-    h1 { margin: 0; font-size: 27px; line-height: 1.15; }
-    .subtitle { margin: 8px 0 0; font-size: 16px; opacity: .95; }
-    .content { padding: 28px 24px 30px; }
-    .intro { margin: 0 auto 22px; line-height: 1.5; color: #526273; font-size: 15px; }
-    .enter { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 58px; padding: 14px 18px; border-radius: 12px; background: #247bb5; color: #fff; text-decoration: none; font-weight: 700; font-size: 17px; box-shadow: 0 4px 10px rgba(36,123,181,.25); }
-    .enter:active { transform: translateY(1px); }
-    .note { margin: 18px 0 0; font-size: 13px; line-height: 1.45; color: #6b7785; }
-    .security { margin-top: 18px; padding: 12px 14px; border-radius: 10px; background: #f3f6fa; font-size: 12px; line-height: 1.45; color: #5f6d7a; }
-    @media (max-width: 480px) {
-      body { padding: 14px; }
-      .header { padding: 25px 18px 22px; }
-      .logo { width: 76px; height: 76px; }
-      h1 { font-size: 23px; }
-      .content { padding: 23px 18px 25px; }
-      .enter { min-height: 54px; font-size: 16px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário de Notas - Radiologia</title>
+<!-- Biblioteca para download direto de PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{
+  --azul:#2f78b7; --azul2:#eaf4fb; --borda:#8d8d8d; --texto:#222;
+  --verde:#18864b; --vermelho:#b42318; --cinza:#f4f5f7;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--texto);background:#eef1f5}
+.app{max-width:1500px;margin:auto;background:white;min-height:100vh}
+header{background:linear-gradient(135deg,#075aa5,#168dcc);color:white;padding:14px 22px;display:flex;align-items:center;gap:16px;min-height:104px}
+.header-logo{width:82px;height:82px;object-fit:contain;flex:0 0 auto;border-radius:18px}
+.header-titles{min-width:0;display:flex;flex-direction:column;justify-content:center}
+header h1{margin:0;font-size:clamp(18px,3vw,32px);line-height:1.1;white-space:nowrap;font-weight:800}
+header p{margin:7px 0 0;opacity:.98;font-size:clamp(12px,1.7vw,19px);line-height:1.15;letter-spacing:.2px;white-space:nowrap}
+.user-badge{font-size:12px;background:rgba(255,255,255,0.2);padding:6px 12px;border-radius:20px;margin-left:auto;white-space:nowrap}
+@media(max-width:520px){header{padding:10px 14px;gap:10px;min-height:78px}.header-logo{width:62px;height:62px;border-radius:14px}header h1{font-size:clamp(17px,5vw,22px)}header p{font-size:clamp(10px,3.3vw,14px);margin-top:5px}}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #ddd;background:#fff;position:sticky;top:0;z-index:5}
+button,.file-label{border:0;border-radius:7px;padding:10px 13px;font-weight:700;cursor:pointer;background:#e8eef4;color:#17324a}
+button.primary{background:var(--azul);color:white}
+button.green{background:#18864b;color:#fff}
+button.purple{background:#5c2d91;color:#fff}
+button.orange{background:#d96b00;color:#fff}
+button.red{background:#c83b32;color:#fff}
+button:hover,.file-label:hover{filter:brightness(.96)}
+.file-label input{display:none}
+.section{padding:18px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:12px}
+.field label{display:block;font-weight:700;font-size:12px;margin-bottom:5px;color:#444}
+input,select,textarea{width:100%;border:1px solid #bbb;border-radius:6px;padding:9px;font:inherit;background:#fff}
+textarea{min-height:70px;resize:vertical}
+.panel{border:1px solid #d5dbe1;border-radius:10px;margin:0 18px 18px;overflow:hidden}
+.panel h2{font-size:16px;margin:0;padding:12px 14px;background:#f6f8fa;border-bottom:1px solid #d5dbe1}
+.panel-body{padding:14px}
+.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.small{font-size:12px;color:#666}
+.table-wrap{overflow:auto;border:1px solid #aaa}
+table{border-collapse:collapse;width:100%;min-width:1050px;font-size:12px}
+th,td{border:1px solid #777;padding:6px 5px;text-align:center;vertical-align:middle}
+th{background:#18864b!important;color:#ffffff!important;font-weight:700;letter-spacing:0.4px;border-color:#126337!important;}
+th.col-nome, td.name{width:260px!important;min-width:260px!important;max-width:260px!important;text-align:left;font-weight:bold;text-transform:uppercase;white-space:normal!important;word-break:break-word!important;line-height:1.3;}
+.col-nota{width:75px!important;min-width:75px!important;max-width:75px!important;text-align:center!important;}
+.col-total{width:85px!important;min-width:85px!important;max-width:85px!important;font-weight:bold!important;text-align:center!important;}
+.col-sit{width:130px!important;min-width:130px!important;max-width:130px!important;white-space:nowrap!important;text-align:center!important;}
+td input{border:0;border-radius:0;padding:4px;text-align:center;width:100%;background:transparent}
+td input:focus{outline:2px solid #75a9d2;background:white}
+.aprovado{color:#0b5cab!important;font-weight:700}
+.reprovado{color:var(--vermelho)!important;font-weight:700}
+.mensagem{padding:9px 12px;border-radius:6px;background:#fff7d6;border:1px solid #ecd77c;font-size:12px;display:none}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.stat{padding:9px 12px;background:#f5f7f9;border:1px solid #ddd;border-radius:7px;font-size:13px}
+.modal{display:none;position:fixed;inset:0;background:#0007;z-index:20;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:white;border-radius:10px;max-width:700px;width:100%;max-height:90vh;overflow:auto;padding:20px}
+.modal-box h2{margin-top:0}
+footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
+.share-option-btn{width: 100%;display: flex;align-items: center;gap: 14px;padding: 14px 18px;margin-bottom: 12px;border: 1.5px solid #d0d7de;border-radius: 8px;background: #fdfdfd;font-size: 14px;cursor: pointer;text-align: left;transition: all 0.2s ease;}
+.share-option-btn:hover{background: #f1f6fb;border-color: var(--azul);}
+.share-option-btn .icon{font-size: 24px;}
+.toolbar-help{position:fixed;z-index:9999;left:50%;bottom:18px;transform:translateX(-50%);width:min(88vw,360px);box-sizing:border-box;padding:10px 12px;border-radius:10px;background:#17324d;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:12px;line-height:1.35;display:none;text-align:left;}
+.toolbar-help strong{display:block;margin-bottom:4px;font-size:14px;}
+.toolbar-help .help-close{float:right;border:0;background:transparent;color:#fff;font-size:18px;line-height:1;padding:0 0 0 8px;cursor:pointer;}
+.disciplinas-seletor{border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;overflow:hidden;}
+.disciplinas-todas{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;padding:10px 12px!important;margin:0!important;border:0!important;border-bottom:1px solid #d9e0e7!important;background:#fff!important;color:#222!important;font-size:13px!important;font-weight:700!important;cursor:pointer!important;text-align:left!important;}
+.disciplinas-todas input[type="checkbox"],.disciplina-selecao-linha input[type="checkbox"]{width:16px!important;min-width:16px!important;max-width:16px!important;height:16px!important;margin:0!important;padding:0!important;flex:0 0 16px!important;accent-color:#2f78b7;}
+.disciplinas-lista{max-height:240px;overflow-y:auto;}
+.disciplina-selecao-linha{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:46px!important;padding:9px 12px!important;margin:0!important;border:0!important;border-bottom:1px solid #e5e7eb!important;background:#f8fafc!important;color:#222!important;font-size:13px!important;font-weight:400!important;cursor:pointer!important;text-align:left!important;}
+.disciplina-selecao-linha:last-child{border-bottom:0!important;}
+.disciplina-selecao-linha span{display:block!important;flex:1!important;text-align:left!important;white-space:normal!important;word-break:break-word!important;line-height:1.25!important;}
+.disciplinas-vazio{padding:12px!important;color:#b42318!important;font-size:12px!important;}
+#areaExportacaoPDF {display: none;background: white;padding: 8px 12px;color: #000;font-family: Arial, sans-serif;width: 720px;margin: 0 auto;}
+.pdf-timbre{display: flex;align-items: center;justify-content: flex-start;margin-bottom: 6px;page-break-inside: avoid;}
+.pdf-timbre img{max-height: 58px;max-width: 252px;object-fit: contain;}
+.pdf-header{border: 1.2px solid #333;padding: 5px 8px;margin-bottom: 7px;border-radius: 4px;text-align: center;page-break-inside: avoid;}
+.pdf-header h1{font-size: 11px;margin: 0 0 2px 0;text-transform: uppercase;}
+.pdf-header h2{font-size: 9.5px;margin: 0 0 4px 0;font-weight: normal;color: #333;}
+.pdf-grid{display: grid;grid-template-columns: 1fr 1fr;gap: 2px 8px;text-align: left;font-size: 8.2px;border-top: 1px solid #555;padding-top: 3px;}
+.pdf-table{width: 100% !important;min-width: 100% !important;max-width: 100% !important;table-layout: fixed;border-collapse: collapse;}
+.pdf-table th, .pdf-table td{border: 0.8px solid #333;padding: 3px 2px;text-align: center;vertical-align: middle;font-size: 7.8px;line-height: 1.15;}
+.pdf-table tr{page-break-inside: avoid !important;break-inside: avoid !important;}
+.pdf-table th{background: #18864b !important;color: #ffffff !important;font-weight: bold;border-color: #126337 !important;padding: 4px 2px;-webkit-print-color-adjust: exact;print-color-adjust: exact;}
+.pdf-col-num { width: 4% !important; }
+.pdf-table td.name, .pdf-table th.col-nome{width: 25% !important;text-align: left;padding-left: 3px;font-weight: bold;text-transform: uppercase;white-space: normal !important;word-break: break-word !important;line-height: 1.1;}
+.pdf-col-nota-compacta {width: 7.5% !important;white-space: nowrap !important;padding: 2px 0 !important;font-size: 7.6px !important;}
+.pdf-col-sit {width: 13.5% !important;white-space: nowrap !important;font-size: 7.6px !important;}
+.pdf-col-obs {width: 20% !important;white-space: normal !important;word-break: break-word !important;line-height: 1.1;}
+.pdf-footer{margin-top: 16px;page-break-inside: avoid !important;break-inside: avoid !important;}
+.pdf-data{text-align: right;font-size: 9px;margin-bottom: 22px;padding-right: 4px;}
+.pdf-assinatura-box{width: 270px;margin: 0 auto;text-align: center;}
+.pdf-linha{border-top: 1px solid #000;margin-bottom: 4px;}
+.pdf-prof-nome{font-weight: bold;font-size: 9px;text-transform: uppercase;}
+.pdf-prof-cargo{font-size: 8px;color: #444;}
+.toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch;}
+.toolbar > .toolbar-btn, .toolbar > .file-label.toolbar-btn{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;text-align:center;gap:6px;}
+.toolbar-short{display:none}
+.toolbar-icon{display:inline-block}
+.toolbar-btn{white-space:nowrap}
+@media(max-width:520px){
+  .toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px 10px;position:sticky;top:0;}
+  .toolbar > .toolbar-btn, .toolbar > .file-label.toolbar-btn{width:100%;min-width:0;min-height:44px;padding:7px 4px;margin:0;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:1.05;text-align:center;box-sizing:border-box;}
+  .toolbar-icon{font-size:18px;line-height:1;flex:0 0 auto;}
+  .toolbar-full{display:none}
+  .toolbar-short{display:inline-block;overflow:hidden;text-overflow:ellipsis;max-width:100%;flex:0 1 auto;text-align:center;}
+  .toolbar .file-label{cursor:pointer;}
+}
+.toolbar-btn.ajuda-ativa{outline:2px solid rgba(47,120,183,.35);outline-offset:2px;}
+.file-label.purple{background:#6f2da8!important;color:#fff!important;}
+@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <main class="card">
-    <header class="header">
-      <img class="logo" src="./icon-192.png" alt="Diário de Notas">
-      <h1>Diário de Notas do Professor</h1>
-      <p class="subtitle">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
-    </header>
-    <section class="content">
-      <p class="intro">Acesse seu Diário de Notas usando sua conta Google. O sistema abrirá diretamente para gerenciar suas turmas e notas com segurança.</p>
-      
-      <!-- Link atualizado com a sua nova URL do Apps Script -->
-      <a class="enter" href="https://script.google.com/macros/s/AKfycbwFyMaYDDEV2OLL2rpoJI4WQ_bvyssYlqt5OjkCpg2i7rj9H-9E-CelcqTiWN5gKW6H/exec" target="_self" rel="noopener">📘 ENTRAR NO DIÁRIO DE NOTAS</a>
-      
-      <p class="note">Ao tocar em entrar, você será direcionado ao sistema e poderá utilizar sua conta Google para sincronizar os dados na nuvem.</p>
-      <div class="security">🔐 Dados seguros e sincronizados com a nuvem institucional.</div>
-    </section>
-  </main>
+<div class="app">
+<header>
+  <img class="header-logo" src="data:image/png;base64,..." alt="Diário de Notas do Professor">
+  <div class="header-titles">
+    <h1 id="tituloCabecalho">Diário de Notas do Professor</h1>
+    <p id="subCabecalho">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
+  </div>
+  <div class="user-badge" id="badgeUsuario">Modo Local</div>
+</header>
 
-  <script>
-    const URL_API_GOOGLE = 'https://script.google.com/macros/s/AKfycbwFyMaYDDEV2OLL2rpoJI4WQ_bvyssYlqt5OjkCpg2i7rj9H-9E-CelcqTiWN5gKW6H/exec';
+<div class="toolbar">
+  <button class="primary toolbar-btn" onclick="salvar()"><span class="toolbar-icon">💾</span><span class="toolbar-full">Salvar lançamento</span><span class="toolbar-short">Salvar</span></button>
+  <button class="green toolbar-btn" onclick="abrirModalCompartilharPDF()"><span class="toolbar-icon">📤</span><span class="toolbar-full">Compartilhar PDF</span><span class="toolbar-short">PDF</span></button>
+  <button class="purple toolbar-btn" onclick="exportarArquivoBackup()"><span class="toolbar-icon">📤</span><span class="toolbar-full">Exportar Backup</span><span class="toolbar-short">Backup</span></button>
+  <label class="file-label purple toolbar-btn"><span class="toolbar-icon">📂</span><span class="toolbar-full">Restaurar Backup</span><span class="toolbar-short">Restaurar</span>
+    <input type="file" id="arquivoBackupInput" accept=".json" onchange="importarArquivoBackup(event)">
+  </label>
+  <button class="toolbar-btn" onclick="abrirConfiguracoes()"><span class="toolbar-icon">⚙️</span><span class="toolbar-full">Configurar</span><span class="toolbar-short">Config.</span></button>
+  <button class="toolbar-btn" onclick="abrirPesquisa()"><span class="toolbar-icon">🔎</span><span class="toolbar-full">Busca Global</span><span class="toolbar-short">Buscar</span></button>
+</div>
 
-    function sincronizarDadosEmSegundoPlano(estadoAtual) {
-      if (!URL_API_GOOGLE) return;
-      fetch(URL_API_GOOGLE, {
-        method: 'POST',
-        body: JSON.stringify({ acao: 'salvar', dadosJson: JSON.stringify(estadoAtual) })
-      }).catch(err => console.log('Sincronização em segundo plano:', err));
+<div class="section">
+  <div class="grid">
+    <div class="field"><label>Instituição</label><select id="instituicao" onchange="trocarSelecao()"></select></div>
+    <div class="field"><label>Curso</label><select id="curso" onchange="trocarSelecao()"></select><div class="small" style="margin-top:4px">Turmas, alunos e disciplinas são exclusivos do curso selecionado.</div></div>
+    <div class="field">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <label style="margin:0">Turma</label>
+        <a href="javascript:void(0)" onclick="excluirTurmaAtual()" style="color:var(--vermelho);font-size:11px;font-weight:bold;text-decoration:none">🗑️ Excluir turma</a>
+      </div>
+      <select id="turma" onchange="trocarSelecao()"></select>
+    </div>
+    <div class="field"><label>Disciplina</label><select id="disciplina" onchange="trocarSelecao()"></select></div>
+    <div class="field"><label>Professor</label><select id="professor" onchange="atualizarCabecalho();salvarDiarioAtual()"></select></div>
+    <div class="field">
+      <label>Critério de Nota</label>
+      <select id="tipoCalculo" onchange="salvarDiarioAtual();render()">
+        <option value="soma">Soma de Pontos (Total 10,0)</option>
+        <option value="media">Média Aritmética (Divide pelas avaliações)</option>
+      </select>
+    </div>
+    <div class="field"><label>Período inicial</label><input id="periodoIni" type="date" onchange="salvarDiarioAtual()"></div>
+    <div class="field"><label>Período final</label><input id="periodoFim" type="date" onchange="salvarDiarioAtual()"></div>
+    <div class="field"><label>Nota mínima para aprovação</label><input id="notaMin" type="number" min="0" max="10" step="0.1" value="6" onchange="salvarDiarioAtual();render()"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Alunos e notas</h2>
+  <div class="panel-body">
+    <div class="flex" style="margin-bottom:12px">
+      <button class="primary" onclick="adicionarAluno()">+ Adicionar aluno</button>
+      <button onclick="abrirListaAlunos()">📋 Colar lista de alunos</button>
+      <button onclick="adicionarAvaliacao()">+ Adicionar avaliação</button>
+      <button type="button" class="red" onclick="limparTodasNotas()">🧹 Limpar todas as notas</button>
+      <button type="button" id="btnExcluirSelecionados" class="red" onclick="return excluirSelecionadosAgora(event)">Excluir selecionados</button>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:4px">
+        <input id="filtroRapidoAluno" type="text" placeholder="🔍 Filtrar aluno na lista..." oninput="filtrarAlunosTabela()" style="width:230px;padding:7px 10px;font-size:12px;border:1px solid #8d8d8d">
+        <button type="button" style="padding:7px 10px;font-size:12px" onclick="limparFiltroRapido()" title="Limpar busca">✕</button>
+      </div>
+      <button onclick="ordenarAlunos()">A-Z</button>
+      <span class="small">A lista pertence à Turma. A troca de disciplina altera apenas as notas.</span>
+    </div>
+    <div id="aviso" class="mensagem"></div>
+    <div class="table-wrap">
+      <table id="tabela">
+        <thead><tr id="cabTabela"></tr></thead>
+        <tbody id="corpoTabela"></tbody>
+      </table>
+    </div>
+    <div class="stats" id="estatisticas"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Como usar</h2>
+  <div class="panel-body small">
+    1. Escolha a <b>Turma</b>: os alunos daquela turma aparecerão imediatamente.<br>
+    2. Altere a <b>Disciplina</b>: os alunos permanecem na tela. Se a matéria já tiver notas, elas são carregadas; se não tiver, as células ficam vazias para novo lançamento.<br>
+    3. Para <b>Excluir uma Turma</b>: selecione-a e clique em <b>🗑️ Excluir turma</b> acima do seletor, ou remova a linha dela em <b>⚙️ Configurar</b>.<br>
+    4. Clique em <b>📤 Compartilhar PDF</b> para baixar o arquivo no seu computador ou enviar diretamente pelo seu Gmail.
+  </div>
+</div>
+<footer>Diário de Notas • Sincronização Google Cloud no Drive pessoal ativa.</footer>
+</div>
+
+<!-- Container de Exportação Timbrado do PDF -->
+<div id="areaExportacaoPDF">
+  <div class="pdf-timbre" id="pdfTimbreBox">
+    <img id="pdfLogoImg" src="" alt="Logomarca da Instituição">
+  </div>
+  <div class="pdf-header">
+    <h1 id="pdfInst">INSTITUTO DO CONHECIMENTO DA BAHIA</h1>
+    <h2>DIÁRIO DE CLASSE E REGISTRO DE APROVEITAMENTO</h2>
+    <div class="pdf-grid">
+      <div><b>Curso:</b> <span id="pdfCurso">Técnico em Radiologia</span></div>
+      <div><b>Turma:</b> <span id="pdfTurma">Radiologia C</span></div>
+      <div><b>Disciplina:</b> <span id="pdfDisc">Física Aplicada</span></div>
+      <div><b>Professor:</b> <span id="pdfProf">Docente Responsável</span></div>
+      <div><b>Período:</b> <span id="pdfPeriodo">Não informado</span></div>
+      <div><b>Critério:</b> <span id="pdfTipoNota">Soma de Pontos</span> (Mínimo: <span id="pdfNotaMin">6.0</span>)</div>
+    </div>
+  </div>
+  <table class="pdf-table">
+    <thead><tr id="pdfCabTabela"></tr></thead>
+    <tbody id="pdfCorpoTabela"></tbody>
+  </table>
+  <div class="pdf-footer">
+    <div class="pdf-data" id="pdfDataEmissao">Irecê - BA.</div>
+    <div class="pdf-assinatura-box">
+      <div class="pdf-linha"></div>
+      <div class="pdf-prof-nome" id="pdfAssinaturaNome">Docente Responsável</div>
+      <div class="pdf-prof-cargo">Professor(a)</div>
+    </div>
+  </div>
+</div>
+
+<div id="areaExportacaoTurmaPDF" style="display:none;background:white;padding:8px 12px;color:#000;font-family:Arial,sans-serif;width:720px;margin:0 auto;">
+  <div id="conteudoExportacaoTurmaPDF"></div>
+</div>
+
+<!-- MODAL COMPARTILHAR PDF -->
+<div class="modal" id="modalCompartilharPDF">
+ <div class="modal-box" style="max-width:480px">
+  <h2>📤 Compartilhar Diário em PDF</h2>
+  <p class="small" style="margin-bottom:18px">Selecione o destino desejado para o documento oficial timbrado:</p>
+  <button type="button" class="share-option-btn" onclick="opcaoBaixarPDF()">
+    <span class="icon">💾</span>
+    <div>
+      <b>Baixar Arquivo PDF</b>
+      <div class="small" style="margin-top:2px">Salva o arquivo PDF timbrado diretamente no seu computador.</div>
+    </div>
+  </button>
+  <button type="button" class="share-option-btn" onclick="opcaoEnviarEmail()">
+    <span class="icon">📧</span>
+    <div>
+      <b>Enviar por E-mail</b>
+      <div class="small" style="margin-top:2px">Encaminha o documento desta disciplina diretamente via Gmail para o destinatário.</div>
+    </div>
+  </button>
+  <div class="flex" style="justify-content:flex-end;margin-top:14px">
+    <button onclick="fecharModalCompartilharPDF()">Fechar</button>
+  </div>
+ </div>
+</div>
+
+<!-- MODAL DE DETALHES DA AVALIAÇÃO -->
+<div class="modal" id="modalDetalhesAvaliacao">
+ <div class="modal-box" style="max-width:520px">
+  <h2 id="tituloDetalhesAvaliacao">📝 Informações da avaliação</h2>
+  <p class="small" style="margin-bottom:18px">Clique no cabeçalho da avaliação para consultar ou registrar os dados dela.</p>
+  <div class="field" style="margin-bottom:12px">
+    <label>Data da avaliação:</label>
+    <input type="date" id="dataAvaliacao">
+  </div>
+  <div class="field" style="margin-bottom:12px">
+    <label>Valor da avaliação (pontos):</label>
+    <input type="text" id="valorAvaliacao" inputmode="decimal" autocomplete="off" placeholder="Ex.: 2,0 ou 10,0" onblur="normalizarValorAvaliacao()">
+  </div>
+  <div class="field" style="margin-bottom:12px">
+    <label>Observação:</label>
+    <textarea id="observacaoAvaliacao" style="min-height:120px" placeholder="Ex.: Prova escrita sobre produção de raios X."></textarea>
+  </div>
+  <div class="flex">
+    <button class="primary" type="button" onclick="salvarDetalhesAvaliacao()">Salvar informações</button>
+    <button type="button" onclick="fecharDetalhesAvaliacao()">Cancelar</button>
+  </div>
+ </div>
+</div>
+
+<!-- MODAL DE ENVIO POR EMAIL -->
+<div class="modal" id="modalEmail">
+ <div class="modal-box" style="max-width:560px">
+  <h2 id="tituloModalCompartilhamento">📧 Enviar Diários por E-mail</h2>
+  <p class="small" id="descricaoModalCompartilhamento">Informe o destinatário e marque quais disciplinas deseja enviar. As disciplinas selecionadas serão reunidas em um único PDF.</p>
+  <div class="field" id="campoEmailDestino" style="margin-bottom:12px">
+    <label>E-mail do Destinatário:</label>
+    <input type="email" id="emailDestino" placeholder="exemplo@instituicao.com.br">
+  </div>
+  <div class="field" style="margin-bottom:12px">
+    <label>Disciplinas:</label>
+    <div class="disciplinas-seletor">
+      <label class="disciplinas-todas">
+        <input type="checkbox" id="selecionarTodasDisciplinasEmail" onchange="alternarTodasDisciplinasEmail(this.checked)">
+        <span>Todas</span>
+      </label>
+      <div id="selecaoDisciplinasEmail" class="disciplinas-lista">
+        <div class="disciplinas-vazio">Carregando disciplinas...</div>
+      </div>
+    </div>
+  </div>
+  <div class="field" id="campoMensagemEmail" style="margin-bottom:12px">
+    <label>Mensagem adicional (opcional):</label>
+    <textarea id="msgAdicionalEmail" placeholder="Escreva uma observação ou recado..."></textarea>
+  </div>
+  <div id="statusEmail" style="display:none;padding:8px;border-radius:6px;font-size:12px;margin-bottom:12px"></div>
+  <div class="flex">
+    <button class="primary" id="btnConfirmarEnvioEmail" onclick="executarCompartilhamentoPDF()">Confirmar e Enviar</button>
+    <button onclick="fecharModalEmail()">Cancelar</button>
+  </div>
+ </div>
+</div>
+
+<div class="modal" id="modalListaAlunos">
+ <div class="modal-box">
+  <h2>Adicionar lista de alunos</h2>
+  <p class="small">Cole os nomes dos alunos abaixo (um por linha) para vincular à turma selecionada.</p>
+  <textarea id="listaAlunos" style="min-height:240px" placeholder="João da Silva&#10;Maria de Souza&#10;Ana Paula Santos"></textarea>
+  <div class="flex" style="margin-top:12px">
+   <button class="primary" onclick="importarListaAlunos()">Adicionar alunos</button>
+   <button onclick="fecharListaAlunos()">Cancelar</button>
+  </div>
+ </div>
+</div>
+
+<div class="modal" id="modalPesquisa">
+ <div class="modal-box">
+  <h2>Pesquisa Global de Aluno</h2>
+  <p class="small">Digite o nome do aluno para buscar em todas as turmas cadastradas.</p>
+  <input id="pesquisaAluno" type="text" placeholder="Digite o nome..." oninput="pesquisarAluno()" style="font-size:18px">
+  <div id="resultadoPesquisa" style="margin-top:16px"></div>
+  <div class="flex" style="margin-top:16px"><button onclick="fecharPesquisa()">Fechar</button></div>
+ </div>
+</div>
+
+<div class="modal" id="modalConfig">
+ <div class="modal-box">
+  <h2>Configurações</h2>
+  <p class="small">Cadastre uma opção por linha. A ordem alfabética (A-Z) é aplicada automaticamente ao salvar. Turmas apagadas nesta janela serão excluídas de todo o sistema.</p>
+  <div class="grid">
+   <div class="field"><label>Instituições</label><textarea id="cfgInstituicao"></textarea></div>
+   <div class="field"><label>Cursos</label><textarea id="cfgCurso"></textarea></div>
+   <div class="field"><label>Turmas</label><textarea id="cfgTurma"></textarea></div>
+   <div class="field"><label>Disciplinas</label><textarea id="cfgDisciplina"></textarea></div>
+   <div class="field"><label>Professores</label><textarea id="cfgProfessor"></textarea></div>
+  </div>
+  <div class="flex" style="margin-top:14px">
+   <button class="primary" onclick="salvarConfig()">Salvar configurações</button>
+   <button onclick="fecharConfiguracoes()">Cancelar</button>
+  </div>
+ </div>
+</div>
+
+<script>
+const KEY = 'diario_notas_radiologia_dados_estaveis_v16';
+const URL_API_GOOGLE = 'https://script.google.com/macros/s/AKfycbwFyMaYDDEV2OLL2rpoJI4WQ_bvyssYlqt5OjkCpg2i7rj9H-9E-CelcqTiWN5gKW6H/exec';
+
+let diarioAtivo = '';
+let turmaAtiva = '';
+
+const LOGOS_INSTITUICOES = {
+  'instituto do conhecimento da bahia': 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 110" width="450" height="110"><g transform="translate(10,5)"><ellipse cx="50" cy="50" rx="36" ry="36" fill="%23f7c948" opacity="0.9"/><path d="M 40 25 Q 50 12 56 12 Q 62 18 56 26 Q 48 30 40 25 Z" fill="%237cb342"/><path d="M 46 22 Q 40 10 32 12 Q 28 18 36 24 Q 42 26 46 22 Z" fill="%238bc34a"/><circle cx="48" cy="38" r="6" fill="%230288d1"/><path d="M 48 46 C 40 56 32 68 36 84 C 42 70 52 64 56 54 C 54 48 50 46 48 46 Z" fill="%230288d1"/><path d="M 18 84 C 30 76 44 76 48 84 C 52 76 66 76 78 84 L 74 94 C 62 86 52 86 48 92 C 44 86 34 86 22 94 Z" fill="none" stroke="%23ff6d00" stroke-width="2.5"/><path d="M 24 87 C 32 80 44 80 48 86" fill="none" stroke="%230288d1" stroke-width="1.5"/><path d="M 72 87 C 64 80 52 80 48 86" fill="none" stroke="%230288d1" stroke-width="1.5"/></g><g transform="translate(125, 12)"><text x="0" y="46" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="44" fill="%230091ea" letter-spacing="1">ICB</text><text x="0" y="66" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="16" fill="%230091ea" letter-spacing="1">INSTITUTO</text><text x="0" y="81" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="10.5" fill="%230091ea" letter-spacing="0.8">DO CONHECIMENTO DA BAHIA</text><line x1="0" y1="51" x2="260" y2="51" stroke="%230091ea" stroke-width="2.5"/></g></svg>'
+};
+
+const CONFIG_PADRAO = {
+  instituicao: ['Instituto do Conhecimento da Bahia'],
+  curso: ['Téc. em Enfermagem', 'Téc. em Radiologia'],
+  turma: ['Radiologia A', 'Radiologia B', 'Radiologia C', 'Radiologia D', 'Radiologia E', 'Radiologia F', 'Radiologia G', 'Radiologia H'],
+  disciplina: ['Anatomia Radiológica', 'Física Aplicada', 'Incidências II', 'Patologia Ap.', 'Português', 'Proteção Radiológica', 'Técnicas Radiológicas'],
+  professor: ['Moisés Menezes dos Santos']
+};
+
+const NOMES_PADRAO_RAD_C = ["ADENAILSON ALVES MIGUEL B. JUNIOR", "ALEFF HENRIQUE ARAUJO BRITO", "ANA PAULA SILVA DE JESUS", "ANDRÉ ALVES BONFIM", "ANDRESA ROCHA MENEZES", "BARBARA LAISE DA SILVA", "BRENDA PEREIRA DA SILVA", "CAROLINE BARROS DE OLIVEIRA", "DAINE DA SILVA SANTOS", "FRANCISCA KALINY O. DE ANDRADE", "GABRIEL SAMUEL SANTOS DA PAIXÃO", "ISAILDE DE OLIVEIRA SOUZA", "JEAN JORGE LOIOLA DE SOUZA", "JOÃO VICTOR DE SOUZA BATISTA", "LISANDRA MOURA ALECRIM", "LUCIENE PEREIRA DE ANDRADE OLIVEIRA", "MATEUS ALVES MIGUEL", "NOEMA LEANDRO NASCIMENTO", "PAULA DOS SANTOS ARAÚJO", "TAILA DA SILVA ELOI", "TAINÁ PESSOA DOS SANTOS", "THAÍS QUELLE MARIA DE ALMEIDA", "TICIANA AMORIM REIS LEITE", "WILLIAM MIRANDA DUARTE DE JESUS", "YASMIN ROCHA BASTOS", "ZÉLIA LAIANE BARRETO MATOS"];
+
+let estado = {
+  config: JSON.parse(JSON.stringify(CONFIG_PADRAO)),
+  avaliacoes: ['1ª Aval.', '2ª Aval.', '3ª Aval.'],
+  detalhesAvaliacoes: [{ data: '', valor: '', observacao: '' }, { data: '', valor: '', observacao: '' }, { data: '', valor: '', observacao: '' }],
+  alunos: [],
+  diarios: {},
+  listasTurmas: {
+    'Téc. em Radiologia': {
+      "Radiologia C": [...NOMES_PADRAO_RAD_C],
+      "Radiologia B": [], "Radiologia D": [], "Radiologia E": [], "Radiologia F": [], "Radiologia G": [], "Radiologia H": []
     }
+  },
+  disciplinasCursos: {
+    'Téc. em Radiologia': [...CONFIG_PADRAO.disciplina],
+    'Téc. em Enfermagem': []
+  }
+};
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./service-worker.js').catch(function (error) {
-          console.log('Service Worker:', error);
+function normalizarEstruturasPorCurso(){
+  if(!estado.listasTurmas || typeof estado.listasTurmas !== 'object') estado.listasTurmas = {};
+  if(!estado.disciplinasCursos || typeof estado.disciplinasCursos !== 'object') estado.disciplinasCursos = {};
+  (estado.config?.curso || []).forEach(curso => {
+    if(!estado.listasTurmas[curso]) estado.listasTurmas[curso] = {};
+    if(!Array.isArray(estado.disciplinasCursos[curso])) estado.disciplinasCursos[curso] = [...(estado.config.disciplina || [])];
+  });
+}
+
+function listaTurmasDoCurso(curso){
+  normalizarEstruturasPorCurso();
+  return ordenarListaTexto(estado.config?.turma || []);
+}
+
+function disciplinasDoCurso(curso){
+  normalizarEstruturasPorCurso();
+  return ordenarListaTexto(estado.disciplinasCursos?.[curso] || []);
+}
+
+function obterListaDaTurma(curso, turma){
+  normalizarEstruturasPorCurso();
+  return [...(estado.listasTurmas?.[curso]?.[turma] || [])];
+}
+
+function $id(id){ return document.getElementById(id); }
+
+function ordenarListaTexto(arr){
+  return (arr || []).map(x => String(x || '').trim()).filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+}
+
+function ordenarTodasConfiguracoes(){
+  if(!estado.config) estado.config = {};
+  ['instituicao', 'curso', 'turma', 'disciplina', 'professor'].forEach(k => {
+    estado.config[k] = ordenarListaTexto(estado.config[k] || []);
+  });
+}
+
+function inicializarEstruturaBase(){
+  estado.config = JSON.parse(JSON.stringify(CONFIG_PADRAO));
+  ordenarTodasConfiguracoes();
+  estado.avaliacoes = ['1ª Aval.', '2ª Aval.', '3ª Aval.'];
+  estado.detalhesAvaliacoes = estado.avaliacoes.map(() => ({ data: '', valor: '', observacao: '' }));
+  estado.listasTurmas = { 'Téc. em Radiologia': { 'Radiologia C': [...NOMES_PADRAO_RAD_C] } };
+  estado.disciplinasCursos = { 'Téc. em Radiologia': [...CONFIG_PADRAO.disciplina] };
+  estado.alunos = NOMES_PADRAO_RAD_C.map(nome => ({ nome: nome.toUpperCase(), notas: ['', '', ''], recuperacao: '', observacao: '' }));
+}
+
+// Sincronização via Fetch com a API do Apps Script
+function salvarLocal(callback){
+  const dadosJson = JSON.stringify(estado);
+  try { localStorage.setItem(KEY, dadosJson); } catch(e) {}
+
+  if(!URL_API_GOOGLE) {
+    if(typeof callback === 'function') callback(true);
+    return;
+  }
+
+  if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Sincronizando...';
+
+  fetch(URL_API_GOOGLE, {
+    method: 'POST',
+    body: JSON.stringify({ acao: 'salvar', dadosJson: dadosJson })
+  })
+  .then(res => res.json())
+  .then(res => {
+    const ok = !!(res && res.sucesso);
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = ok ? '☁️ Nuvem Ativa' : '⚠️ Erro na Nuvem';
+    if(typeof callback === 'function') callback(ok);
+  })
+  .catch(err => {
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = '⚠️ Modo Local';
+    if(typeof callback === 'function') callback(false, err.message);
+  });
+}
+
+function carregarDadosDaNuvem(callback){
+  try {
+    const salvo = JSON.parse(localStorage.getItem(KEY));
+    if(salvo && salvo.config && salvo.listasTurmas){
+      estado = salvo;
+      ordenarTodasConfiguracoes();
+    }
+  } catch(e) {}
+
+  if(!URL_API_GOOGLE){
+    if(typeof callback === 'function') callback();
+    return;
+  }
+
+  if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Conectando...';
+
+  fetch(URL_API_GOOGLE, {
+    method: 'POST',
+    body: JSON.stringify({ acao: 'carregar' })
+  })
+  .then(res => res.json())
+  .then(res => {
+    if(res && res.sucesso && res.dados){
+      const dados = JSON.parse(res.dados);
+      if(dados && dados.config && dados.listasTurmas && dados.diarios){
+        estado = dados;
+        ordenarTodasConfiguracoes();
+        normalizarEstruturasPorCurso();
+        try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch(e) {}
+        if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Nuvem Sincronizada';
+      }
+    } else {
+      if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Nuvem Vazia';
+    }
+    if(typeof callback === 'function') callback();
+  })
+  .catch(err => {
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = '⚠️ Modo Local';
+    if(typeof callback === 'function') callback();
+  });
+}
+
+function exportarArquivoBackup(){
+  const blob = new Blob([JSON.stringify(estado, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup_diario_notas_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarArquivoBackup(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try {
+      const dados = JSON.parse(evt.target.result);
+      if(dados && dados.config && dados.listasTurmas && dados.diarios){
+        estado = dados;
+        ordenarTodasConfiguracoes();
+        normalizarEstruturasPorCurso();
+        preencherSelects();
+        trocarSelecao();
+        render();
+        salvarLocal(function(ok){
+          alert('Backup restaurado e sincronizado com a nuvem com sucesso!');
         });
-      });
+      } else {
+        alert('Arquivo de backup inválido.');
+      }
+    } catch(err){
+      alert('Erro ao ler backup: ' + err.message);
     }
-  </script>
+  };
+  reader.readAsText(file);
+}
+
+function chaveDiario(turma, disciplina, inst, curso){
+  const i = inst || $id('instituicao')?.value || '';
+  const c = curso || $id('curso')?.value || '';
+  const t = turma || $id('turma')?.value || '';
+  const d = disciplina || $id('disciplina')?.value || '';
+  return `${i}¦${c}¦${t}¦${d}`;
+}
+
+function populate(id, arr, selecionado){
+  const el = $id(id);
+  if(!el) return;
+  el.innerHTML = '';
+  const listaOrdenada = ordenarListaTexto(arr);
+  listaOrdenada.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v;
+    o.textContent = v;
+    el.appendChild(o);
+  });
+  if(selecionado && listaOrdenada.includes(selecionado)) el.value = selecionado;
+}
+
+function preencherSelects(){
+  ordenarTodasConfiguracoes();
+  normalizarEstruturasPorCurso();
+  const iAtual = $id('instituicao')?.value;
+  const cAtual = $id('curso')?.value;
+  const tAtual = $id('turma')?.value;
+  const dAtual = $id('disciplina')?.value;
+  const pAtual = $id('professor')?.value;
+
+  populate('instituicao', estado.config.instituicao, iAtual || estado.config.instituicao[0]);
+  populate('curso', estado.config.curso, cAtual || estado.config.curso.find(c => /radiologia/i.test(c)) || estado.config.curso[0]);
+
+  const curso = $id('curso')?.value || '';
+  const turmas = listaTurmasDoCurso(curso);
+  const disciplinas = disciplinasDoCurso(curso);
+
+  populate('turma', turmas, turmas.includes(tAtual) ? tAtual : (turmas[0] || ''));
+  populate('disciplina', disciplinas, disciplinas.includes(dAtual) ? dAtual : (disciplinas[0] || ''));
+  populate('professor', estado.config.professor, pAtual || estado.config.professor[0]);
+  atualizarAvisoCurso();
+}
+
+function atualizarAvisoCurso(){
+  const curso = $id('curso')?.value || '';
+  const turmas = listaTurmasDoCurso(curso);
+  const disciplinas = disciplinasDoCurso(curso);
+  const aviso = $id('aviso');
+  if(!curso) return;
+  if(!turmas.length || !disciplinas.length){
+    aviso.textContent = `O curso "${curso}" não possui turmas ou disciplinas cadastradas.`;
+    aviso.style.display = 'block';
+  } else {
+    aviso.style.display = 'none';
+  }
+}
+
+function formatarDataBR(dataStr){
+  if(!dataStr) return '';
+  const partes = dataStr.split('-');
+  return partes.length !== 3 ? dataStr : `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function atualizarCabecalho(){
+  const inst = $id('instituicao')?.value || 'Instituição';
+  const curso = $id('curso')?.value || 'Curso';
+  const turma = $id('turma')?.value || 'Turma';
+  const disc = $id('disciplina')?.value || 'Disciplina';
+  const prof = $id('professor')?.value || '';
+  const pIni = formatarDataBR($id('periodoIni')?.value);
+  const pFim = formatarDataBR($id('periodoFim')?.value);
+  const tipo = $id('tipoCalculo')?.value === 'soma' ? 'Soma de Pontos (Total 10,0)' : 'Média Aritmética';
+  const min = $id('notaMin')?.value || '6.0';
+
+  $id('tituloCabecalho').textContent = 'Diário de Notas do Professor';
+  $id('subCabecalho').textContent = inst.toUpperCase();
+
+  const logoSrc = LOGOS_INSTITUICOES[inst.trim().toLowerCase()];
+  if(logoSrc) { $id('pdfLogoImg').src = logoSrc; $id('pdfTimbreBox').style.display = 'flex'; }
+  else { $id('pdfTimbreBox').style.display = 'none'; }
+
+  $id('pdfInst').textContent = inst.toUpperCase();$id('pdfCurso').textContent = curso;
+  $id('pdfTurma').textContent = turma;
+  $id('pdfDisc').textContent = disc;
+  $id('pdfProf').textContent = prof || 'Não informado';
+  $id('pdfTipoNota').textContent = tipo;
+  $id('pdfNotaMin').textContent = parseFloat(min).toFixed(1).replace('.', ',');$id('pdfPeriodo').textContent = pIni && pFim ? `${pIni} até ${pFim}` : (pIni ? `A partir de ${pIni}` : 'Não informado');
+  $id('pdfAssinaturaNome').textContent = prof ? `Prof. ${prof}` : 'Assinatura do Docente';
+  
+  const hoje = new Date();
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  $id('pdfDataEmissao').textContent = `Irecê - BA, ${hoje.getDate()} de ${meses[hoje.getMonth()]} de ${hoje.getFullYear()}.`;
+}
+
+function salvarDiarioSemReconstruir(){
+  const chave = diarioAtivo || chaveDiario();
+  if(!chave || chave === '¦¦¦') return;
+  const cursoAtual = $id('curso')?.value || '';
+  const turmaAtual = $id('turma')?.value || '';
+
+  estado.diarios[chave] = {
+    instituicao: $id('instituicao')?.value || '',
+    curso: cursoAtual,
+    turma: turmaAtual,
+    disciplina: $id('disciplina')?.value || '',
+    professor: $id('professor')?.value || '',
+    tipoCalculo: $id('tipoCalculo')?.value || 'soma',
+    periodoIni: $id('periodoIni')?.value || '',
+    periodoFim: $id('periodoFim')?.value || '',
+    notaMin: $id('notaMin')?.value || '6',
+    avaliacoes: [...estado.avaliacoes],
+    detalhesAvaliacoes: JSON.parse(JSON.stringify(estado.detalhesAvaliacoes || [])),
+    alunos: JSON.parse(JSON.stringify(estado.alunos))
+  };
+
+  if(cursoAtual && turmaAtual){
+    if(!estado.listasTurmas[cursoAtual]) estado.listasTurmas[cursoAtual] = {};
+    estado.listasTurmas[cursoAtual][turmaAtual] = estado.alunos.map(a => String(a.nome || '').trim().toUpperCase());
+  }
+  salvarLocal();
+}
+
+function salvarDiarioAtual(){ salvarDiarioSemReconstruir(); }
+
+function trocarSelecao(){
+  normalizarEstruturasPorCurso();
+  const cursoAtual = $id('curso')?.value || '';
+  const turmaAtual = $id('turma')?.value || '';
+  const disciplinaAtual = $id('disciplina')?.value || '';
+
+  const turmas = listaTurmasDoCurso(cursoAtual);
+  const disciplinas = disciplinasDoCurso(cursoAtual);
+
+  if(!turmas.includes(turmaAtual)) populate('turma', turmas, turmas[0] || '');
+  if(!disciplinas.includes(disciplinaAtual)) populate('disciplina', disciplinas, disciplinas[0] || '');
+
+  const turma = $id('turma')?.value || '';
+  const disciplina = $id('disciplina')?.value || '';
+
+  if(!cursoAtual || !turma || !disciplina){
+    diarioAtivo = '';
+    estado.alunos = [];
+    atualizarCabecalho();
+    render();
+    atualizarAvisoCurso();
+    return;
+  }
+
+  const novaChave = chaveDiario(turma, disciplina, $id('instituicao')?.value || '', cursoAtual);
+  diarioAtivo = novaChave;
+  const d = estado.diarios[novaChave];
+  const nomesDaTurma = obterListaDaTurma(cursoAtual, turma);
+
+  if(d){
+    estado.avaliacoes = Array.isArray(d.avaliacoes) && d.avaliacoes.length ? [...d.avaliacoes] : ['1ª Aval.', '2ª Aval.', '3ª Aval.'];
+    estado.detalhesAvaliacoes = Array.isArray(d.detalhesAvaliacoes) ? JSON.parse(JSON.stringify(d.detalhesAvaliacoes)) : [];
+    estado.detalhesAvaliacoes = estado.avaliacoes.map((_, i) => ({
+      data: estado.detalhesAvaliacoes[i]?.data || '',
+      valor: estado.detalhesAvaliacoes[i]?.valor || '',
+      observacao: estado.detalhesAvaliacoes[i]?.observacao || ''
+    }));
+    if(d.professor && estado.config.professor.includes(d.professor)) $id('professor').value = d.professor;
+    $id('tipoCalculo').value = d.tipoCalculo \vert{}\vert{} 'soma';$id('periodoIni').value = d.periodoIni || '';
+    $id('periodoFim').value = d.periodoFim \vert{}\vert{} '';$id('notaMin').value = d.notaMin || '6';
+
+    const notasSalvas = {};
+    (d.alunos || []).forEach(al => { if(al && al.nome) notasSalvas[al.nome.trim().toLowerCase()] = JSON.parse(JSON.stringify(al)); });
+
+    const nomesUnicos = [];
+    [...nomesDaTurma, ...(d.alunos || []).map(al => al?.nome || '')].forEach(nome => {
+      const n = String(nome || '').trim().toUpperCase();
+      if(n && !nomesUnicos.some(x => x.toLowerCase() === n.toLowerCase())) nomesUnicos.push(n);
+    });
+
+    estado.alunos = nomesUnicos.map(nome => {
+      const chaveNome = nome.trim().toLowerCase();
+      if(notasSalvas[chaveNome]){
+        const item = notasSalvas[chaveNome];
+        item.nome = item.nome.toUpperCase();
+        return item;
+      }
+      return { nome: nome.toUpperCase(), notas: Array(estado.avaliacoes.length).fill(''), recuperacao: '', observacao: '' };
+    });
+  } else {
+    estado.avaliacoes = ['1ª Aval.', '2ª Aval.', '3ª Aval.'];
+    estado.detalhesAvaliacoes = estado.avaliacoes.map(() => ({ data: '', valor: '', observacao: '' }));
+    $id('tipoCalculo').value = 'soma';$id('periodoIni').value = '';
+    $id('periodoFim').value = '';$id('notaMin').value = '6';
+    estado.alunos = nomesDaTurma.map(nome => ({ nome: nome.toUpperCase(), notas: Array(estado.avaliacoes.length).fill(''), recuperacao: '', observacao: '' }));
+  }
+
+  limparFiltroRapido();
+  ordenarAlunosInterno();
+  atualizarCabecalho();
+  render();
+  atualizarAvisoCurso();
+  salvarLocal();
+}
+
+function montarCabecalho(){
+  if(!Array.isArray(estado.detalhesAvaliacoes)) estado.detalhesAvaliacoes = [];
+  const tr = $id('cabTabela'); 
+  tr.innerHTML = '';
+  
+  const thSel = document.createElement('th');
+  thSel.style.width = '30px';
+  const ck = document.createElement('input');
+  ck.type = 'checkbox';
+  ck.id = 'selecionarTodos';
+  ck.addEventListener('change', () => {
+    document.querySelectorAll('#corpoTabela tr:not([style*="display: none"]) input.sel[type="checkbox"]').forEach(c => c.checked = ck.checked);
+  });
+  thSel.appendChild(ck);
+  tr.appendChild(thSel);
+
+  const thNome = document.createElement('th');
+  thNome.className = 'col-nome';
+  thNome.textContent = 'NOME DO ALUNO';
+  tr.appendChild(thNome);
+
+  estado.avaliacoes.forEach((x, i) => {
+    const th = document.createElement('th');
+    th.className = 'col-nota avaliacao-clicavel';
+    const detalhe = estado.detalhesAvaliacoes[i] || {};
+    const temDetalhe = !!(detalhe.data || detalhe.valor || detalhe.observacao);
+    th.textContent = temDetalhe ? `${x} 📝` : x;
+    th.style.cursor = 'pointer';
+    th.addEventListener('click', () => abrirDetalhesAvaliacao(i));
+    tr.appendChild(th);
+  });
+
+  const tipo = $id('tipoCalculo')?.value || 'soma';
+  const thRes = document.createElement('th');
+  thRes.className = 'col-total';
+  thRes.textContent = tipo === 'soma' ? 'TOTAL' : 'MÉDIA';
+  tr.appendChild(thRes);
+
+  const thRecup = document.createElement('th');
+  thRecup.className = 'col-nota';
+  thRecup.textContent = 'RECUP.';
+  tr.appendChild(thRecup);
+
+  const thSit = document.createElement('th');
+  thSit.className = 'col-sit';
+  thSit.textContent = 'SITUAÇÃO FINAL';
+  tr.appendChild(thSit);
+
+  const thObs = document.createElement('th');
+  thObs.textContent = 'OBSERVAÇÕES';
+  tr.appendChild(thObs);
+}
+
+function calcular(aluno){
+  const notas = estado.avaliacoes.map((_, i) => {
+    const v = parseFloat(String(aluno.notas?.[i] ?? '').replace(',', '.'));
+    return Number.isFinite(v) ? v : null;
+  }).filter(v => v !== null);
+
+  const soma = notas.reduce((a, b) => a + b, 0);
+  const tipo = $id('tipoCalculo')?.value || 'soma';
+  const notaFinal = tipo === 'soma' ? soma : (notas.length ? soma / notas.length : 0);
+  const recupVal = parseFloat(String(aluno.recuperacao ?? '').replace(',', '.'));
+  const notaComparada = Number.isFinite(recupVal) ? Math.max(notaFinal, recupVal) : notaFinal;
+  const min = parseFloat($id('notaMin')?.value) || 6;
+
+  let situacao = '';
+  if(notas.length === 0 && !Number.isFinite(recupVal)) situacao = 'Sem notas';
+  else if(notaComparada >= min) situacao = 'Aprovado';
+  else situacao = 'Reprovado';
+
+  return { soma, notaFinal, situacao, temNota: (notas.length > 0 || Number.isFinite(recupVal)) };
+}
+
+function render(){
+  montarCabecalho();
+  const tb = $id('corpoTabela');
+  tb.innerHTML = '';
+
+  if(estado.alunos.length === 0){
+    const trVazio = document.createElement('tr');
+    trVazio.innerHTML = `<td colspan="${6 + estado.avaliacoes.length}" style="padding:22px;color:#888;font-size:13px">Nenhum aluno cadastrado nesta turma.</td>`;
+    tb.appendChild(trVazio);
+    atualizarStats();
+    return;
+  }
+
+  estado.alunos.forEach((a, idx) => {
+    if(!Array.isArray(a.notas)) a.notas = [];
+    const tr = document.createElement('tr');
+    tr.dataset.alunoNome = (a.nome || '').toUpperCase();
+
+    let td = document.createElement('td');
+    let ck = document.createElement('input');
+    ck.type = 'checkbox';
+    ck.className = 'sel';
+    ck.dataset.idx = idx;
+    td.appendChild(ck);
+    tr.appendChild(td);
+
+    td = document.createElement('td');
+    td.className = 'name';
+    td.contentEditable = 'true';
+    td.spellcheck = false;
+    td.textContent = (a.nome || '').toUpperCase();
+    td.addEventListener('input', () => { a.nome = td.textContent.replace(/\u00a0/g, ' ').trim().toUpperCase(); tr.dataset.alunoNome = a.nome; });
+    td.addEventListener('blur', () => { td.textContent = td.textContent.toUpperCase(); sincronizarNomesDaTabela(); atualizarListaTurmaAtual(); salvarDiarioSemReconstruir(); });
+    tr.appendChild(td);
+
+    estado.avaliacoes.forEach((_, j) => {
+      td = document.createElement('td');
+      td.className = 'col-nota';
+      let inp = document.createElement('input');
+      inp.type = 'text';
+      inp.inputMode = 'decimal';
+      inp.placeholder = '0,0';
+      inp.value = a.notas[j] ? String(a.notas[j]).replace('.', ',') : '';
+      inp.addEventListener('blur', e => {
+        let val = e.target.value.replace(',', '.').trim();
+        let num = parseFloat(val);
+        if(!isNaN(num)){
+          num = Math.max(0, Math.min(10, num));
+          a.notas[j] = num.toFixed(1);
+          e.target.value = num.toFixed(1).replace('.', ',');
+        } else {
+          a.notas[j] = '';
+          e.target.value = '';
+        }
+        atualizarLinha(idx, tr);
+        salvarDiarioAtual();
+      });
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+
+    for(let k = 0; k < 4; k++) tr.appendChild(document.createElement('td'));
+    atualizarLinha(idx, tr);
+    tb.appendChild(tr);
+  });
+
+  filtrarAlunosTabela();
+  atualizarStats();
+}
+
+function filtrarAlunosTabela(){
+  const termo = ($id('filtroRapidoAluno')?.value || '').trim().toUpperCase();
+  document.querySelectorAll('#corpoTabela tr').forEach(linha => {
+    const nome = linha.dataset.alunoNome || '';
+    linha.style.display = (!termo || nome.includes(termo)) ? '' : 'none';
+  });
+}
+
+function limparFiltroRapido(){
+  const inp = $id('filtroRapidoAluno');
+  if(inp){ inp.value = ''; filtrarAlunosTabela(); }
+}
+
+function atualizarLinha(idx, tr){
+  const a = estado.alunos[idx];
+  if(!a) return;
+  const c = calcular(a);
+  const base = 2 + estado.avaliacoes.length;
+
+  const tdTotal = tr.children[base];
+  tdTotal.textContent = c.temNota ? c.notaFinal.toFixed(1).replace('.', ',') : '0,0';
+  tdTotal.className = 'col-total';
+  
+  const tdRecup = tr.children[base+1];
+  tdRecup.textContent = a.recuperacao ?? '';
+  tdRecup.contentEditable = 'true';
+  tdRecup.onblur = () => { a.recuperacao = tdRecup.textContent.trim(); atualizarLinha(idx, tr); atualizarStats(); salvarDiarioAtual(); };
+
+  const tdSit = tr.children[base+2];
+  tdSit.textContent = c.situacao;
+  tdSit.className = 'col-sit ' + (c.situacao === 'Aprovado' ? 'aprovado' : (c.situacao === 'Reprovado' ? 'reprovado' : ''));
+
+  const tdObs = tr.children[base+3];
+  tdObs.textContent = a.observacao || '';
+  tdObs.contentEditable = 'true';
+  tdObs.onblur = () => { a.observacao = tdObs.textContent.trim(); salvarDiarioAtual(); };
+}
+
+function atualizarStats(){
+  let total = estado.alunos.length, ap = 0, rep = 0, sem = 0;
+  estado.alunos.forEach(a => {
+    const s = calcular(a).situacao;
+    if(s === 'Aprovado') ap++; else if(s === 'Reprovado') rep++; else sem++;
+  });
+  $id('estatisticas').innerHTML = `<div class="stat">Alunos: <b>${total}</b></div><div class="stat">Aprovados: <b>${ap}</b></div><div class="stat">Reprovados: <b>${rep}</b></div><div class="stat">Sem notas: <b>${sem}</b></div>`;
+}
+
+function ordenarAlunosInterno(){
+  estado.alunos.sort((a,b) => (a.nome||'').trim().localeCompare((b.nome||'').trim(), 'pt-BR', {sensitivity: 'base'}));
+}
+
+function ordenarAlunos(){ ordenarAlunosInterno(); render(); salvarDiarioAtual(); }
+
+function sincronizarNomesDaTabela(){
+  document.querySelectorAll('#corpoTabela td.name').forEach((td, idx) => {
+    if(estado.alunos[idx]) estado.alunos[idx].nome = td.textContent.replace(/\u00a0/g, ' ').trim().toUpperCase();
+  });
+}
+
+function adicionarAluno(){
+  sincronizarNomesDaTabela();
+  estado.alunos.push({ nome: '', notas: Array(estado.avaliacoes.length).fill(''), recuperacao: '', observacao: '' });
+  atualizarListaTurmaAtual();
+  salvarDiarioSemReconstruir();
+  render();
+}
+
+function atualizarListaTurmaAtual(){
+  const t = $id('turma')?.value \vert{}\vert{} '', c =$id('curso')?.value || '';
+  if(!c || !t) return;
+  if(!estado.listasTurmas[c]) estado.listasTurmas[c] = {};
+  const atual = estado.listasTurmas[c][t] || [];
+  const novos = estado.alunos.map(a => String(a.nome || '').replace(/\u00a0/g, ' ').trim().toUpperCase()).filter(Boolean);
+  estado.listasTurmas[c][t] = [...new Set([...atual, ...novos])];
+}
+
+let avaliacaoDetalheAtual = -1;
+function normalizarDetalhesAvaliacoes(){
+  if(!Array.isArray(estado.detalhesAvaliacoes)) estado.detalhesAvaliacoes = [];
+  estado.detalhesAvaliacoes = estado.avaliacoes.map((_, i) => ({
+    data: estado.detalhesAvaliacoes[i]?.data || '',
+    valor: estado.detalhesAvaliacoes[i]?.valor || '',
+    observacao: estado.detalhesAvaliacoes[i]?.observacao || ''
+  }));
+}
+
+function abrirDetalhesAvaliacao(indice){
+  normalizarDetalhesAvaliacoes();
+  if(indice < 0 || indice >= estado.avaliacoes.length) return;
+  avaliacaoDetalheAtual = indice;
+  const detalhe = estado.detalhesAvaliacoes[indice];
+  $id('tituloDetalhesAvaliacao').textContent = `📝 ${estado.avaliacoes[indice]}`;
+  $id('dataAvaliacao').value = detalhe.data \vert{}\vert{} '';$id('valorAvaliacao').value = detalhe.valor || '';
+  $id('observacaoAvaliacao').value = detalhe.observacao \vert{}\vert{} '';$id('modalDetalhesAvaliacao').style.display = 'flex';
+}
+
+function fecharDetalhesAvaliacao(){ $id('modalDetalhesAvaliacao').style.display = 'none'; avaliacaoDetalheAtual = -1; }
+
+function normalizarValorAvaliacao(){
+  const campo = $id('valorAvaliacao');
+  if(!campo) return;
+  const num = parseFloat(String(campo.value || '').trim().replace(',', '.'));
+  campo.value = Number.isFinite(num) ? Math.max(0, Math.min(100, num)).toFixed(1).replace('.', ',') : '';
+}
+
+function salvarDetalhesAvaliacao(){
+  if(avaliacaoDetalheAtual < 0) return;
+  normalizarDetalhesAvaliacoes();
+  normalizarValorAvaliacao();
+  estado.detalhesAvaliacoes[avaliacaoDetalheAtual] = {
+    data: $id('dataAvaliacao').value || '',
+    valor: $id('valorAvaliacao').value || '',
+    observacao: ($id('observacaoAvaliacao').value || '').trim()
+  };
+  salvarDiarioAtual();
+  fecharDetalhesAvaliacao();
+  render();
+}
+
+function adicionarAvaliacao(){
+  const nome = prompt('Nome da nova avaliação:', `${estado.avaliacoes.length + 1}ª Aval.`);
+  if(!nome) return;
+  estado.avaliacoes.push(nome);
+  if(!Array.isArray(estado.detalhesAvaliacoes)) estado.detalhesAvaliacoes = [];
+  estado.detalhesAvaliacoes.push({ data: '', valor: '', observacao: '' });
+  estado.alunos.forEach(a => { if(!a.notas) a.notas = []; });
+  render();
+  salvarDiarioAtual();
+}
+
+function salvar(){
+  salvarLocal(function(ok){
+    const aviso = $id('aviso');
+    aviso.textContent = ok ? 'Lançamento salvo e sincronizado na nuvem!' : 'Salvo localmente (Modo Offline).';
+    aviso.style.display = 'block';
+    setTimeout(() => { aviso.style.display = 'none'; }, 2500);
+  });
+}
+
+function abrirListaAlunos(){ $id('listaAlunos').value = '';$id('modalListaAlunos').style.display = 'flex'; }
+function fecharListaAlunos(){ $id('modalListaAlunos').style.display = 'none'; }
+
+function importarListaAlunos(){
+  const texto = $id('listaAlunos').value;
+  if(!texto.trim()){ alert('Cole ao menos um nome.'); return; }
+  const linhas = texto.split(/\r?\n/).map(x => x.trim().replace(/^\s*(?:\d+\s*[\.\)\-:]\s*|\d+\s+)/, '').trim().toUpperCase()).filter(Boolean);
+  if(!linhas.length) return;
+
+  const existentes = new Set(estado.alunos.map(a => (a.nome||'').toUpperCase()));
+  linhas.forEach(nome => {
+    if(!existentes.has(nome)){
+      estado.alunos.push({ nome: nome, notas: Array(estado.avaliacoes.length).fill(''), recuperacao: '', observacao: '' });
+      existentes.add(nome);
+    }
+  });
+
+  const t = $id('turma')?.value, c =$id('curso')?.value || '';
+  if(t && c){ normalizarEstruturasPorCurso(); estado.listasTurmas[c][t] = estado.alunos.map(x => x.nome); }
+  ordenarAlunosInterno();
+  render();
+  fecharListaAlunos();
+  salvarDiarioAtual();
+}
+
+function abrirConfiguracoes(){
+  ordenarTodasConfiguracoes();
+  ['instituicao', 'curso', 'turma', 'disciplina', 'professor'].forEach(k => {
+    $id('cfg' + k.charAt(0).toUpperCase() + k.slice(1)).value = (estado.config[k] || []).join('\n');
+  });
+  $id('modalConfig').style.display = 'flex';
+}
+function fecharConfiguracoes(){ $id('modalConfig').style.display = 'none'; }
+
+function salvarConfig(){
+  ['instituicao', 'curso', 'turma', 'disciplina', 'professor'].forEach(k => {
+    const id = 'cfg' + k.charAt(0).toUpperCase() + k.slice(1);
+    estado.config[k] = ordenarListaTexto($id(id).value.split('\n'));
+  });
+  normalizarEstruturasPorCurso();
+  salvarLocal();
+  preencherSelects();
+  fecharConfiguracoes();
+  trocarSelecao();
+}
+
+function excluirTurmaAtual(){
+  const cursoAtual = $id('curso')?.value \vert{}\vert{} '', turmaAtual =$id('turma')?.value || '';
+  if(!turmaAtual) return;
+  if(listaTurmasDoCurso(cursoAtual).length <= 1){ alert('Não é possível excluir a única turma do curso.'); return; }
+  if(!confirm(`Deseja realmente excluir a turma "${turmaAtual}"?`)) return;
+
+  if(estado.listasTurmas?.[cursoAtual]?.[turmaAtual]) delete estado.listasTurmas[cursoAtual][turmaAtual];
+  estado.config.turma = estado.config.turma.filter(t => t !== turmaAtual);
+  Object.keys(estado.diarios).forEach(chave => { if(chave.includes(`¦${turmaAtual}¦`)) delete estado.diarios[chave]; });
+
+  salvarLocal();
+  preencherSelects();
+  trocarSelecao();
+}
+
+function abrirPesquisa(){ $id('modalPesquisa').style.display = 'flex'; $id('pesquisaAluno').value = '';$id('resultadoPesquisa').innerHTML = ''; }
+function fecharPesquisa(){ $id('modalPesquisa').style.display = 'none'; }
+
+function pesquisarAluno(){
+  const termo = ($id('pesquisaAluno').value || '').trim().toUpperCase();
+  const box = $id('resultadoPesquisa');
+  if(!termo){ box.innerHTML = ''; return; }
+  let achados = [];
+  Object.values(estado.diarios || {}).forEach(d => {
+    (d.alunos || []).forEach(a => {
+      if((a.nome || '').toUpperCase().includes(termo)) achados.push({ aluno: a, turma: d.turma, disciplina: d.disciplina, tipoCalculo: d.tipoCalculo || 'soma' });
+    });
+  });
+  box.innerHTML = achados.length ? achados.map(({aluno, turma, disciplina, tipoCalculo}) => {
+    const c = calcular(aluno);
+    return `<div style="border:1px solid #d6dbe1;border-radius:8px;padding:12px;margin-bottom:10px"><b>${aluno.nome}</b><br><small>Turma: ${turma} | Disciplina: ${disciplina} | Nota Final: ${c.temNota ? c.notaFinal.toFixed(1).replace('.', ',') : '-'}</small></div>`;
+  }).join('') : '<p>Nenhum aluno encontrado.</p>';
+}
+
+function prepararHtmlExportacaoPDF(){
+  atualizarCabecalho();
+  const trCab = $id('pdfCabTabela');
+  trCab.innerHTML = '<th class="pdf-col-num">Nº</th><th class="col-nome">NOME DO ALUNO</th>';
+  estado.avaliacoes.forEach(av => {
+    const th = document.createElement('th'); th.className = 'pdf-col-nota-compacta'; th.textContent = av; trCab.appendChild(th);
+  });
+  const tipo = $id('tipoCalculo').value === 'soma' ? 'TOTAL' : 'MÉDIA';
+  const thRes = document.createElement('th'); thRes.className = 'pdf-col-nota-compacta'; thRes.textContent = tipo; trCab.appendChild(thRes);
+  const thRecup = document.createElement('th'); thRecup.className = 'pdf-col-nota-compacta'; thRecup.textContent = 'RECUP.'; trCab.appendChild(thRecup);
+  const thSit = document.createElement('th'); thSit.className = 'pdf-col-sit'; thSit.textContent = 'SITUAÇÃO'; trCab.appendChild(thSit);
+  const thObs = document.createElement('th'); thObs.className = 'pdf-col-obs'; thObs.textContent = 'OBSERVAÇÕES'; trCab.appendChild(thObs);
+
+  const tbCorpo = $id('pdfCorpoTabela');
+  tbCorpo.innerHTML = '';
+  estado.alunos.forEach((a, idx) => {
+    const c = calcular(a);
+    let tds = `<td class="pdf-col-num">${idx + 1}</td><td class="name">${(a.nome || '').toUpperCase()}</td>`;
+    estado.avaliacoes.forEach((_, j) => { tds += `<td class="pdf-col-nota-compacta">${a.notas?.[j] ? String(a.notas[j]).replace('.', ',') : '-'}</td>`; });
+    tds += `<td class="pdf-col-nota-compacta"><b>${c.temNota ? c.notaFinal.toFixed(1).replace('.', ',') : '-'}</b></td>`;
+    tds += `<td class="pdf-col-nota-compacta">${a.recuperacao ? String(a.recuperacao).replace('.', ',') : '-'}</td>`;
+    tds += `<td class="pdf-col-sit" style="font-weight:bold;${c.situacao==='Aprovado'?'color:#0b5cab;':'color:#b42318;'}">${c.situacao}</td>`;
+    tds += `<td class="pdf-col-obs">${a.observacao || ''}</td>`;
+    const tr = document.createElement('tr'); tr.innerHTML = tds; tbCorpo.appendChild(tr);
+  });
+}
+
+function abrirModalCompartilharPDF(){ $id('modalCompartilharPDF').style.display = 'flex'; }
+function fecharModalCompartilharPDF(){ $id('modalCompartilharPDF').style.display = 'none'; }
+function opcaoBaixarPDF(){ fecharModalCompartilharPDF(); prepararHtmlExportacaoPDF(); html2pdf().set({ margin: [4.8, 4, 4, 4], filename: `Diario_${$id('turma').value}_${$id('disciplina').value}.pdf`.replace(/\s+/g, '_'), image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from($id('areaExportacaoPDF')).save(); }
+function opcaoEnviarEmail(){ fecharModalCompartilharPDF(); alert('Para envio de e-mails direto, utilize o painel institucional do Google Apps Script.'); }
+
+document.addEventListener('DOMContentLoaded', function(){
+  carregarDadosDaNuvem(function(){
+    preencherSelects();
+    trocarSelecao();
+    render();
+  });
+});
+</script>
 </body>
 </html>
