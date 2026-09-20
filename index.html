@@ -192,7 +192,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
     <h1 id="tituloCabecalho">Diário de Notas do Professor</h1>
     <p id="subCabecalho">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
   </div>
-  <div class="user-badge" id="badgeUsuario">Conectando...</div>
+  <div class="user-badge" id="badgeUsuario">Dados Sincronizados</div>
 </header>
 
 <div class="toolbar">
@@ -406,8 +406,14 @@ const LOGOS_INSTITUICOES = {
 const CONFIG_PADRAO = {
   instituicao: ['Instituto do Conhecimento da Bahia'],
   curso: ['Téc. em Enfermagem', 'Téc. em Radiologia'],
-  turma: ['Radiologia A', 'Radiologia B', 'Radiologia C', 'Radiologia D', 'Radiologia E', 'Radiologia F', 'Radiologia G', 'Radiologia H'],
-  disciplina: ['Anatomia Radiológica', 'Física Aplicada', 'Incidências II', 'Patologia Ap.', 'Português', 'Proteção Radiológica', 'Técnicas Radiológicas'],
+  turma: [
+    'Radiologia A', 'Radiologia B', 'Radiologia C', 'Radiologia D',
+    'Radiologia E', 'Radiologia F', 'Radiologia G', 'Radiologia H'
+  ],
+  disciplina: [
+    'Anatomia Radiológica', 'Física Aplicada', 'Incidências II', 
+    'Patologia Ap.', 'Português', 'Proteção Radiológica', 'Técnicas Radiológicas'
+  ],
   professor: ['Moisés Menezes dos Santos']
 };
 
@@ -416,13 +422,22 @@ const NOMES_PADRAO_RAD_C = ["ADENAILSON ALVES MIGUEL B. JUNIOR", "ALEFF HENRIQUE
 let estado = {
   config: JSON.parse(JSON.stringify(CONFIG_PADRAO)),
   avaliacoes: ['1ª Aval.', '2ª Aval.', '3ª Aval.'],
-  detalhesAvaliacoes: [{ data: '', valor: '', observacao: '' }, { data: '', valor: '', observacao: '' }, { data: '', valor: '', observacao: '' }],
+  detalhesAvaliacoes: [
+    { data: '', valor: '', observacao: '' },
+    { data: '', valor: '', observacao: '' },
+    { data: '', valor: '', observacao: '' }
+  ],
   alunos: [],
   diarios: {},
   listasTurmas: {
     'Téc. em Radiologia': {
       "Radiologia C": [...NOMES_PADRAO_RAD_C],
-      "Radiologia B": [], "Radiologia D": [], "Radiologia E": [], "Radiologia F": [], "Radiologia G": [], "Radiologia H": []
+      "Radiologia B": ["ALVINA ALVES DE SANTANA", "ANA FABRICIA B. DE LIMA", "BRUNA RENATA LINS COSTA", "CRISLANE DE LIMA PEREIRA", "DANIEL SILVA DOS SANTOS", "DENISE OLIVEIRA DOS SANTOS", "EDIONIS FERREIRA DOS SANTOS", "EMILY ROZA NUNES SANTOS", "GERLANDE NUNES DE MEDEIROS", "IARA DOS SANTOS SOUZA", "INGRID GARCIA DA SILVA", "IZABELA MARTINS BARRETO", "JUCILENE SOARES DOS SANTOS", "LUANA LINS COSTA", "LUDIMILA DE SOUZA SANTOS", "LUDIMILA LIMA", "MAIARA ROSA DE SOUZA", "MIKAEL COSTA B. DA SILVA", "NADINY PEREIRA CARVALHO", "RAFAELA PEREIRA DE SOUZA", "TAMARA PEREIRA DOS SANTOS"],
+      "Radiologia D": ["Alisson Andrade De Souza", "Camila Souza Miranda", "Gilvanda Ferreira Brazão", "Jaine Lopes Amaral", "José Alves Sena", "Laiane Gomes da C. Bezerra", "Patrícia Maria de Jesus", "Raí Gonçalves", "Valquíria Araújo de Souza"],
+      "Radiologia E": ["Amanda Nascímento Ferreira", "Angela Patrícia da Silva Oliveira", "Ayssa Bispo da Gama", "Bárbara Jesus de Paula", "Caroline Oliveira", "Daniela Macário da Silva Gomes", "Deise Fernanda Rocha Machado", "Everton da Silva Santos", "Isaque Dourado Dos Santos", "Jefferson Dos Santos Vaz Souza", "Keila Beatriz Lucas dos Anjos Silva", "Kessia Machado Costa", "Ludmila Lima da Silva", "Malquian Damasceno Souza", "Mirian Zulmira de Sousa", "Pâmela Soares dos Santos", "Samanta Dourado Nóbrega", "Sarah Oliveira Barreta", "Tamires Araujo da Silva", "Tassia Gabrielle Costa Oliveira", "Thais Rodrigues Maria", "Valquiria Rodrigues da Silva", "Vitória Martins Lopes"],
+      "Radiologia F": ["ANA LUIZA DA SILVA SOUZA", "ANA PAULA SANTOS SILVA", "ARIELE GOMES BRASIL", "AUGUSTO DE SOUZA SILVA", "BRUNA DE JESUS SALES", "CLAUDIA MARIA FERNANDES OLIVEIRA", "DAVID BARBOSA G. DOS SANTOS", "EDER DE OLIVEIRA GAMA", "EDINA BATISTA DE SOUZA", "ERIKA LUIZA SENA CARVALHO", "FERNANDA DOURADO SOUZA SILVA", "GECIANE SOUZA DOS SANTOS", "GEORGE LIMA DOURADO", "GREICE KELI OLIVEIRA DA CRUZ", "IARA GOMES DE SOUZA", "IGO NOVAES DOURADO", "ILDELI BESSA DE SOUZA", "ÍRIS FRANCIELLE MARQUES DE SOUSA", "ISRAEL DA SILVA NUNES", "JAÍNE ALVES DOURADO", "JESSICA DA SILVA GOIS", "JHONY KELISSON SOUZA BERNARDO", "KALENE MARTINS VIEIRA", "LARA ALEXANDRINA DA S. MACHADO", "LUDMYLLA LIMA RIBEIRO", "MANOELA COELHO NOVAIS", "MARIA APARECIDA BRITO", "MARIA CLARA DA CRUZ PEREIRA", "MARIANA DA SILVA OLIVEIRA", "MELÂNIA FERNANDES MATOS SILVA", "PEROLLA LIMA M. DOURADO", "VERONYK DE SOUZA SILVA", "WANDERSON PEREIRA DOS SANTOS", "YASMIN BARRETO DE SOUZA"],
+      "Radiologia G": ["ANDREZA ALVES GOMES", "BIANCA LUCAS PEREIRA", "CARLOS ALBERTO ALMEIDA DE OLIVEIRA", "DALILA RIBEIRO DE CARVALHO", "DAVID ALMEIDA BARROS", "DINAH IVANA SILVA JESUS", "ELIEGE BARBOSA SANTOS", "ELIS VÂNIA SENA BARRETO", "ELOÁ SOUZA BASTOS", "EMILLY KISSILA DE CARVALHO BONFIM", "EMILLY PAULA FERREIRA DA SILVA", "FÁTIMA VENTURA SILVA", "FELIPE ANDRADE DA CRUZ", "GEOVANA IVO DOS SANTOS", "GUILBERSON SANTOS NERES", "LUCIANA GOMES DA SILVA", "MARIELENE PEREIRA DOS SANTOS TEIXEIRA", "MARILDA HERMINA BENTO", "MARLON DE SOUZA E SILVA", "PATRICIA ALVES CANA VERDE", "RAFAELLA AKIRA FERREIRA DOURADO", "RAQUEL SOUSA SANTOS", "RICARDO GUIMARÃES DA ROCHA", "ROSIMERE MOURA DOS SANTOS", "SARA OLIVEIRA DOS SANTOS", "SINARA BRANDÃO OLIVEIRA", "TEREZA CRISTINA FRANCISCA DA SILVA", "TIALLA LUDIELLE CAMILLE G. DA SILVA", "YONNARA MOREIRA DE SOUZA BASTOS"],
+      "Radiologia H": ["ADRIANA BORGES DE SOUZA SILVA", "ALICE LEITE DOS SANTOS", "ANA LUIZA DA SILVA OLIVEIRA", "ANAILTON MARQUES DOURADO NETO", "AYSSA BISPO DA GAMA", "CLAUDIELY FERREIRA DOS SANTOS", "EMILLY PEREIRA DA SILVA", "ERMESIA NETA DE SOUSA PEREIRA", "EVERTON DA SILVA SANTOS", "FELIPE MACIEL SILVA", "FERNANDA DA SILVA", "GUSTAVO DOURADO DE SOUZA", "ISABELA MONTEIRO DE SOUZA", "JULIANA SOARES TENORIO DOS SANTOS", "KÁTIA MARTINS DE ARAÚJO", "KESSIA M. COSTA", "KETILLY LIMA SANTANA", "LEILIANE PEREIRA DE SOUZA", "LUCIANA DA SILVA RODRIGUES", "MANOELA COELHO NOVAES", "PABLO VICTOR ROCHA ALVES", "QUELAINE BARBOSA DA SILVA", "RUAN ALVES E SILVA", "RUAN KEVYN DOS SANTOS", "SAMUEL LUCAS VILELA CAVALVANTI LIMA", "SOPHIA BEZERRA DA SILVA", "TAIZE DE SOUSA SELES", "WYLLYAN ALVES PEREIRA"]
     }
   },
   disciplinasCursos: {
@@ -468,17 +483,51 @@ function ordenarTodasConfiguracoes(){
   });
 }
 
-function inicializarEstruturaBase(){
-  estado.config = JSON.parse(JSON.stringify(CONFIG_PADRAO));
-  ordenarTodasConfiguracoes();
-  estado.avaliacoes = ['1ª Aval.', '2ª Aval.', '3ª Aval.'];
-  estado.detalhesAvaliacoes = estado.avaliacoes.map(() => ({ data: '', valor: '', observacao: '' }));
-  estado.listasTurmas = { 'Téc. em Radiologia': { 'Radiologia C': [...NOMES_PADRAO_RAD_C] } };
-  estado.disciplinasCursos = { 'Téc. em Radiologia': [...CONFIG_PADRAO.disciplina] };
-  estado.alunos = NOMES_PADRAO_RAD_C.map(nome => ({ nome: nome.toUpperCase(), notas: ['', '', ''], recuperacao: '', observacao: '' }));
+function carregarLocalOuNuvem(){
+  try {
+    const salvo = JSON.parse(localStorage.getItem(KEY));
+    if(salvo && salvo.config && salvo.listasTurmas){
+      estado = salvo;
+      ordenarTodasConfiguracoes();
+    }
+  } catch(e) {}
+  
+  preencherSelects();
+  trocarSelecao();
+  render();
+  atualizarCabecalho();
+
+  if(URL_API_GOOGLE){
+    fetch(URL_API_GOOGLE, {
+      method: 'POST',
+      body: JSON.stringify({ acao: 'carregar' })
+    })
+    .then(res => res.json())
+    .then(res => {
+      if(res && res.sucesso && res.dados){
+        const dados = JSON.parse(res.dados);
+        if(dados && dados.config && dados.listasTurmas){
+          estado.config = dados.config;
+          estado.listasTurmas = dados.listasTurmas;
+          estado.disciplinasCursos = dados.disciplinasCursos || estado.disciplinasCursos;
+          estado.avaliacoes = dados.avaliacoes || estado.avaliacoes;
+          estado.detalhesAvaliacoes = dados.detalhesAvaliacoes || estado.detalhesAvaliacoes;
+          estado.diarios = dados.diarios || {};
+          ordenarTodasConfiguracoes();
+          normalizarEstruturasPorCurso();
+          try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch(e) {}
+          preencherSelects();
+          trocarSelecao();
+          render();
+          atualizarCabecalho();
+          if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
+        }
+      }
+    })
+    .catch(err => {});
+  }
 }
 
-// Sincronização via Fetch com a API do Google Apps Script
 function salvarLocal(callback){
   const dadosJson = JSON.stringify(estado);
   try { localStorage.setItem(KEY, dadosJson); } catch(e) {}
@@ -497,62 +546,12 @@ function salvarLocal(callback){
   .then(res => res.json())
   .then(res => {
     const ok = !!(res && res.sucesso);
-    if($id('badgeUsuario')) $id('badgeUsuario').textContent = ok ? 'Dados Sincronizados' : '⚠️ Erro na Nuvem';
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     if(typeof callback === 'function') callback(ok);
   })
   .catch(err => {
     if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     if(typeof callback === 'function') callback(false, err.message);
-  });
-}
-
-function carregarDadosDaNuvem(callback){
-  if(!URL_API_GOOGLE){
-    try {
-      const salvo = JSON.parse(localStorage.getItem(KEY));
-      if(salvo && salvo.config && salvo.listasTurmas) { estado = salvo; ordenarTodasConfiguracoes(); }
-    } catch(e) {}
-    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
-    if(typeof callback === 'function') callback();
-    return;
-  }
-
-  if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Conectando...';
-
-  fetch(URL_API_GOOGLE, {
-    method: 'POST',
-    body: JSON.stringify({ acao: 'carregar' })
-  })
-  .then(res => res.json())
-  .then(res => {
-    if(res && res.sucesso && res.dados){
-      const dados = JSON.parse(res.dados);
-      if(dados && dados.config && dados.listasTurmas){
-        estado.config = dados.config;
-        estado.listasTurmas = dados.listasTurmas;
-        estado.disciplinasCursos = dados.disciplinasCursos || estado.disciplinasCursos;
-        estado.avaliacoes = dados.avaliacoes || estado.avaliacoes;
-        estado.detalhesAvaliacoes = dados.detalhesAvaliacoes || estado.detalhesAvaliacoes;
-        
-        // Isola as notas por professor logado (quadro limpo se for outro professor)
-        estado.diarios = dados.diarios || {};
-
-        ordenarTodasConfiguracoes();
-        normalizarEstruturasPorCurso();
-        if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
-      }
-    } else {
-      if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
-    }
-    if(typeof callback === 'function') callback();
-  })
-  .catch(err => {
-    try {
-      const salvo = JSON.parse(localStorage.getItem(KEY));
-      if(salvo && salvo.config) { estado = salvo; }
-    } catch(e) {}
-    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
-    if(typeof callback === 'function') callback();
   });
 }
 
@@ -668,32 +667,32 @@ function atualizarCabecalho(){
   const tipo = $id('tipoCalculo')?.value === 'soma' ? 'Soma de Pontos (Total 10,0)' : 'Média Aritmética';
   const min = $id('notaMin')?.value || '6.0';
 
-  $id('tituloCabecalho').textContent = 'Diário de Notas do Professor';
-  $id('subCabecalho').textContent = inst.toUpperCase();
+  if($id('tituloCabecalho'))$id('tituloCabecalho').textContent = 'Diário de Notas do Professor';
+  if($id('subCabecalho'))$id('subCabecalho').textContent = inst.toUpperCase();
 
   const logoSrc = LOGOS_INSTITUICOES[inst.trim().toLowerCase()];
   const logoEl = $id('logoCabecalho');
   if(logoEl && logoSrc) {
     logoEl.src = logoSrc;
     logoEl.style.display = 'block';
-  } else if(logoEl) {
-    logoEl.style.display = 'none';
   }
 
   if($id('pdfLogoImg') && logoSrc)$id('pdfLogoImg').src = logoSrc;
   if($id('pdfTimbreBox'))$id('pdfTimbreBox').style.display = logoSrc ? 'flex' : 'none';
 
-  $id('pdfInst').textContent = inst.toUpperCase();$id('pdfCurso').textContent = curso;
-  $id('pdfTurma').textContent = turma;
-  $id('pdfDisc').textContent = disc;
-  $id('pdfProf').textContent = prof || 'Não informado';
-  $id('pdfTipoNota').textContent = tipo;
-  $id('pdfNotaMin').textContent = parseFloat(min).toFixed(1).replace('.', ',');$id('pdfPeriodo').textContent = pIni && pFim ? `${pIni} até ${pFim}` : (pIni ? `A partir de ${pIni}` : 'Não informado');
-  $id('pdfAssinaturaNome').textContent = prof ? `Prof. ${prof}` : 'Assinatura do Docente';
+  if($id('pdfInst'))$id('pdfInst').textContent = inst.toUpperCase();
+  if($id('pdfCurso'))$id('pdfCurso').textContent = curso;
+  if($id('pdfTurma'))$id('pdfTurma').textContent = turma;
+  if($id('pdfDisc'))$id('pdfDisc').textContent = disc;
+  if($id('pdfProf'))$id('pdfProf').textContent = prof || 'Não informado';
+  if($id('pdfTipoNota'))$id('pdfTipoNota').textContent = tipo;
+  if($id('pdfNotaMin'))$id('pdfNotaMin').textContent = parseFloat(min).toFixed(1).replace('.', ',');
+  if($id('pdfPeriodo'))$id('pdfPeriodo').textContent = pIni && pFim ? `${pIni} até ${pFim}` : (pIni ? `A partir de ${pIni}` : 'Não informado');
+  if($id('pdfAssinaturaNome'))$id('pdfAssinaturaNome').textContent = prof ? `Prof. ${prof}` : 'Assinatura do Docente';
   
   const hoje = new Date();
   const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  $id('pdfDataEmissao').textContent = `Irecê - BA, ${hoje.getDate()} de ${meses[hoje.getMonth()]} de ${hoje.getFullYear()}.`;
+  if($id('pdfDataEmissao'))$id('pdfDataEmissao').textContent = `Irecê - BA, ${hoje.getDate()} de ${meses[hoje.getMonth()]} de ${hoje.getFullYear()}.`;
 }
 
 function salvarDiarioSemReconstruir(){
@@ -803,8 +802,9 @@ function trocarSelecao(){
 }
 
 function montarCabecalho(){
-  normalizarDetalhesAvaliacoes();
+  if(!Array.isArray(estado.detalhesAvaliacoes)) estado.detalhesAvaliacoes = [];
   const tr = $id('cabTabela'); 
+  if(!tr) return;
   tr.innerHTML = '';
   
   const thSel = document.createElement('th');
@@ -903,6 +903,7 @@ function colarNotasGrade(e, linhaInicial, colunaInicial){
 function render(){
   montarCabecalho();
   const tb = $id('corpoTabela');
+  if(!tb) return;
   tb.innerHTML = '';
 
   if(estado.alunos.length === 0){
@@ -1015,7 +1016,8 @@ function atualizarStats(){
     const s = calcular(a).situacao;
     if(s === 'Aprovado') ap++; else if(s === 'Reprovado') rep++; else sem++;
   });
-  $id('estatisticas').innerHTML = `<div class="stat">Alunos: <b>${total}</b></div><div class="stat">Aprovados: <b>${ap}</b></div><div class="stat">Reprovados: <b>${rep}</b></div><div class="stat">Sem notas: <b>${sem}</b></div>`;
+  if($id('estatisticas')) {$id('estatisticas').innerHTML = `<div class="stat">Alunos: <b>${total}</b></div><div class="stat">Aprovados: <b>${ap}</b></div><div class="stat">Reprovados: <b>${rep}</b></div><div class="stat">Sem notas: <b>${sem}</b></div>`;
+  }
 }
 
 function ordenarAlunosInterno(){
@@ -1193,6 +1195,7 @@ function pesquisarAluno(){
 function prepararHtmlExportacaoPDF(){
   atualizarCabecalho();
   const trCab = $id('pdfCabTabela');
+  if(!trCab) return;
   trCab.innerHTML = '<th class="pdf-col-num">Nº</th><th class="col-nome">NOME DO ALUNO</th>';
   estado.avaliacoes.forEach(av => {
     const th = document.createElement('th'); th.className = 'pdf-col-nota-compacta'; th.textContent = av; trCab.appendChild(th);
@@ -1204,6 +1207,7 @@ function prepararHtmlExportacaoPDF(){
   const thObs = document.createElement('th'); thObs.className = 'pdf-col-obs'; thObs.textContent = 'OBSERVAÇÕES'; trCab.appendChild(thObs);
 
   const tbCorpo = $id('pdfCorpoTabela');
+  if(!tbCorpo) return;
   tbCorpo.innerHTML = '';
   estado.alunos.forEach((a, idx) => {
     const c = calcular(a);
@@ -1223,12 +1227,7 @@ function opcaoBaixarPDF(){ fecharModalCompartilharPDF(); prepararHtmlExportacaoP
 function opcaoEnviarEmail(){ fecharModalCompartilharPDF(); alert('Para envio de e-mails direto, utilize o painel institucional do Google Apps Script.'); }
 
 document.addEventListener('DOMContentLoaded', function(){
-  carregarDadosDaNuvem(function(){
-    preencherSelects();
-    trocarSelecao();
-    render();
-    atualizarCabecalho();
-  });
+  carregarLocalOuNuvem();
 });
 </script>
 </body>
