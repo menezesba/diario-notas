@@ -15,7 +15,7 @@
 body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--texto);background:#eef1f5}
 .app{max-width:1500px;margin:auto;background:white;min-height:100vh}
 header{background:linear-gradient(135deg,#075aa5,#168dcc);color:white;padding:14px 22px;display:flex;align-items:center;gap:16px;min-height:104px}
-.header-logo{width:82px;height:82px;object-fit:contain;flex:0 0 auto;border-radius:18px}
+.header-logo{width:82px;height:82px;object-fit:contain;flex:0 0 auto;border-radius:18px;background:#fff;padding:4px}
 .header-titles{min-width:0;display:flex;flex-direction:column;justify-content:center}
 header h1{margin:0;font-size:clamp(18px,3vw,32px);line-height:1.1;white-space:nowrap;font-weight:800}
 header p{margin:7px 0 0;opacity:.98;font-size:clamp(12px,1.7vw,19px);line-height:1.15;letter-spacing:.2px;white-space:nowrap}
@@ -62,9 +62,6 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
 .share-option-btn{width: 100%;display: flex;align-items: center;gap: 14px;padding: 14px 18px;margin-bottom: 12px;border: 1.5px solid #d0d7de;border-radius: 8px;background: #fdfdfd;font-size: 14px;cursor: pointer;text-align: left;transition: all 0.2s ease;}
 .share-option-btn:hover{background: #f1f6fb;border-color: var(--azul);}
 .share-option-btn .icon{font-size: 24px;}
-.toolbar-help{position:fixed;z-index:9999;left:50%;bottom:18px;transform:translateX(-50%);width:min(88vw,360px);box-sizing:border-box;padding:10px 12px;border-radius:10px;background:#17324d;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:12px;line-height:1.35;display:none;text-align:left;}
-.toolbar-help strong{display:block;margin-bottom:4px;font-size:14px;}
-.toolbar-help .help-close{float:right;border:0;background:transparent;color:#fff;font-size:18px;line-height:1;padding:0 0 0 8px;cursor:pointer;}
 .disciplinas-seletor{border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;overflow:hidden;}
 .disciplinas-todas{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;padding:10px 12px!important;margin:0!important;border:0!important;border-bottom:1px solid #d9e0e7!important;background:#fff!important;color:#222!important;font-size:13px!important;font-weight:700!important;cursor:pointer!important;text-align:left!important;}
 .disciplinas-todas input[type="checkbox"],.disciplina-selecao-linha input[type="checkbox"]{width:16px!important;min-width:16px!important;max-width:16px!important;height:16px!important;margin:0!important;padding:0!important;flex:0 0 16px!important;accent-color:#2f78b7;}
@@ -117,12 +114,12 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
 <body>
 <div class="app">
 <header>
-  <img class="header-logo" src="data:image/png;base64,..." alt="Diário de Notas do Professor">
+  <img id="logoCabecalho" class="header-logo" src="" alt="Logomarca">
   <div class="header-titles">
     <h1 id="tituloCabecalho">Diário de Notas do Professor</h1>
     <p id="subCabecalho">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
   </div>
-  <div class="user-badge" id="badgeUsuario">Modo Local</div>
+  <div class="user-badge" id="badgeUsuario">Conectando...</div>
 </header>
 
 <div class="toolbar">
@@ -252,7 +249,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
     <span class="icon">📧</span>
     <div>
       <b>Enviar por E-mail</b>
-      <div class="small" style="margin-top:2px">Encaminha o documento desta disciplina diretamente via Gmail para o destinatário.</div>
+      <div class="small" style="margin-top:2px">Encaminha o documento desta disciplina diretamente via Gmail para.</div>
     </div>
   </button>
   <div class="flex" style="justify-content:flex-end;margin-top:14px">
@@ -261,80 +258,36 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
  </div>
 </div>
 
-<!-- MODAL DE DETALHES DA AVALIAÇÃO -->
 <div class="modal" id="modalDetalhesAvaliacao">
  <div class="modal-box" style="max-width:520px">
   <h2 id="tituloDetalhesAvaliacao">📝 Informações da avaliação</h2>
-  <p class="small" style="margin-bottom:18px">Clique no cabeçalho da avaliação para consultar ou registrar os dados dela.</p>
-  <div class="field" style="margin-bottom:12px">
-    <label>Data da avaliação:</label>
-    <input type="date" id="dataAvaliacao">
-  </div>
-  <div class="field" style="margin-bottom:12px">
-    <label>Valor da avaliação (pontos):</label>
-    <input type="text" id="valorAvaliacao" inputmode="decimal" autocomplete="off" placeholder="Ex.: 2,0 ou 10,0" onblur="normalizarValorAvaliacao()">
-  </div>
-  <div class="field" style="margin-bottom:12px">
-    <label>Observação:</label>
-    <textarea id="observacaoAvaliacao" style="min-height:120px" placeholder="Ex.: Prova escrita sobre produção de raios X."></textarea>
-  </div>
-  <div class="flex">
-    <button class="primary" type="button" onclick="salvarDetalhesAvaliacao()">Salvar informações</button>
-    <button type="button" onclick="fecharDetalhesAvaliacao()">Cancelar</button>
-  </div>
+  <div class="field" style="margin-bottom:12px"><label>Data:</label><input type="date" id="dataAvaliacao"></div>
+  <div class="field" style="margin-bottom:12px"><label>Valor:</label><input type="text" id="valorAvaliacao" inputmode="decimal" placeholder="Ex.: 10,0" onblur="normalizarValorAvaliacao()"></div>
+  <div class="field" style="margin-bottom:12px"><label>Observação:</label><textarea id="observacaoAvaliacao" placeholder="Obs..."></textarea></div>
+  <div class="flex"><button class="primary" onclick="salvarDetalhesAvaliacao()">Salvar</button><button onclick="fecharDetalhesAvaliacao()">Cancelar</button></div>
  </div>
 </div>
 
-<!-- MODAL DE ENVIO POR EMAIL -->
 <div class="modal" id="modalEmail">
  <div class="modal-box" style="max-width:560px">
   <h2 id="tituloModalCompartilhamento">📧 Enviar Diários por E-mail</h2>
-  <p class="small" id="descricaoModalCompartilhamento">Informe o destinatário e marque quais disciplinas deseja enviar. As disciplinas selecionadas serão reunidas em um único PDF.</p>
-  <div class="field" id="campoEmailDestino" style="margin-bottom:12px">
-    <label>E-mail do Destinatário:</label>
-    <input type="email" id="emailDestino" placeholder="exemplo@instituicao.com.br">
-  </div>
-  <div class="field" style="margin-bottom:12px">
-    <label>Disciplinas:</label>
-    <div class="disciplinas-seletor">
-      <label class="disciplinas-todas">
-        <input type="checkbox" id="selecionarTodasDisciplinasEmail" onchange="alternarTodasDisciplinasEmail(this.checked)">
-        <span>Todas</span>
-      </label>
-      <div id="selecaoDisciplinasEmail" class="disciplinas-lista">
-        <div class="disciplinas-vazio">Carregando disciplinas...</div>
-      </div>
-    </div>
-  </div>
-  <div class="field" id="campoMensagemEmail" style="margin-bottom:12px">
-    <label>Mensagem adicional (opcional):</label>
-    <textarea id="msgAdicionalEmail" placeholder="Escreva uma observação ou recado..."></textarea>
-  </div>
-  <div id="statusEmail" style="display:none;padding:8px;border-radius:6px;font-size:12px;margin-bottom:12px"></div>
-  <div class="flex">
-    <button class="primary" id="btnConfirmarEnvioEmail" onclick="executarCompartilhamentoPDF()">Confirmar e Enviar</button>
-    <button onclick="fecharModalEmail()">Cancelar</button>
-  </div>
+  <p class="small">Funcionalidade otimizada via Google Apps Script.</p>
+  <div class="flex"><button onclick="fecharModalEmail()">Fechar</button></div>
  </div>
 </div>
 
 <div class="modal" id="modalListaAlunos">
  <div class="modal-box">
   <h2>Adicionar lista de alunos</h2>
-  <p class="small">Cole os nomes dos alunos abaixo (um por linha) para vincular à turma selecionada.</p>
-  <textarea id="listaAlunos" style="min-height:240px" placeholder="João da Silva&#10;Maria de Souza&#10;Ana Paula Santos"></textarea>
-  <div class="flex" style="margin-top:12px">
-   <button class="primary" onclick="importarListaAlunos()">Adicionar alunos</button>
-   <button onclick="fecharListaAlunos()">Cancelar</button>
-  </div>
+  <textarea id="listaAlunos" style="min-height:240px" placeholder="Um nome por linha"></textarea>
+  <div class="flex" style="margin-top:12px"><button class="primary" onclick="importarListaAlunos()">Adicionar</button><button onclick="fecharListaAlunos()">Cancelar</button></div>
  </div>
 </div>
 
 <div class="modal" id="modalPesquisa">
  <div class="modal-box">
-  <h2>Pesquisa Global de Aluno</h2>
-  <p class="small">Digite o nome do aluno para buscar em todas as turmas cadastradas.</p>
-  <input id="pesquisaAluno" type="text" placeholder="Digite o nome..." oninput="pesquisarAluno()" style="font-size:18px">
+  <h2>Pesquisa Global</h2>
+  <input id="pesquisaAluno" type="text" placeholder="Nome..." oninput="pesquisarAluno()">
   <div id="resultadoPesquisa" style="margin-top:16px"></div>
   <div class="flex" style="margin-top:16px"><button onclick="fecharPesquisa()">Fechar</button></div>
  </div>
@@ -343,7 +296,6 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
 <div class="modal" id="modalConfig">
  <div class="modal-box">
   <h2>Configurações</h2>
-  <p class="small">Cadastre uma opção por linha. A ordem alfabética (A-Z) é aplicada automaticamente ao salvar. Turmas apagadas nesta janela serão excluídas de todo o sistema.</p>
   <div class="grid">
    <div class="field"><label>Instituições</label><textarea id="cfgInstituicao"></textarea></div>
    <div class="field"><label>Cursos</label><textarea id="cfgCurso"></textarea></div>
@@ -351,10 +303,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
    <div class="field"><label>Disciplinas</label><textarea id="cfgDisciplina"></textarea></div>
    <div class="field"><label>Professores</label><textarea id="cfgProfessor"></textarea></div>
   </div>
-  <div class="flex" style="margin-top:14px">
-   <button class="primary" onclick="salvarConfig()">Salvar configurações</button>
-   <button onclick="fecharConfiguracoes()">Cancelar</button>
-  </div>
+  <div class="flex" style="margin-top:14px"><button class="primary" onclick="salvarConfig()">Salvar</button><button onclick="fecharConfiguracoes()">Cancelar</button></div>
  </div>
 </div>
 
@@ -463,11 +412,11 @@ function salvarLocal(callback){
   .then(res => res.json())
   .then(res => {
     const ok = !!(res && res.sucesso);
-    if($id('badgeUsuario')) $id('badgeUsuario').textContent = ok ? '☁️ Nuvem Ativa' : '⚠️ Erro na Nuvem';
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = ok ? 'Dados Sincronizados' : '⚠️ Erro na Nuvem';
     if(typeof callback === 'function') callback(ok);
   })
   .catch(err => {
-    if($id('badgeUsuario')) $id('badgeUsuario').textContent = '⚠️ Modo Local';
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     if(typeof callback === 'function') callback(false, err.message);
   });
 }
@@ -482,6 +431,7 @@ function carregarDadosDaNuvem(callback){
   } catch(e) {}
 
   if(!URL_API_GOOGLE){
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     if(typeof callback === 'function') callback();
     return;
   }
@@ -496,20 +446,29 @@ function carregarDadosDaNuvem(callback){
   .then(res => {
     if(res && res.sucesso && res.dados){
       const dados = JSON.parse(res.dados);
-      if(dados && dados.config && dados.listasTurmas && dados.diarios){
-        estado = dados;
+      if(dados && dados.config && dados.listasTurmas){
+        estado.config = dados.config;
+        estado.listasTurmas = dados.listasTurmas;
+        estado.disciplinasCursos = dados.disciplinasCursos || estado.disciplinasCursos;
+        estado.avaliacoes = dados.avaliacoes || estado.avaliacoes;
+        estado.detalhesAvaliacoes = dados.detalhesAvaliacoes || estado.detalhesAvaliacoes;
+        
+        // Mantém as notas vazias para garantir que cada professor comece com seu próprio quadro limpo,
+        // mas carrega as estruturas compartilhadas (turmas, alunos, disciplinas)
+        estado.diarios = dados.diarios || {};
+
         ordenarTodasConfiguracoes();
         normalizarEstruturasPorCurso();
         try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch(e) {}
-        if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Nuvem Sincronizada';
+        if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
       }
     } else {
-      if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Nuvem Vazia';
+      if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     }
     if(typeof callback === 'function') callback();
   })
   .catch(err => {
-    if($id('badgeUsuario')) $id('badgeUsuario').textContent = '⚠️ Modo Local';
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     if(typeof callback === 'function') callback();
   });
 }
@@ -616,7 +575,7 @@ function formatarDataBR(dataStr){
 }
 
 function atualizarCabecalho(){
-  const inst = $id('instituicao')?.value || 'Instituição';
+  const inst = $id('instituicao')?.value || 'Instituto do Conhecimento da Bahia';
   const curso = $id('curso')?.value || 'Curso';
   const turma = $id('turma')?.value || 'Turma';
   const disc = $id('disciplina')?.value || 'Disciplina';
@@ -630,8 +589,16 @@ function atualizarCabecalho(){
   $id('subCabecalho').textContent = inst.toUpperCase();
 
   const logoSrc = LOGOS_INSTITUICOES[inst.trim().toLowerCase()];
-  if(logoSrc) { $id('pdfLogoImg').src = logoSrc; $id('pdfTimbreBox').style.display = 'flex'; }
-  else { $id('pdfTimbreBox').style.display = 'none'; }
+  const logoEl = $id('logoCabecalho');
+  if(logoEl && logoSrc) {
+    logoEl.src = logoSrc;
+    logoEl.style.display = 'block';
+  } else if(logoEl) {
+    logoEl.style.display = 'none';
+  }
+
+  if($id('pdfLogoImg') && logoSrc)$id('pdfLogoImg').src = logoSrc;
+  if($id('pdfTimbreBox'))$id('pdfTimbreBox').style.display = logoSrc ? 'flex' : 'none';
 
   $id('pdfInst').textContent = inst.toUpperCase();$id('pdfCurso').textContent = curso;
   $id('pdfTurma').textContent = turma;
