@@ -43,15 +43,56 @@ textarea{min-height:70px;resize:vertical}
 .table-wrap{overflow:auto;border:1px solid #aaa}
 table{border-collapse:collapse;width:100%;min-width:1050px;font-size:12px}
 th,td{border:1px solid #777;padding:6px 5px;text-align:center;vertical-align:middle}
-th{background:#18864b!important;color:#ffffff!important;font-weight:700;letter-spacing:0.4px;border-color:#126337!important;}
-th.col-nome, td.name{width:260px!important;min-width:260px!important;max-width:260px!important;text-align:left;font-weight:bold;text-transform:uppercase;white-space:normal!important;word-break:break-word!important;line-height:1.3;}
-.col-nota{width:75px!important;min-width:75px!important;max-width:75px!important;text-align:center!important;}
-.col-total{width:85px!important;min-width:85px!important;max-width:85px!important;font-weight:bold!important;text-align:center!important;}
-.col-sit{width:130px!important;min-width:130px!important;max-width:130px!important;white-space:nowrap!important;text-align:center!important;}
+
+th{
+  background:#18864b!important;
+  color:#ffffff!important;
+  font-weight:700;
+  letter-spacing:0.4px;
+  border-color:#126337!important;
+}
+
+th.col-nome, td.name{
+  width:260px!important;
+  min-width:260px!important;
+  max-width:260px!important;
+  text-align:left;
+  font-weight:bold;
+  text-transform:uppercase;
+  white-space:normal!important;
+  word-break:break-word!important;
+  line-height:1.3;
+}
+
+.col-nota{
+  width:75px!important;
+  min-width:75px!important;
+  max-width:75px!important;
+  text-align:center!important;
+}
+
+.col-total{
+  width:85px!important;
+  min-width:85px!important;
+  max-width:85px!important;
+  font-weight:bold!important;
+  text-align:center!important;
+}
+
+.col-sit{
+  width:130px!important;
+  min-width:130px!important;
+  max-width:130px!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+}
+
 td input{border:0;border-radius:0;padding:4px;text-align:center;width:100%;background:transparent}
 td input:focus{outline:2px solid #75a9d2;background:white}
+
 .aprovado{color:#0b5cab!important;font-weight:700}
 .reprovado{color:var(--vermelho)!important;font-weight:700}
+
 .mensagem{padding:9px 12px;border-radius:6px;background:#fff7d6;border:1px solid #ecd77c;font-size:12px;display:none}
 .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .stat{padding:9px 12px;background:#f5f7f9;border:1px solid #ddd;border-radius:7px;font-size:13px}
@@ -59,18 +100,49 @@ td input:focus{outline:2px solid #75a9d2;background:white}
 .modal-box{background:white;border-radius:10px;max-width:700px;width:100%;max-height:90vh;overflow:auto;padding:20px}
 .modal-box h2{margin-top:0}
 footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
-.share-option-btn{width: 100%;display: flex;align-items: center;gap: 14px;padding: 14px 18px;margin-bottom: 12px;border: 1.5px solid #d0d7de;border-radius: 8px;background: #fdfdfd;font-size: 14px;cursor: pointer;text-align: left;transition: all 0.2s ease;}
-.share-option-btn:hover{background: #f1f6fb;border-color: var(--azul);}
-.share-option-btn .icon{font-size: 24px;}
+
+.share-option-btn{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  border: 1.5px solid #d0d7de;
+  border-radius: 8px;
+  background: #fdfdfd;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.share-option-btn:hover{
+  background: #f1f6fb;
+  border-color: var(--azul);
+}
+.share-option-btn .icon{
+  font-size: 24px;
+}
+
 .disciplinas-seletor{border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;overflow:hidden;}
 .disciplinas-todas{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;padding:10px 12px!important;margin:0!important;border:0!important;border-bottom:1px solid #d9e0e7!important;background:#fff!important;color:#222!important;font-size:13px!important;font-weight:700!important;cursor:pointer!important;text-align:left!important;}
-.disciplinas-todas input[type="checkbox"],.disciplina-selecao-linha input[type="checkbox"]{width:16px!important;min-width:16px!important;max-width:16px!important;height:16px!important;margin:0!important;padding:0!important;flex:0 0 16px!important;accent-color:#2f78b7;}
+.disciplinas-todas input[type="checkbox"],
+.disciplina-selecao-linha input[type="checkbox"]{width:16px!important;min-width:16px!important;max-width:16px!important;height:16px!important;margin:0!important;padding:0!important;flex:0 0 16px!important;accent-color:#2f78b7;}
 .disciplinas-lista{max-height:240px;overflow-y:auto;}
 .disciplina-selecao-linha{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:46px!important;padding:9px 12px!important;margin:0!important;border:0!important;border-bottom:1px solid #e5e7eb!important;background:#f8fafc!important;color:#222!important;font-size:13px!important;font-weight:400!important;cursor:pointer!important;text-align:left!important;}
 .disciplina-selecao-linha:last-child{border-bottom:0!important;}
 .disciplina-selecao-linha span{display:block!important;flex:1!important;text-align:left!important;white-space:normal!important;word-break:break-word!important;line-height:1.25!important;}
 .disciplinas-vazio{padding:12px!important;color:#b42318!important;font-size:12px!important;}
-#areaExportacaoPDF {display: none;background: white;padding: 8px 12px;color: #000;font-family: Arial, sans-serif;width: 720px;margin: 0 auto;}
+
+#areaExportacaoPDF {
+  display: none;
+  background: white;
+  padding: 8px 12px;
+  color: #000;
+  font-family: Arial, sans-serif;
+  width: 720px;
+  margin: 0 auto;
+}
 .pdf-timbre{display: flex;align-items: center;justify-content: flex-start;margin-bottom: 6px;page-break-inside: avoid;}
 .pdf-timbre img{max-height: 58px;max-width: 252px;object-fit: contain;}
 .pdf-header{border: 1.2px solid #333;padding: 5px 8px;margin-bottom: 7px;border-radius: 4px;text-align: center;page-break-inside: avoid;}
@@ -92,6 +164,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
 .pdf-linha{border-top: 1px solid #000;margin-bottom: 4px;}
 .pdf-prof-nome{font-weight: bold;font-size: 9px;text-transform: uppercase;}
 .pdf-prof-cargo{font-size: 8px;color: #444;}
+
 .toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch;}
 .toolbar > .toolbar-btn, .toolbar > .file-label.toolbar-btn{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;text-align:center;gap:6px;}
 .toolbar-short{display:none}
@@ -137,6 +210,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
   <div class="grid">
     <div class="field"><label>Instituição</label><select id="instituicao" onchange="trocarSelecao()"></select></div>
     <div class="field"><label>Curso</label><select id="curso" onchange="trocarSelecao()"></select><div class="small" style="margin-top:4px">Turmas, alunos e disciplinas são exclusivos do curso selecionado.</div></div>
+    
     <div class="field">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
         <label style="margin:0">Turma</label>
@@ -144,6 +218,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
       </div>
       <select id="turma" onchange="trocarSelecao()"></select>
     </div>
+
     <div class="field"><label>Disciplina</label><select id="disciplina" onchange="trocarSelecao()"></select></div>
     <div class="field"><label>Professor</label><select id="professor" onchange="atualizarCabecalho();salvarDiarioAtual()"></select></div>
     <div class="field">
@@ -168,10 +243,12 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
       <button onclick="adicionarAvaliacao()">+ Adicionar avaliação</button>
       <button type="button" class="red" onclick="limparTodasNotas()">🧹 Limpar todas as notas</button>
       <button type="button" id="btnExcluirSelecionados" class="red" onclick="return excluirSelecionadosAgora(event)">Excluir selecionados</button>
+      
       <div style="display:flex;align-items:center;gap:6px;margin-left:4px">
         <input id="filtroRapidoAluno" type="text" placeholder="🔍 Filtrar aluno na lista..." oninput="filtrarAlunosTabela()" style="width:230px;padding:7px 10px;font-size:12px;border:1px solid #8d8d8d">
         <button type="button" style="padding:7px 10px;font-size:12px" onclick="limparFiltroRapido()" title="Limpar busca">✕</button>
       </div>
+
       <button onclick="ordenarAlunos()">A-Z</button>
       <span class="small">A lista pertence à Turma. A troca de disciplina altera apenas as notas.</span>
     </div>
@@ -203,6 +280,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
   <div class="pdf-timbre" id="pdfTimbreBox">
     <img id="pdfLogoImg" src="" alt="Logomarca da Instituição">
   </div>
+
   <div class="pdf-header">
     <h1 id="pdfInst">INSTITUTO DO CONHECIMENTO DA BAHIA</h1>
     <h2>DIÁRIO DE CLASSE E REGISTRO DE APROVEITAMENTO</h2>
@@ -215,10 +293,12 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
       <div><b>Critério:</b> <span id="pdfTipoNota">Soma de Pontos</span> (Mínimo: <span id="pdfNotaMin">6.0</span>)</div>
     </div>
   </div>
+
   <table class="pdf-table">
     <thead><tr id="pdfCabTabela"></tr></thead>
     <tbody id="pdfCorpoTabela"></tbody>
   </table>
+
   <div class="pdf-footer">
     <div class="pdf-data" id="pdfDataEmissao">Irecê - BA.</div>
     <div class="pdf-assinatura-box">
@@ -238,6 +318,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
  <div class="modal-box" style="max-width:480px">
   <h2>📤 Compartilhar Diário em PDF</h2>
   <p class="small" style="margin-bottom:18px">Selecione o destino desejado para o documento oficial timbrado:</p>
+  
   <button type="button" class="share-option-btn" onclick="opcaoBaixarPDF()">
     <span class="icon">💾</span>
     <div>
@@ -245,33 +326,37 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
       <div class="small" style="margin-top:2px">Salva o arquivo PDF timbrado diretamente no seu computador.</div>
     </div>
   </button>
+
   <button type="button" class="share-option-btn" onclick="opcaoEnviarEmail()">
     <span class="icon">📧</span>
     <div>
       <b>Enviar por E-mail</b>
-      <div class="small" style="margin-top:2px">Encaminha o documento desta disciplina diretamente via Gmail para.</div>
+      <div class="small" style="margin-top:2px">Encaminha o documento desta disciplina diretamente via Gmail para o destinatário.</div>
     </div>
   </button>
+
   <div class="flex" style="justify-content:flex-end;margin-top:14px">
     <button onclick="fecharModalCompartilharPDF()">Fechar</button>
   </div>
  </div>
 </div>
 
+<!-- MODAL DE DETALHES DA AVALIAÇÃO -->
 <div class="modal" id="modalDetalhesAvaliacao">
  <div class="modal-box" style="max-width:520px">
   <h2 id="tituloDetalhesAvaliacao">📝 Informações da avaliação</h2>
-  <div class="field" style="margin-bottom:12px"><label>Data:</label><input type="date" id="dataAvaliacao"></div>
-  <div class="field" style="margin-bottom:12px"><label>Valor:</label><input type="text" id="valorAvaliacao" inputmode="decimal" placeholder="Ex.: 10,0" onblur="normalizarValorAvaliacao()"></div>
-  <div class="field" style="margin-bottom:12px"><label>Observação:</label><textarea id="observacaoAvaliacao" placeholder="Obs..."></textarea></div>
-  <div class="flex"><button class="primary" onclick="salvarDetalhesAvaliacao()">Salvar</button><button onclick="fecharDetalhesAvaliacao()">Cancelar</button></div>
+  <div class="field" style="margin-bottom:12px"><label>Data da avaliação:</label><input type="date" id="dataAvaliacao"></div>
+  <div class="field" style="margin-bottom:12px"><label>Valor da avaliação (pontos):</label><input type="text" id="valorAvaliacao" inputmode="decimal" onblur="normalizarValorAvaliacao()"></div>
+  <div class="field" style="margin-bottom:12px"><label>Observação:</label><textarea id="observacaoAvaliacao" style="min-height:120px"></textarea></div>
+  <div class="flex"><button class="primary" onclick="salvarDetalhesAvaliacao()">Salvar informações</button><button onclick="fecharDetalhesAvaliacao()">Cancelar</button></div>
  </div>
 </div>
 
+<!-- MODAL DE ENVIO POR EMAIL -->
 <div class="modal" id="modalEmail">
  <div class="modal-box" style="max-width:560px">
-  <h2 id="tituloModalCompartilhamento">📧 Enviar Diários por E-mail</h2>
-  <p class="small">Funcionalidade otimizada via Google Apps Script.</p>
+  <h2>📧 Compartilhamento por E-mail</h2>
+  <p class="small">Utilize a função de PDF integrada ao sistema.</p>
   <div class="flex"><button onclick="fecharModalEmail()">Fechar</button></div>
  </div>
 </div>
@@ -279,15 +364,15 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
 <div class="modal" id="modalListaAlunos">
  <div class="modal-box">
   <h2>Adicionar lista de alunos</h2>
-  <textarea id="listaAlunos" style="min-height:240px" placeholder="Um nome por linha"></textarea>
-  <div class="flex" style="margin-top:12px"><button class="primary" onclick="importarListaAlunos()">Adicionar</button><button onclick="fecharListaAlunos()">Cancelar</button></div>
+  <textarea id="listaAlunos" style="min-height:240px" placeholder="João da Silva&#10;Maria de Souza"></textarea>
+  <div class="flex" style="margin-top:12px"><button class="primary" onclick="importarListaAlunos()">Adicionar alunos</button><button onclick="fecharListaAlunos()">Cancelar</button></div>
  </div>
 </div>
 
 <div class="modal" id="modalPesquisa">
  <div class="modal-box">
-  <h2>Pesquisa Global</h2>
-  <input id="pesquisaAluno" type="text" placeholder="Nome..." oninput="pesquisarAluno()">
+  <h2>Pesquisa Global de Aluno</h2>
+  <input id="pesquisaAluno" type="text" placeholder="Digite o nome..." oninput="pesquisarAluno()" style="font-size:18px">
   <div id="resultadoPesquisa" style="margin-top:16px"></div>
   <div class="flex" style="margin-top:16px"><button onclick="fecharPesquisa()">Fechar</button></div>
  </div>
@@ -303,7 +388,7 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
    <div class="field"><label>Disciplinas</label><textarea id="cfgDisciplina"></textarea></div>
    <div class="field"><label>Professores</label><textarea id="cfgProfessor"></textarea></div>
   </div>
-  <div class="flex" style="margin-top:14px"><button class="primary" onclick="salvarConfig()">Salvar</button><button onclick="fecharConfiguracoes()">Cancelar</button></div>
+  <div class="flex" style="margin-top:14px"><button class="primary" onclick="salvarConfig()">Salvar configurações</button><button onclick="fecharConfiguracoes()">Cancelar</button></div>
  </div>
 </div>
 
@@ -393,7 +478,7 @@ function inicializarEstruturaBase(){
   estado.alunos = NOMES_PADRAO_RAD_C.map(nome => ({ nome: nome.toUpperCase(), notas: ['', '', ''], recuperacao: '', observacao: '' }));
 }
 
-// Sincronização via Fetch com a API do Apps Script
+// Sincronização via Fetch com a API do Google Apps Script
 function salvarLocal(callback){
   const dadosJson = JSON.stringify(estado);
   try { localStorage.setItem(KEY, dadosJson); } catch(e) {}
@@ -422,15 +507,11 @@ function salvarLocal(callback){
 }
 
 function carregarDadosDaNuvem(callback){
-  try {
-    const salvo = JSON.parse(localStorage.getItem(KEY));
-    if(salvo && salvo.config && salvo.listasTurmas){
-      estado = salvo;
-      ordenarTodasConfiguracoes();
-    }
-  } catch(e) {}
-
   if(!URL_API_GOOGLE){
+    try {
+      const salvo = JSON.parse(localStorage.getItem(KEY));
+      if(salvo && salvo.config && salvo.listasTurmas) { estado = salvo; ordenarTodasConfiguracoes(); }
+    } catch(e) {}
     if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     if(typeof callback === 'function') callback();
     return;
@@ -453,13 +534,11 @@ function carregarDadosDaNuvem(callback){
         estado.avaliacoes = dados.avaliacoes || estado.avaliacoes;
         estado.detalhesAvaliacoes = dados.detalhesAvaliacoes || estado.detalhesAvaliacoes;
         
-        // Mantém as notas vazias para garantir que cada professor comece com seu próprio quadro limpo,
-        // mas carrega as estruturas compartilhadas (turmas, alunos, disciplinas)
+        // Isola as notas por professor logado (quadro limpo se for outro professor)
         estado.diarios = dados.diarios || {};
 
         ordenarTodasConfiguracoes();
         normalizarEstruturasPorCurso();
-        try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch(e) {}
         if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
       }
     } else {
@@ -468,6 +547,10 @@ function carregarDadosDaNuvem(callback){
     if(typeof callback === 'function') callback();
   })
   .catch(err => {
+    try {
+      const salvo = JSON.parse(localStorage.getItem(KEY));
+      if(salvo && salvo.config) { estado = salvo; }
+    } catch(e) {}
     if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     if(typeof callback === 'function') callback();
   });
@@ -664,6 +747,7 @@ function trocarSelecao(){
     atualizarCabecalho();
     render();
     atualizarAvisoCurso();
+    salvarLocal();
     return;
   }
 
@@ -719,7 +803,7 @@ function trocarSelecao(){
 }
 
 function montarCabecalho(){
-  if(!Array.isArray(estado.detalhesAvaliacoes)) estado.detalhesAvaliacoes = [];
+  normalizarDetalhesAvaliacoes();
   const tr = $id('cabTabela'); 
   tr.innerHTML = '';
   
@@ -792,6 +876,30 @@ function calcular(aluno){
   return { soma, notaFinal, situacao, temNota: (notas.length > 0 || Number.isFinite(recupVal)) };
 }
 
+function colarNotasGrade(e, linhaInicial, colunaInicial){
+  const clipData = (e.clipboardData || window.clipboardData).getData('text');
+  if(!clipData || (!clipData.includes('\t') && !clipData.includes('\n'))) return;
+
+  e.preventDefault();
+  const linhas = clipData.trim().split(/\r?\n/).map(l => l.split('\t'));
+  let alterou = false;
+
+  linhas.forEach((linhaCols, r) => {
+    const rIdx = linhaInicial + r;
+    if(rIdx >= estado.alunos.length) return;
+    linhaCols.forEach((celulaTexto, c) => {
+      const cIdx = colunaInicial + c;
+      if(cIdx >= estado.avaliacoes.length) return;
+      let valLimpo = celulaTexto.trim().replace(',', '.');
+      let num = parseFloat(valLimpo);
+      estado.alunos[rIdx].notas[cIdx] = !isNaN(num) ? Math.max(0, Math.min(10, num)).toFixed(1) : '';
+      alterou = true;
+    });
+  });
+
+  if(alterou){ render(); salvarDiarioAtual(); }
+}
+
 function render(){
   montarCabecalho();
   const tb = $id('corpoTabela');
@@ -835,6 +943,7 @@ function render(){
       inp.inputMode = 'decimal';
       inp.placeholder = '0,0';
       inp.value = a.notas[j] ? String(a.notas[j]).replace('.', ',') : '';
+      inp.addEventListener('paste', e => colarNotasGrade(e, idx, j));
       inp.addEventListener('blur', e => {
         let val = e.target.value.replace(',', '.').trim();
         let num = parseFloat(val);
@@ -995,7 +1104,7 @@ function adicionarAvaliacao(){
 function salvar(){
   salvarLocal(function(ok){
     const aviso = $id('aviso');
-    aviso.textContent = ok ? 'Lançamento salvo e sincronizado na nuvem!' : 'Salvo localmente (Modo Offline).';
+    aviso.textContent = ok ? 'Lançamento salvo e sincronizado na nuvem!' : 'Salvo localmente.';
     aviso.style.display = 'block';
     setTimeout(() => { aviso.style.display = 'none'; }, 2500);
   });
@@ -1118,6 +1227,7 @@ document.addEventListener('DOMContentLoaded', function(){
     preencherSelects();
     trocarSelecao();
     render();
+    atualizarCabecalho();
   });
 });
 </script>
