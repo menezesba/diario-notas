@@ -2,84 +2,63 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0B3D91">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Diário de Notas do Professor</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; }
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      background: #eef1f5;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #17202a;
-    }
-    .card {
-      width: min(420px, 100%);
-      background: #fff;
-      border-radius: 22px;
-      padding: 32px 24px 26px;
-      text-align: center;
-      box-shadow: 0 10px 32px rgba(0,0,0,.12);
-    }
-    .logo {
-      width: 96px;
-      height: 96px;
-      object-fit: contain;
-      margin-bottom: 10px;
-    }
-    h1 {
-      margin: 0 0 10px;
-      color: #0B3D91;
-      font-size: 23px;
-      line-height: 1.2;
-    }
-    p {
-      margin: 0 0 22px;
-      color: #65717d;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .entrar {
-      display: block;
+    html, body {
+      margin: 0;
+      padding: 0;
       width: 100%;
-      padding: 15px 18px;
-      border-radius: 12px;
-      background: #0B3D91;
-      color: #fff;
-      text-decoration: none;
-      font-size: 16px;
-      font-weight: 700;
-      box-shadow: 0 5px 14px rgba(11,61,145,.22);
+      height: 100%;
+      overflow: hidden;
+      background: #eef1f5;
     }
-    .entrar:active { transform: scale(.99); }
-    .info {
-      margin-top: 16px;
-      font-size: 12px;
-      color: #89939d;
-      line-height: 1.4;
+    .app-frame {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background: #eef1f5;
+    }
+    /*
+      O Apps Script exibe uma faixa própria no topo quando o Web App
+      é acessado por uma conta diferente da conta publicadora.
+      O aplicativo continua sendo carregado dentro do iframe; aqui
+      apenas recortamos visualmente essa faixa, sem alterar o Apps Script.
+    */
+    iframe {
+      position: absolute;
+      left: 0;
+      top: -47px;
+      width: 100%;
+      height: calc(100% + 47px);
+      border: 0;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <main class="card">
-    <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
-    <h1>Diário de Notas do Professor</h1>
-    <p>Acesse seu diário de notas de forma segura e simples.</p>
+  <div class="app-frame">
+    <iframe
+      src="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec?embedded=true"
+      allow="clipboard-read; clipboard-write; web-share"
+      loading="eager"
+      title="Diário de Notas do Professor">
+    </iframe>
+  </div>
 
-    <a class="entrar" href="https://script.google.com/macros/s/AKfycbwzCAi_TOYvbFV45xB8_8qixBI9wxKKR9aIhmjb0UsX6SCbqw7HW4gbyaha0_udnJNn/exec" target="_self">
-      ENTRAR NO DIÁRIO DE NOTAS
-    </a>
-
-    <div class="info">
-      Ao tocar em entrar, o sistema será aberto no navegador e utilizará sua conta Google.
-    </div>
-  </main>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(error => console.log("Service Worker:", error));
+      });
+    }
+  </script>
 </body>
 </html>
