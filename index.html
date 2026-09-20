@@ -489,6 +489,14 @@ document.addEventListener('DOMContentLoaded', function(){
     logoEl.src = LOGOS_INSTITUICOES['instituto do conhecimento da bahia'];
     logoEl.style.display = 'block';
   }
+
+  // Preenche imediatamente com a base padrão local para nunca abrir em branco
+  preencherSelects();
+  trocarSelecao();
+  render();
+  atualizarCabecalho();
+
+  // Em seguida, tenta buscar atualizações da nuvem
   carregarLocalOuNuvem();
 });
 
@@ -496,14 +504,6 @@ function carregarLocalOuNuvem(){
   if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Sincronizando...';
 
   if(!URL_API_GOOGLE){
-    try {
-      const salvo = JSON.parse(localStorage.getItem(KEY));
-      if(salvo && salvo.config) estado = salvo;
-    } catch(e) {}
-    preencherSelects();
-    trocarSelecao();
-    render();
-    atualizarCabecalho();
     if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
     return;
   }
@@ -526,23 +526,16 @@ function carregarLocalOuNuvem(){
         ordenarTodasConfiguracoes();
         normalizarEstruturasPorCurso();
         try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch(e) {}
+        
+        preencherSelects();
+        trocarSelecao();
+        render();
+        atualizarCabecalho();
       }
     }
-    preencherSelects();
-    trocarSelecao();
-    render();
-    atualizarCabecalho();
     if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
   })
   .catch(err => {
-    try {
-      const salvo = JSON.parse(localStorage.getItem(KEY));
-      if(salvo && salvo.config) estado = salvo;
-    } catch(e) {}
-    preencherSelects();
-    trocarSelecao();
-    render();
-    atualizarCabecalho();
     if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
   });
 }
