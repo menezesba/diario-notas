@@ -483,49 +483,68 @@ function ordenarTodasConfiguracoes(){
   });
 }
 
-function carregarLocalOuNuvem(){
-  try {
-    const salvo = JSON.parse(localStorage.getItem(KEY));
-    if(salvo && salvo.config && salvo.listasTurmas){
-      estado = salvo;
-      ordenarTodasConfiguracoes();
-    }
-  } catch(e) {}
-  
-  preencherSelects();
-  trocarSelecao();
-  render();
-  atualizarCabecalho();
-
-  if(URL_API_GOOGLE){
-    fetch(URL_API_GOOGLE, {
-      method: 'POST',
-      body: JSON.stringify({ acao: 'carregar' })
-    })
-    .then(res => res.json())
-    .then(res => {
-      if(res && res.sucesso && res.dados){
-        const dados = JSON.parse(res.dados);
-        if(dados && dados.config && dados.listasTurmas){
-          estado.config = dados.config;
-          estado.listasTurmas = dados.listasTurmas;
-          estado.disciplinasCursos = dados.disciplinasCursos || estado.disciplinasCursos;
-          estado.avaliacoes = dados.avaliacoes || estado.avaliacoes;
-          estado.detalhesAvaliacoes = dados.detalhesAvaliacoes || estado.detalhesAvaliacoes;
-          estado.diarios = dados.diarios || {};
-          ordenarTodasConfiguracoes();
-          normalizarEstruturasPorCurso();
-          try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch(e) {}
-          preencherSelects();
-          trocarSelecao();
-          render();
-          atualizarCabecalho();
-          if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
-        }
-      }
-    })
-    .catch(err => {});
+document.addEventListener('DOMContentLoaded', function(){
+  const logoEl = document.getElementById('logoCabecalho');
+  if(logoEl){
+    logoEl.src = LOGOS_INSTITUICOES['instituto do conhecimento da bahia'];
+    logoEl.style.display = 'block';
   }
+  carregarLocalOuNuvem();
+});
+
+function carregarLocalOuNuvem(){
+  if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Sincronizando...';
+
+  if(!URL_API_GOOGLE){
+    try {
+      const salvo = JSON.parse(localStorage.getItem(KEY));
+      if(salvo && salvo.config) estado = salvo;
+    } catch(e) {}
+    preencherSelects();
+    trocarSelecao();
+    render();
+    atualizarCabecalho();
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
+    return;
+  }
+
+  fetch(URL_API_GOOGLE, {
+    method: 'POST',
+    body: JSON.stringify({ acao: 'carregar' })
+  })
+  .then(res => res.json())
+  .then(res => {
+    if(res && res.sucesso && res.dados){
+      const dados = JSON.parse(res.dados);
+      if(dados && dados.config && dados.listasTurmas){
+        estado.config = dados.config;
+        estado.listasTurmas = dados.listasTurmas;
+        estado.disciplinasCursos = dados.disciplinasCursos || estado.disciplinasCursos;
+        estado.avaliacoes = dados.avaliacoes || estado.avaliacoes;
+        estado.detalhesAvaliacoes = dados.detalhesAvaliacoes || estado.detalhesAvaliacoes;
+        estado.diarios = dados.diarios || {};
+        ordenarTodasConfiguracoes();
+        normalizarEstruturasPorCurso();
+        try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch(e) {}
+      }
+    }
+    preencherSelects();
+    trocarSelecao();
+    render();
+    atualizarCabecalho();
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
+  })
+  .catch(err => {
+    try {
+      const salvo = JSON.parse(localStorage.getItem(KEY));
+      if(salvo && salvo.config) estado = salvo;
+    } catch(e) {}
+    preencherSelects();
+    trocarSelecao();
+    render();
+    atualizarCabecalho();
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent = 'Dados Sincronizados';
+  });
 }
 
 function salvarLocal(callback){
@@ -1225,10 +1244,6 @@ function abrirModalCompartilharPDF(){ $id('modalCompartilharPDF').style.display 
 function fecharModalCompartilharPDF(){ $id('modalCompartilharPDF').style.display = 'none'; }
 function opcaoBaixarPDF(){ fecharModalCompartilharPDF(); prepararHtmlExportacaoPDF(); html2pdf().set({ margin: [4.8, 4, 4, 4], filename: `Diario_${$id('turma').value}_${$id('disciplina').value}.pdf`.replace(/\s+/g, '_'), image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from($id('areaExportacaoPDF')).save(); }
 function opcaoEnviarEmail(){ fecharModalCompartilharPDF(); alert('Para envio de e-mails direto, utilize o painel institucional do Google Apps Script.'); }
-
-document.addEventListener('DOMContentLoaded', function(){
-  carregarLocalOuNuvem();
-});
 </script>
 </body>
 </html>
