@@ -26,19 +26,23 @@ button{font-family:inherit}
 .info{margin-top:16px;font-size:12px;color:#89939d}
 .rodape{margin-top:22px;padding-top:16px;border-top:1px solid #e5e8eb;font-size:11px;color:#9aa3ab}
 #googleLogin{display:flex;justify-content:center;min-height:44px}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);align-items:center;justify-content:center;padding:20px;z-index:10}
-.modal.aberto{display:flex}
-.modal-card{width:min(420px,100%);background:#fff;border-radius:18px;padding:26px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
-.modal-card h2{margin:0 0 8px;color:#0B3D91;font-size:22px}
-.modal-card p{margin:0 0 18px;color:#65717d;font-size:13px;line-height:1.5}
-.modal-actions{display:flex;gap:10px;margin-top:14px}
-.modal-actions button{flex:1;height:44px;border-radius:8px;cursor:pointer}
-.btn-criar{border:0;background:#1455a0;color:#fff;font-weight:700}
-.btn-cancelar{border:1px solid #cfd6dd;background:#fff;color:#526273}
+.tela-cadastro{display:none;width:min(460px,100%);background:#fff;border-radius:22px;padding:30px 26px 28px;text-align:center;box-shadow:0 10px 32px rgba(0,0,0,.12)}
+.tela-cadastro.ativa{display:block}
+.tela-login.oculta{display:none}
+.tela-cadastro h2{margin:0 0 10px;color:#0B3D91;font-size:24px}
+.tela-cadastro .explicacao{margin:0 auto 22px;color:#65717d;font-size:14px;line-height:1.55;max-width:380px}
+.cadastro-campos{display:flex;flex-direction:column;gap:10px;width:360px;max-width:100%;margin:auto}
+.cadastro-acoes{display:flex;flex-direction:column;gap:9px;margin-top:14px;width:360px;max-width:100%;margin-left:auto;margin-right:auto}
+.btn-criar{height:46px;border:0;border-radius:8px;background:#1455a0;color:#fff;font-weight:700;cursor:pointer}
+.btn-criar:disabled{opacity:.65;cursor:wait}
+.btn-voltar{height:42px;border:1px solid #cfd6dd;border-radius:8px;background:#fff;color:#526273;cursor:pointer}
+.mensagem-cadastro{min-height:24px;margin-top:12px;font-size:13px;color:#526273}
+.sucesso-cadastro{padding:12px 0 4px;color:#176b3a;font-weight:700;line-height:1.5}
 </style>
 </head>
 <body>
 <main class="card">
+  <div class="tela-login" id="telaLogin">
   <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
   <h1>Diário de Notas do Professor</h1>
   <p class="subtitulo">Sistema para gerenciamento acadêmico de professores</p>
@@ -57,6 +61,30 @@ button{font-family:inherit}
   <div id="status"></div>
   <div class="info">Entre com sua conta Google ou com seu e-mail e senha.</div>
   <div class="rodape">Diário de Notas do Professor</div>
+</div>
+
+  <div class="tela-cadastro" id="telaCadastro">
+    <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
+    <h2>Criar uma nova conta</h2>
+    <p class="explicacao">
+      Preencha seus dados abaixo. Use um e-mail que você tenha acesso
+      e crie uma senha nova para entrar no Diário de Notas.
+    </p>
+
+    <form id="cadastroForm" novalidate>
+      <div class="cadastro-campos">
+        <input id="cadNome" type="text" autocomplete="name" placeholder="Seu nome completo" required>
+        <input id="cadEmail" type="email" autocomplete="email" placeholder="Seu e-mail" required>
+        <input id="cadSenha" type="password" autocomplete="new-password" placeholder="Crie uma senha (mínimo 6 caracteres)" required>
+        <input id="cadConfirmacao" type="password" autocomplete="new-password" placeholder="Repita a nova senha" required>
+      </div>
+      <div id="cadStatus" class="mensagem-cadastro"></div>
+      <div class="cadastro-acoes">
+        <button type="submit" class="btn-criar" id="btnCriar">CRIAR CONTA</button>
+        <button type="button" class="btn-voltar" id="voltarLogin">VOLTAR PARA O LOGIN</button>
+      </div>
+    </form>
+  </div>
 </main>
 
 <div class="modal" id="modalCadastro">
@@ -85,7 +113,8 @@ const loginForm=document.getElementById('loginForm');
 const loginEmail=document.getElementById('loginEmail');
 const loginSenha=document.getElementById('loginSenha');
 const status=document.getElementById('status');
-const modal=document.getElementById('modalCadastro');
+const telaLogin=document.getElementById('telaLogin');
+const telaCadastro=document.getElementById('telaCadastro');
 const cadForm=document.getElementById('cadastroForm');
 const cadStatus=document.getElementById('cadStatus');
 
@@ -124,28 +153,104 @@ loginForm.addEventListener('submit',async e=>{
   finally{b.disabled=false}
 });
 document.getElementById('abrirCadastro').onclick=()=>{
+  telaLogin.classList.add('oculta');
+  telaCadastro.classList.add('ativa');
+  cadStatus.textContent='';
+  document.getElementById('cadNome').value='';
   document.getElementById('cadEmail').value=loginEmail.value.trim();
-  cadStatus.textContent='';modal.classList.add('aberto');document.getElementById('cadNome').focus();
+  document.getElementById('cadSenha').value='';
+  document.getElementById('cadConfirmacao').value='';
+  document.getElementById('cadNome').focus();
 };
-document.getElementById('fecharCadastro').onclick=()=>modal.classList.remove('aberto');
-modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('aberto')});
+
+document.getElementById('voltarLogin').onclick=()=>{
+  telaCadastro.classList.remove('ativa');
+  telaLogin.classList.remove('oculta');
+  cadStatus.textContent='';
+  loginSenha.focus();
+};
+
 cadForm.addEventListener('submit',async e=>{
   e.preventDefault();
+
+  const nome=document.getElementById('cadNome').value.trim();
   const email=document.getElementById('cadEmail').value.trim();
   const senha=document.getElementById('cadSenha').value;
   const conf=document.getElementById('cadConfirmacao').value;
-  if(!email||!senha||!conf){cadStatus.textContent='Preencha todos os campos obrigatórios.';return}
-  if(senha.length<6){cadStatus.textContent='A senha precisa ter pelo menos 6 caracteres.';return}
-  if(senha!==conf){cadStatus.textContent='As senhas não são iguais.';return}
-  const b=document.getElementById('btnCriar');b.disabled=true;cadStatus.textContent='Criando sua conta...';
+
+  if(!nome){
+    cadStatus.textContent='Digite seu nome completo.';
+    document.getElementById('cadNome').focus();
+    return;
+  }
+
+  if(!email){
+    cadStatus.textContent='Digite seu e-mail.';
+    document.getElementById('cadEmail').focus();
+    return;
+  }
+
+  const emailValido=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if(!emailValido){
+    cadStatus.textContent='Digite um e-mail válido, por exemplo: nome@exemplo.com';
+    document.getElementById('cadEmail').focus();
+    return;
+  }
+
+  if(!senha){
+    cadStatus.textContent='Crie uma senha nova.';
+    document.getElementById('cadSenha').focus();
+    return;
+  }
+
+  if(senha.length<6){
+    cadStatus.textContent='A senha precisa ter pelo menos 6 caracteres.';
+    document.getElementById('cadSenha').focus();
+    return;
+  }
+
+  if(!conf){
+    cadStatus.textContent='Repita a nova senha.';
+    document.getElementById('cadConfirmacao').focus();
+    return;
+  }
+
+  if(senha!==conf){
+    cadStatus.textContent='As senhas não são iguais. Digite novamente.';
+    document.getElementById('cadConfirmacao').focus();
+    return;
+  }
+
+  const b=document.getElementById('btnCriar');
+  b.disabled=true;
+  cadStatus.textContent='Criando sua conta...';
+
   try{
-    const r=await firebaseRequest('accounts:signUp',{email,password:senha,returnSecureToken:true});
-    modal.classList.remove('aberto');
-    loginEmail.value=r.email||email;loginSenha.value='';
-    status.textContent='✓ CONTA CRIADA COM SUCESSO! Agora você já pode entrar.';
-  }catch(err){cadStatus.textContent='✕ '+erroAmigavel(err.code)}
-  finally{b.disabled=false}
+    const r=await firebaseRequest('accounts:signUp',{
+      email,
+      password:senha,
+      returnSecureToken:true
+    });
+
+    cadStatus.innerHTML='<span class="sucesso-cadastro">✓ CONTA CRIADA COM SUCESSO!<br>Agora faça seu login.</span>';
+
+    setTimeout(()=>{
+      telaCadastro.classList.remove('ativa');
+      telaLogin.classList.remove('oculta');
+      loginEmail.value=r.email||email;
+      loginSenha.value='';
+      status.textContent='✓ Conta criada com sucesso. Digite sua senha para entrar.';
+      loginSenha.focus();
+      cadStatus.textContent='';
+    },1800);
+
+  }catch(err){
+    cadStatus.textContent='✕ '+erroAmigavel(err.code);
+  }finally{
+    b.disabled=false;
+  }
 });
+
 window.addEventListener('load',()=>{
   if(!window.google?.accounts?.id)return;
   google.accounts.id.initialize({
