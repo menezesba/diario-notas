@@ -87,26 +87,6 @@ button{font-family:inherit}
   </div>
 </main>
 
-<div class="modal" id="modalCadastro">
-  <div class="modal-card">
-    <h2>Criar sua conta</h2>
-    <p>Use qualquer endereço de e-mail válido. Crie uma senha com pelo menos 6 caracteres.</p>
-    <form id="cadastroForm" novalidate>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <input id="cadNome" type="text" autocomplete="name" placeholder="Seu nome">
-        <input id="cadEmail" type="email" autocomplete="email" placeholder="Seu e-mail" required>
-        <input id="cadSenha" type="password" autocomplete="new-password" placeholder="Senha" required>
-        <input id="cadConfirmacao" type="password" autocomplete="new-password" placeholder="Confirme a senha" required>
-      </div>
-      <div id="cadStatus" style="min-height:22px;margin-top:12px;font-size:13px;color:#526273;text-align:center"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancelar" id="fecharCadastro">Cancelar</button>
-        <button type="submit" class="btn-criar" id="btnCriar">CRIAR CONTA</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <script>
 const API_KEY='AIzaSyDjmKNNXynwLo4lWr3-2I2nvaejELNaxUQU';
 const loginForm=document.getElementById('loginForm');
@@ -147,7 +127,7 @@ loginForm.addEventListener('submit',async e=>{
   const b=loginForm.querySelector('.botao-email');b.disabled=true;status.textContent='Verificando sua conta...';
   try{
     const r=await firebaseRequest('accounts:signInWithPassword',{email:loginEmail.value.trim(),password:loginSenha.value,returnSecureToken:true});
-    status.textContent='✓ LOGIN REALIZADO COM SUCESSO! Conta: '+r.email;
+    status.innerHTML='✓ <strong>LOGIN REALIZADO COM SUCESSO!</strong><br>Conta: '+r.email;
     loginSenha.value='';
   }catch(err){status.textContent='✕ '+erroAmigavel(err.code)}
   finally{b.disabled=false}
