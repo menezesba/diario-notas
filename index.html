@@ -285,7 +285,9 @@
         console.error('ERRO FIREBASE GOOGLE:', erro);
 
         status.textContent =
-          'Não foi possível confirmar sua conta. Atualize a página e tente novamente.';
+          'ERRO FIREBASE: ' +
+          (erro && erro.code ? erro.code + ' - ' : '') +
+          (erro && erro.message ? erro.message : 'erro desconhecido');
       }
     }
 
