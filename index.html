@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -20,6 +21,9 @@
   >
 
   <title>Diário de Notas do Professor</title>
+
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
 
@@ -82,27 +86,18 @@
       line-height: 1.6;
     }
 
-    .entrar {
-      display: block;
-      width: 100%;
-      padding: 15px 18px;
-      border: none;
-      border-radius: 12px;
-      background: #0B3D91;
-      color: #fff;
-      text-decoration: none;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 5px 14px rgba(11, 61, 145, .22);
+    #googleLogin {
+      display: flex;
+      justify-content: center;
+      min-height: 44px;
+      margin-top: 4px;
     }
 
-    .entrar:hover {
-      background: #092f70;
-    }
-
-    .entrar:active {
-      transform: scale(.99);
+    #statusLogin {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #65717d;
+      min-height: 18px;
     }
 
     .info {
@@ -169,17 +164,12 @@
       aproveitamento acadêmico e gerar relatórios em PDF.
     </p>
 
-    <button
-      type="button"
-      class="entrar"
-      onclick="abrirDiario()"
-    >
-      ENTRAR NO DIÁRIO DE NOTAS
-    </button>
+    <div id="googleLogin"></div>
+
+    <div id="statusLogin"></div>
 
     <div class="info">
-      Ao tocar em entrar, o sistema será aberto utilizando
-      sua conta Google para acessar seus dados.
+      Entre com sua conta Google para continuar.
     </div>
 
     <div class="rodape">
@@ -204,30 +194,63 @@
 
   <script>
 
+    const GOOGLE_CLIENT_ID =
+      '1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com';
+
     function abrirDiario() {
 
       const telaInicial = document.getElementById('telaInicial');
       const areaDiario = document.getElementById('areaDiario');
       const diarioFrame = document.getElementById('diarioFrame');
 
-      /*
-       * Web App atual do Google Apps Script
-       */
-
       const urlDiario =
         'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
 
-      /*
-       * Carrega o Diário dentro da própria página.
-       */
-
       diarioFrame.src = urlDiario;
-
       telaInicial.style.display = 'none';
-
       areaDiario.style.display = 'block';
 
     }
+
+    function handleGoogleCredential(response) {
+      const status = document.getElementById('statusLogin');
+      status.textContent = 'Conta Google selecionada. Abrindo o Diário...';
+
+      /*
+       * O token recebido aqui serve para confirmar o login nesta página.
+       * A autorização do Google Apps Script continua sendo independente.
+       */
+      if (response && response.credential) {
+        setTimeout(abrirDiario, 250);
+      }
+    }
+
+    window.addEventListener('load', function () {
+      if (!window.google || !google.accounts || !google.accounts.id) {
+        document.getElementById('statusLogin').textContent =
+          'Não foi possível carregar o login do Google. Atualize a página e tente novamente.';
+        return;
+      }
+
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+        ux_mode: 'popup'
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('googleLogin'),
+        {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          width: 360,
+          logo_alignment: 'left'
+        }
+      );
+    });
 
   </script>
 
