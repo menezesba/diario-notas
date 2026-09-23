@@ -7,63 +7,73 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#eef1f5;font-family:Arial,Helvetica,sans-serif;color:#17202a}
-.card{width:min(460px,100%);background:#fff;border-radius:22px;padding:32px 26px 28px;text-align:center;box-shadow:0 10px 32px rgba(0,0,0,.12)}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:#eef1f5;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#17202a;
+}
+.painel{
+  width:min(460px,100%);
+  background:#fff;
+  border-radius:22px;
+  padding:30px 26px;
+  text-align:center;
+  box-shadow:0 10px 32px rgba(0,0,0,.12);
+}
 .logo{width:96px;height:96px;object-fit:contain;margin-bottom:10px}
-h1{margin:0 0 12px;color:#0B3D91;font-size:24px}
+h1,h2{margin:0 0 12px;color:#0B3D91;font-size:25px}
 .subtitulo{margin:0 0 18px;color:#3f4b57;font-size:15px;font-weight:600}
-.descricao{margin:0 0 24px;color:#65717d;font-size:14px;line-height:1.6}
+.descricao{margin:0 0 22px;color:#65717d;font-size:14px;line-height:1.55}
 .separador{display:flex;align-items:center;gap:12px;margin:18px 0 14px;color:#9aa3ab;font-size:13px}
 .separador:before,.separador:after{content:"";flex:1;height:1px;background:#e2e6ea}
-.email-login{display:flex;flex-direction:column;gap:10px;width:360px;max-width:100%;margin:auto}
-input{width:100%;height:46px;padding:0 13px;border:1px solid #cfd6dd;border-radius:8px;background:#fff;color:#263238;font-size:14px;outline:none}
-input:focus{border-color:#1976d2;box-shadow:0 0 0 2px rgba(25,118,210,.10)}
-button{font-family:inherit}
-.botao-email{height:46px;border:0;border-radius:8px;background:#1455a0;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
-.botao-email:disabled{opacity:.65;cursor:wait}
-.botao-link{border:0;background:transparent;color:#1455a0;font-size:13px;cursor:pointer;padding:5px}
-#status{min-height:22px;margin-top:12px;font-size:13px;color:#526273}
-.info{margin-top:16px;font-size:12px;color:#89939d}
-.rodape{margin-top:22px;padding-top:16px;border-top:1px solid #e5e8eb;font-size:11px;color:#9aa3ab}
+form{width:360px;max-width:100%;margin:auto}
+.campo{width:100%;height:46px;padding:0 13px;border:1px solid #cfd6dd;border-radius:8px;background:#fff;color:#263238;font-size:14px;outline:none;margin-bottom:10px}
+.campo:focus{border-color:#1976d2;box-shadow:0 0 0 2px rgba(25,118,210,.10)}
+.botao{width:100%;height:46px;border:0;border-radius:8px;background:#1455a0;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.botao:disabled{opacity:.65;cursor:wait}
+.link{border:0;background:transparent;color:#1455a0;font-size:13px;cursor:pointer;padding:10px 5px}
+.secundario{margin-top:10px;background:#fff;color:#1455a0;border:1px solid #cfd6dd}
 #googleLogin{display:flex;justify-content:center;min-height:44px}
-.tela-cadastro{display:none;width:min(460px,100%);background:#fff;border-radius:22px;padding:30px 26px 28px;text-align:center;box-shadow:0 10px 32px rgba(0,0,0,.12)}
-.tela-cadastro.ativa{display:block}
-.tela-login.oculta{display:none}
-.tela-cadastro h2{margin:0 0 10px;color:#0B3D91;font-size:24px}
-.tela-cadastro .explicacao{margin:0 auto 22px;color:#65717d;font-size:14px;line-height:1.55;max-width:380px}
-.cadastro-campos{display:flex;flex-direction:column;gap:10px;width:360px;max-width:100%;margin:auto}
-.cadastro-acoes{display:flex;flex-direction:column;gap:9px;margin-top:14px;width:360px;max-width:100%;margin-left:auto;margin-right:auto}
-.btn-criar{height:46px;border:0;border-radius:8px;background:#1455a0;color:#fff;font-weight:700;cursor:pointer}
-.btn-criar:disabled{opacity:.65;cursor:wait}
-.btn-voltar{height:42px;border:1px solid #cfd6dd;border-radius:8px;background:#fff;color:#526273;cursor:pointer}
-.mensagem-cadastro{min-height:24px;margin-top:12px;font-size:13px;color:#526273}
-.sucesso-cadastro{padding:12px 0 4px;color:#176b3a;font-weight:700;line-height:1.5}
+.status{min-height:24px;margin-top:12px;font-size:13px;line-height:1.45;color:#526273}
+.sucesso{color:#176b3a;font-weight:700}
+.explicacao{margin:0 auto 20px;color:#65717d;font-size:14px;line-height:1.55;max-width:380px}
+.rodape{margin-top:20px;padding-top:14px;border-top:1px solid #e5e8eb;font-size:11px;color:#9aa3ab}
+.oculto{display:none !important}
 </style>
 </head>
 <body>
-<main class="card">
-  <div class="tela-login" id="telaLogin">
-  <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
-  <h1>Diário de Notas do Professor</h1>
-  <p class="subtitulo">Sistema para gerenciamento acadêmico de professores</p>
-  <p class="descricao">O Diário de Notas do Professor permite organizar turmas, disciplinas e alunos, registrar e acompanhar notas e avaliações, calcular o aproveitamento acadêmico e gerar relatórios em PDF.</p>
 
-  <div id="googleLogin"></div>
-  <div class="separador"><span>ou</span></div>
+<div class="painel">
 
-  <form id="loginForm" class="email-login" novalidate>
-    <input id="loginEmail" type="email" autocomplete="email" placeholder="Seu e-mail" required>
-    <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Sua senha" required>
-    <button class="botao-email" type="submit">ENTRAR COM E-MAIL</button>
-    <button class="botao-link" type="button" id="abrirCadastro">Criar uma conta</button>
-  </form>
+  <!-- UMA ÚNICA TELA DE LOGIN -->
+  <section id="telaLogin">
+    <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
+    <h1>Diário de Notas do Professor</h1>
+    <p class="subtitulo">Sistema para gerenciamento acadêmico de professores</p>
+    <p class="descricao">Entre com sua conta Google ou com seu e-mail e senha.</p>
 
-  <div id="status"></div>
-  <div class="info">Entre com sua conta Google ou com seu e-mail e senha.</div>
-  <div class="rodape">Diário de Notas do Professor</div>
-</div>
+    <div id="googleLogin"></div>
+    <div class="separador"><span>ou</span></div>
 
-  <div class="tela-cadastro" id="telaCadastro">
+    <form id="loginForm" novalidate>
+      <input class="campo" id="loginEmail" type="email" autocomplete="email" placeholder="Seu e-mail" required>
+      <input class="campo" id="loginSenha" type="password" autocomplete="current-password" placeholder="Sua senha" required>
+      <button class="botao" id="btnLogin" type="submit">ENTRAR COM E-MAIL</button>
+      <button class="link" id="abrirCadastro" type="button">Criar uma conta</button>
+    </form>
+
+    <div class="status" id="loginStatus"></div>
+    <div class="rodape">Diário de Notas do Professor</div>
+  </section>
+
+  <!-- ESTA É A ÚNICA TELA DE CADASTRO. ELA SUBSTITUI A DE LOGIN. -->
+  <section id="telaCadastro" class="oculto">
     <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
     <h2>Criar uma nova conta</h2>
     <p class="explicacao">
@@ -72,174 +82,251 @@ button{font-family:inherit}
     </p>
 
     <form id="cadastroForm" novalidate>
-      <div class="cadastro-campos">
-        <input id="cadNome" type="text" autocomplete="name" placeholder="Seu nome completo" required>
-        <input id="cadEmail" type="email" autocomplete="email" placeholder="Seu e-mail" required>
-        <input id="cadSenha" type="password" autocomplete="new-password" placeholder="Crie uma senha (mínimo 6 caracteres)" required>
-        <input id="cadConfirmacao" type="password" autocomplete="new-password" placeholder="Repita a nova senha" required>
-      </div>
-      <div id="cadStatus" class="mensagem-cadastro"></div>
-      <div class="cadastro-acoes">
-        <button type="submit" class="btn-criar" id="btnCriar">CRIAR CONTA</button>
-        <button type="button" class="btn-voltar" id="voltarLogin">VOLTAR PARA O LOGIN</button>
-      </div>
+      <input class="campo" id="cadNome" type="text" autocomplete="name" placeholder="Seu nome completo" required>
+      <input class="campo" id="cadEmail" type="email" autocomplete="email" placeholder="Seu e-mail" required>
+      <input class="campo" id="cadSenha" type="password" autocomplete="new-password" placeholder="Crie uma senha nova (mínimo 6 caracteres)" required>
+      <input class="campo" id="cadConfirmacao" type="password" autocomplete="new-password" placeholder="Repita a nova senha" required>
+
+      <div class="status" id="cadStatus"></div>
+
+      <button class="botao" id="btnCriar" type="submit">CRIAR CONTA</button>
+      <button class="botao secundario" id="voltarLogin" type="button">VOLTAR PARA O LOGIN</button>
     </form>
-  </div>
-</main>
+  </section>
+
+</div>
 
 <script>
-const API_KEY='AIzaSyDjmKNNXynwLo4lWr3-2I2nvaejELNaxUQU';
-const loginForm=document.getElementById('loginForm');
-const loginEmail=document.getElementById('loginEmail');
-const loginSenha=document.getElementById('loginSenha');
-const status=document.getElementById('status');
-const telaLogin=document.getElementById('telaLogin');
-const telaCadastro=document.getElementById('telaCadastro');
-const cadForm=document.getElementById('cadastroForm');
-const cadStatus=document.getElementById('cadStatus');
+const API_KEY = 'AIzaSyDjmKNNXynwLo4lWr-2I2nvaejELNaxUQU';
 
-async function firebaseRequest(endpoint,payload){
-  const r=await fetch('https://identitytoolkit.googleapis.com/v1/'+endpoint+'?key='+encodeURIComponent(API_KEY),{
-    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  const d=await r.json().catch(()=>({}));
-  if(!r.ok){
-    const code=d?.error?.message||('HTTP_'+r.status);
-    const e=new Error(code);e.code=code;throw e;
-  }
-  return d;
-}
-function erroAmigavel(code){
-  const m={
-    INVALID_LOGIN_CREDENTIALS:'E-mail ou senha incorretos.',
-    EMAIL_EXISTS:'Este e-mail já possui uma conta.',
-    INVALID_EMAIL:'Digite um e-mail válido.',
-    WEAK_PASSWORD:'A senha precisa ter pelo menos 6 caracteres.',
-    OPERATION_NOT_ALLOWED:'O login por e-mail/senha está desativado.',
-    TOO_MANY_ATTEMPTS_TRY_LATER:'Muitas tentativas. Aguarde alguns minutos.',
-    INVALID_API_KEY:'A chave da API não foi aceita.'
+const telaLogin = document.getElementById('telaLogin');
+const telaCadastro = document.getElementById('telaCadastro');
+
+const loginForm = document.getElementById('loginForm');
+const loginEmail = document.getElementById('loginEmail');
+const loginSenha = document.getElementById('loginSenha');
+const btnLogin = document.getElementById('btnLogin');
+const loginStatus = document.getElementById('loginStatus');
+
+const cadastroForm = document.getElementById('cadastroForm');
+const cadNome = document.getElementById('cadNome');
+const cadEmail = document.getElementById('cadEmail');
+const cadSenha = document.getElementById('cadSenha');
+const cadConfirmacao = document.getElementById('cadConfirmacao');
+const btnCriar = document.getElementById('btnCriar');
+const cadStatus = document.getElementById('cadStatus');
+
+function erroAmigavel(codigo) {
+  const mapa = {
+    'EMAIL_EXISTS': 'Este e-mail já possui uma conta. Volte ao login e entre normalmente.',
+    'INVALID_EMAIL': 'Digite um endereço de e-mail válido.',
+    'WEAK_PASSWORD': 'A senha precisa ter pelo menos 6 caracteres.',
+    'INVALID_PASSWORD': 'E-mail ou senha incorretos.',
+    'EMAIL_NOT_FOUND': 'E-mail ou senha incorretos.',
+    'USER_DISABLED': 'Esta conta está desativada.',
+    'TOO_MANY_ATTEMPTS_TRY_LATER': 'Muitas tentativas. Aguarde um pouco e tente novamente.',
+    'API_KEY_INVALID': 'A configuração do Firebase recusou a chave da API. Verifique a configuração do aplicativo Firebase.',
+    'OPERATION_NOT_ALLOWED': 'O login por e-mail e senha não está habilitado no Firebase.'
   };
-  return m[code]||('Código Firebase: '+code);
+  return mapa[codigo] || ('Código Firebase: ' + (codigo || 'erro desconhecido'));
 }
-loginForm.addEventListener('submit',async e=>{
-  e.preventDefault();
-  if(!loginEmail.value.trim()||!loginSenha.value){status.textContent='Informe seu e-mail e sua senha.';return}
-  const b=loginForm.querySelector('.botao-email');b.disabled=true;status.textContent='Verificando sua conta...';
-  try{
-    const r=await firebaseRequest('accounts:signInWithPassword',{email:loginEmail.value.trim(),password:loginSenha.value,returnSecureToken:true});
-    status.innerHTML='✓ <strong>LOGIN REALIZADO COM SUCESSO!</strong><br>Conta: '+r.email;
-    loginSenha.value='';
-  }catch(err){status.textContent='✕ '+erroAmigavel(err.code)}
-  finally{b.disabled=false}
-});
-document.getElementById('abrirCadastro').onclick=()=>{
-  telaLogin.classList.add('oculta');
-  telaCadastro.classList.add('ativa');
-  cadStatus.textContent='';
-  document.getElementById('cadNome').value='';
-  document.getElementById('cadEmail').value=loginEmail.value.trim();
-  document.getElementById('cadSenha').value='';
-  document.getElementById('cadConfirmacao').value='';
-  document.getElementById('cadNome').focus();
+
+async function firebaseRequest(endpoint, payload) {
+  const resposta = await fetch(
+    'https://identitytoolkit.googleapis.com/v1/' + endpoint + '?key=' + encodeURIComponent(API_KEY),
+    {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    }
+  );
+
+  const dados = await resposta.json();
+
+  if (!resposta.ok) {
+    const erro = new Error(dados?.error?.message || 'Erro Firebase');
+    erro.code = dados?.error?.message || '';
+    throw erro;
+  }
+
+  return dados;
+}
+
+document.getElementById('abrirCadastro').onclick = () => {
+  // Troca de tela, não abre janela por cima.
+  telaLogin.classList.add('oculto');
+  telaCadastro.classList.remove('oculto');
+
+  cadStatus.textContent = '';
+  cadNome.value = '';
+  cadEmail.value = loginEmail.value.trim();
+  cadSenha.value = '';
+  cadConfirmacao.value = '';
+  cadNome.focus();
 };
 
-document.getElementById('voltarLogin').onclick=()=>{
-  telaCadastro.classList.remove('ativa');
-  telaLogin.classList.remove('oculta');
-  cadStatus.textContent='';
+document.getElementById('voltarLogin').onclick = () => {
+  telaCadastro.classList.add('oculto');
+  telaLogin.classList.remove('oculto');
+
+  cadStatus.textContent = '';
+  loginStatus.textContent = '';
   loginSenha.focus();
 };
 
-cadForm.addEventListener('submit',async e=>{
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const nome=document.getElementById('cadNome').value.trim();
-  const email=document.getElementById('cadEmail').value.trim();
-  const senha=document.getElementById('cadSenha').value;
-  const conf=document.getElementById('cadConfirmacao').value;
+  const email = loginEmail.value.trim();
+  const senha = loginSenha.value;
 
-  if(!nome){
-    cadStatus.textContent='Digite seu nome completo.';
-    document.getElementById('cadNome').focus();
+  if (!email) {
+    loginStatus.textContent = 'Digite seu e-mail.';
+    loginEmail.focus();
     return;
   }
 
-  if(!email){
-    cadStatus.textContent='Digite seu e-mail.';
-    document.getElementById('cadEmail').focus();
+  if (!senha) {
+    loginStatus.textContent = 'Digite sua senha.';
+    loginSenha.focus();
     return;
   }
 
-  const emailValido=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  if(!emailValido){
-    cadStatus.textContent='Digite um e-mail válido, por exemplo: nome@exemplo.com';
-    document.getElementById('cadEmail').focus();
-    return;
-  }
+  btnLogin.disabled = true;
+  loginStatus.textContent = 'Verificando sua conta...';
 
-  if(!senha){
-    cadStatus.textContent='Crie uma senha nova.';
-    document.getElementById('cadSenha').focus();
-    return;
-  }
-
-  if(senha.length<6){
-    cadStatus.textContent='A senha precisa ter pelo menos 6 caracteres.';
-    document.getElementById('cadSenha').focus();
-    return;
-  }
-
-  if(!conf){
-    cadStatus.textContent='Repita a nova senha.';
-    document.getElementById('cadConfirmacao').focus();
-    return;
-  }
-
-  if(senha!==conf){
-    cadStatus.textContent='As senhas não são iguais. Digite novamente.';
-    document.getElementById('cadConfirmacao').focus();
-    return;
-  }
-
-  const b=document.getElementById('btnCriar');
-  b.disabled=true;
-  cadStatus.textContent='Criando sua conta...';
-
-  try{
-    const r=await firebaseRequest('accounts:signUp',{
+  try {
+    const r = await firebaseRequest('accounts:signInWithPassword', {
       email,
       password:senha,
       returnSecureToken:true
     });
 
-    cadStatus.innerHTML='<span class="sucesso-cadastro">✓ CONTA CRIADA COM SUCESSO!<br>Agora faça seu login.</span>';
-
-    setTimeout(()=>{
-      telaCadastro.classList.remove('ativa');
-      telaLogin.classList.remove('oculta');
-      loginEmail.value=r.email||email;
-      loginSenha.value='';
-      status.textContent='✓ Conta criada com sucesso. Digite sua senha para entrar.';
-      loginSenha.focus();
-      cadStatus.textContent='';
-    },1800);
-
-  }catch(err){
-    cadStatus.textContent='✕ '+erroAmigavel(err.code);
-  }finally{
-    b.disabled=false;
+    loginStatus.innerHTML = '<span class="sucesso">✓ LOGIN REALIZADO COM SUCESSO!</span><br>Conta: ' + r.email;
+    loginSenha.value = '';
+  } catch(err) {
+    loginStatus.textContent = '✕ ' + erroAmigavel(err.code);
+  } finally {
+    btnLogin.disabled = false;
   }
-});
+};
 
-window.addEventListener('load',()=>{
-  if(!window.google?.accounts?.id)return;
+cadastroForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const nome = cadNome.value.trim();
+  const email = cadEmail.value.trim();
+  const senha = cadSenha.value;
+  const confirmacao = cadConfirmacao.value;
+
+  if (!nome) {
+    cadStatus.textContent = 'Digite seu nome completo.';
+    cadNome.focus();
+    return;
+  }
+
+  if (!email) {
+    cadStatus.textContent = 'Digite seu e-mail.';
+    cadEmail.focus();
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    cadStatus.textContent = 'Digite um e-mail válido, por exemplo: nome@exemplo.com';
+    cadEmail.focus();
+    return;
+  }
+
+  if (!senha) {
+    cadStatus.textContent = 'Crie uma senha nova.';
+    cadSenha.focus();
+    return;
+  }
+
+  if (senha.length < 6) {
+    cadStatus.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+    cadSenha.focus();
+    return;
+  }
+
+  if (!confirmacao) {
+    cadStatus.textContent = 'Repita a nova senha.';
+    cadConfirmacao.focus();
+    return;
+  }
+
+  if (senha !== confirmacao) {
+    cadStatus.textContent = 'As senhas não são iguais. Digite novamente.';
+    cadConfirmacao.focus();
+    return;
+  }
+
+  btnCriar.disabled = true;
+  cadStatus.textContent = 'Criando sua conta...';
+
+  try {
+    const r = await firebaseRequest('accounts:signUp', {
+      email,
+      password:senha,
+      returnSecureToken:true
+    });
+
+    // Guarda o nome informado na conta Firebase.
+    try {
+      await firebaseRequest('accounts:update', {
+        idToken:r.idToken,
+        displayName:nome,
+        returnSecureToken:true
+      });
+    } catch(_) {
+      // Se a atualização do nome falhar, a conta ainda foi criada.
+    }
+
+    cadStatus.innerHTML = '<span class="sucesso">✓ CONTA CRIADA COM SUCESSO!</span><br>Agora faça seu login.';
+
+    setTimeout(() => {
+      // Volta para a mesma tela de login, sem sobreposição.
+      telaCadastro.classList.add('oculto');
+      telaLogin.classList.remove('oculto');
+
+      loginEmail.value = r.email || email;
+      loginSenha.value = '';
+      loginStatus.innerHTML = '<span class="sucesso">✓ Conta criada com sucesso.</span><br>Agora digite sua senha para entrar.';
+      loginSenha.focus();
+    }, 1800);
+
+  } catch(err) {
+    cadStatus.textContent = '✕ ' + erroAmigavel(err.code);
+  } finally {
+    btnCriar.disabled = false;
+  }
+};
+
+window.addEventListener('load', () => {
+  if (!window.google?.accounts?.id) return;
+
   google.accounts.id.initialize({
     client_id:'1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com',
-    callback:()=>{status.textContent='Google selecionado. O teste de integração ainda não abre o Diário.'},
+    callback:() => {
+      loginStatus.textContent = 'Google selecionado. O teste de integração ainda não abre o Diário.';
+    },
     ux_mode:'popup'
   });
-  google.accounts.id.renderButton(document.getElementById('googleLogin'),{type:'standard',theme:'outline',size:'large',text:'continue_with',shape:'rectangular',width:360,logo_alignment:'left'});
+
+  google.accounts.id.renderButton(
+    document.getElementById('googleLogin'),
+    {
+      type:'standard',
+      theme:'outline',
+      size:'large',
+      text:'continue_with',
+      shape:'rectangular',
+      width:360,
+      logo_alignment:'left'
+    }
+  );
 });
 </script>
+
 </body>
 </html>
