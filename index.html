@@ -1,204 +1,235 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="manifest" href="./manifest.json">
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <link rel="manifest" href="./manifest.json">
+
   <meta name="theme-color" content="#0B3D91">
-  <meta name="description" content="Diário de Notas do Professor. Sistema para organização de turmas, alunos, avaliações e notas acadêmicas.">
+
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <meta
+    name="description"
+    content="Diário de Notas do Professor: sistema para professores organizarem turmas, disciplinas, alunos e notas, acompanharem o aproveitamento acadêmico e gerarem relatórios."
+  >
 
   <title>Diário de Notas do Professor</title>
 
   <style>
+
     * {
       box-sizing: border-box;
     }
 
+    html,
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f4f7fb;
-      color: #222;
+      min-height: 100%;
     }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 60px 20px;
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: #eef1f5;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #17202a;
     }
 
     .card {
-      background: #ffffff;
-      border-radius: 18px;
-      padding: 45px 35px;
+      width: min(460px, 100%);
+      background: #fff;
+      border-radius: 22px;
+      padding: 32px 26px 28px;
       text-align: center;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, .12);
     }
 
     .logo {
-      width: 120px;
-      height: 120px;
+      width: 96px;
+      height: 96px;
       object-fit: contain;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
 
     h1 {
-      margin: 0 0 15px;
+      margin: 0 0 12px;
       color: #0B3D91;
-      font-size: 32px;
+      font-size: 24px;
+      line-height: 1.2;
     }
 
     .subtitulo {
-      font-size: 19px;
-      color: #555;
-      line-height: 1.6;
-      max-width: 700px;
-      margin: 0 auto 30px;
+      margin: 0 0 18px;
+      color: #3f4b57;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.5;
     }
 
     .descricao {
-      font-size: 16px;
-      color: #444;
-      line-height: 1.7;
-      max-width: 700px;
-      margin: 0 auto 30px;
-    }
-
-    .recursos {
-      text-align: left;
-      max-width: 650px;
-      margin: 0 auto 35px;
-      padding: 0;
-    }
-
-    .recursos p {
-      margin: 12px 0;
-      padding-left: 10px;
-    }
-
-    .botao {
-      display: inline-block;
-      background: #0B3D91;
-      color: #ffffff;
-      text-decoration: none;
-      font-size: 18px;
-      font-weight: bold;
-      padding: 15px 35px;
-      border-radius: 8px;
-      transition: background 0.2s;
-    }
-
-    .botao:hover {
-      background: #082f70;
-    }
-
-    .links {
-      margin-top: 30px;
+      margin: 0 0 24px;
+      color: #65717d;
       font-size: 14px;
+      line-height: 1.6;
     }
 
-    .links a {
-      color: #0B3D91;
+    .entrar {
+      display: block;
+      width: 100%;
+      padding: 15px 18px;
+      border: none;
+      border-radius: 12px;
+      background: #0B3D91;
+      color: #fff;
       text-decoration: none;
-      margin: 0 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(11, 61, 145, .22);
+    }
+
+    .entrar:hover {
+      background: #092f70;
+    }
+
+    .entrar:active {
+      transform: scale(.99);
+    }
+
+    .info {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #89939d;
+      line-height: 1.5;
     }
 
     .rodape {
-      margin-top: 35px;
-      font-size: 13px;
-      color: #777;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e8eb;
+      font-size: 11px;
+      color: #9aa3ab;
+      line-height: 1.5;
     }
 
-    @media (max-width: 600px) {
-      .container {
-        padding: 25px 15px;
-      }
+    /* Área onde o Diário será carregado */
 
-      .card {
-        padding: 35px 20px;
-      }
-
-      h1 {
-        font-size: 26px;
-      }
-
-      .subtitulo {
-        font-size: 17px;
-      }
-
-      .logo {
-        width: 100px;
-        height: 100px;
-      }
+    #areaDiario {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #eef1f5;
+      z-index: 9999;
     }
+
+    #diarioFrame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #eef1f5;
+    }
+
   </style>
+
 </head>
 
 <body>
 
-  <main class="container">
+  <!-- Tela inicial -->
 
-    <section class="card">
+  <main class="card" id="telaInicial">
 
-      <img
-        src="icon-512.png"
-        alt="Logo do Diário de Notas do Professor"
-        class="logo"
-      >
+    <img
+      class="logo"
+      src="./icon-192.png"
+      alt="Diário de Notas do Professor"
+    >
 
-      <h1>Diário de Notas do Professor</h1>
+    <h1>Diário de Notas do Professor</h1>
 
-      <p class="subtitulo">
-        Sistema para organização e acompanhamento das atividades acadêmicas.
-      </p>
+    <p class="subtitulo">
+      Sistema para gerenciamento acadêmico de professores
+    </p>
 
-      <p class="descricao">
-        O Diário de Notas do Professor é uma ferramenta destinada a
-        professores para organizar turmas, disciplinas, alunos,
-        avaliações e notas em um único sistema.
-      </p>
+    <p class="descricao">
+      O Diário de Notas do Professor permite organizar turmas, disciplinas
+      e alunos, registrar e acompanhar notas e avaliações, calcular o
+      aproveitamento acadêmico e gerar relatórios em PDF.
+    </p>
 
-      <div class="recursos">
+    <button
+      type="button"
+      class="entrar"
+      onclick="abrirDiario()"
+    >
+      ENTRAR NO DIÁRIO DE NOTAS
+    </button>
 
-        <p>📚 Organização de turmas e disciplinas</p>
+    <div class="info">
+      Ao tocar em entrar, o sistema será aberto utilizando
+      sua conta Google para acessar seus dados.
+    </div>
 
-        <p>👨‍🎓 Cadastro e gerenciamento de alunos</p>
-
-        <p>📝 Registro de avaliações e notas</p>
-
-        <p>📊 Cálculo e acompanhamento das médias</p>
-
-        <p>📄 Geração de relatórios acadêmicos</p>
-
-      </div>
-
-      <a
-        class="botao"
-        href="https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec"
-      >
-        Entrar no Diário de Notas
-      </a>
-
-      <div class="links">
-
-        <a href="politica-de-privacidade.html">
-          Política de Privacidade
-        </a>
-
-        <a href="termos-de-servico.html">
-          Termos de Serviço
-        </a>
-
-      </div>
-
-      <div class="rodape">
-        Diário de Notas do Professor
-      </div>
-
-    </section>
+    <div class="rodape">
+      Diário de Notas do Professor
+    </div>
 
   </main>
+
+
+  <!-- Diário de Notas -->
+
+  <div id="areaDiario">
+
+    <iframe
+      id="diarioFrame"
+      title="Diário de Notas do Professor"
+      allow="clipboard-read; clipboard-write"
+    ></iframe>
+
+  </div>
+
+
+  <script>
+
+    function abrirDiario() {
+
+      const telaInicial = document.getElementById('telaInicial');
+      const areaDiario = document.getElementById('areaDiario');
+      const diarioFrame = document.getElementById('diarioFrame');
+
+      /*
+       * Web App atual do Google Apps Script
+       */
+
+      const urlDiario =
+        'https://script.google.com/macros/s/AKfycbzv0ZqXINIAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
+
+      /*
+       * Carrega o Diário dentro da própria página.
+       */
+
+      diarioFrame.src = urlDiario;
+
+      telaInicial.style.display = 'none';
+
+      areaDiario.style.display = 'block';
+
+    }
+
+  </script>
 
 </body>
 </html>
