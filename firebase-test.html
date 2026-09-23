@@ -209,7 +209,7 @@ loginForm.addEventListener('submit', async (e) => {
   } finally {
     btnLogin.disabled = false;
   }
-};
+});
 
 cadastroForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -300,7 +300,7 @@ cadastroForm.addEventListener('submit', async (e) => {
   } finally {
     btnCriar.disabled = false;
   }
-};
+});
 
 window.addEventListener('load', () => {
   if (!window.google?.accounts?.id) return;
