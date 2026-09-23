@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="manifest" href="./manifest.json">
+
+  <meta name="theme-color" content="#0B3D91">
+
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <meta
+    name="description"
+    content="Diário de Notas do Professor: sistema para professores organizarem turmas, disciplinas, alunos e notas, acompanharem o aproveitamento acadêmico e gerarem relatórios."
+  >
+
+  <title>Diário de Notas do Professor</title>
+
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: #eef1f5;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #17202a;
+    }
+
+    .card {
+      width: min(460px, 100%);
+      background: #fff;
+      border-radius: 22px;
+      padding: 32px 26px 28px;
+      text-align: center;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, .12);
+    }
+
+    .logo {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      color: #0B3D91;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .subtitulo {
+      margin: 0 0 18px;
+      color: #3f4b57;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .descricao {
+      margin: 0 0 24px;
+      color: #65717d;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    #googleLogin {
+      display: flex;
+      justify-content: center;
+      min-height: 44px;
+      margin-top: 4px;
+    }
+
+    #statusLogin {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #65717d;
+      min-height: 18px;
+    }
+
+    .info {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #89939d;
+      line-height: 1.5;
+    }
+
+    .rodape {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e8eb;
+      font-size: 11px;
+      color: #9aa3ab;
+      line-height: 1.5;
+    }
+
+    /* Área onde o Diário será carregado */
+
+    #areaDiario {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #eef1f5;
+      z-index: 9999;
+    }
+
+    #diarioFrame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #eef1f5;
+    }
+
+  
+    .separador{display:flex;align-items:center;gap:12px;margin:18px 0 14px;color:#9aa3ab;font-size:13px}
+    .separador::before,.separador::after{content:"";flex:1;height:1px;background:#e2e6ea}
+    .email-login{display:flex;flex-direction:column;gap:10px;width:360px;max-width:100%;margin:0 auto}
+    .email-login input{box-sizing:border-box;width:100%;height:46px;padding:0 13px;border:1px solid #cfd6dd;border-radius:8px;background:#fff;color:#263238;font-size:14px;outline:none}
+    .email-login input:focus{border-color:#1976d2;box-shadow:0 0 0 2px rgba(25,118,210,.10)}
+    .botao-email{height:46px;border:0;border-radius:8px;background:#1455a0;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+    .botao-email:disabled{opacity:.65;cursor:wait}
+    .botao-link{border:0;background:transparent;color:#1455a0;font-size:13px;cursor:pointer;padding:5px}
+    #statusLogin{min-height:20px;margin-top:12px;font-size:13px;color:#526273;text-align:center}
+    
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Tela inicial -->
+
+  <main class="card" id="telaInicial">
+
+    <img
+      class="logo"
+      src="./icon-192.png"
+      alt="Diário de Notas do Professor"
+    >
+
+    <h1>Diário de Notas do Professor</h1>
+
+    <p class="subtitulo">
+      Sistema para gerenciamento acadêmico de professores
+    </p>
+
+    <p class="descricao">
+      O Diário de Notas do Professor permite organizar turmas, disciplinas
+      e alunos, registrar e acompanhar notas e avaliações, calcular o
+      aproveitamento acadêmico e gerar relatórios em PDF.
+    </p>
+
+    <div id="googleLogin"></div>
+
+    <div class="separador"><span>ou</span></div>
+
+    <form id="emailLoginForm" class="email-login" novalidate>
+      <input id="emailFirebase" type="email" autocomplete="email" placeholder="Seu e-mail" required>
+      <input id="senhaFirebase" type="password" autocomplete="current-password" placeholder="Sua senha" required>
+      <button type="submit" class="botao-email">ENTRAR COM E-MAIL</button>
+      <button type="button" id="criarConta" class="botao-link">Criar uma conta</button>
+    </form>
+
+    <div id="statusLogin"></div>
+
+    <div id="statusLogin"></div>
+
+    <div class="info">
+      Entre com sua conta Google para continuar.
+    </div>
+
+    <div class="rodape">
+      Diário de Notas do Professor
+    </div>
+
+  </main>
+
+
+  <!-- Diário de Notas -->
+
+  <div id="areaDiario">
+
+    <iframe
+      id="diarioFrame"
+      title="Diário de Notas do Professor"
+      allow="clipboard-read; clipboard-write"
+    ></iframe>
+
+  </div>
+
+
+  <script>
+    // TESTE DIRETO DO FIREBASE AUTH, sem depender de módulos/CDN.
+    // Isso permite testar também abrindo o arquivo localmente.
+    const FIREBASE_API_KEY = 'AIzaSyDjmNNXnygLo4lWr3-2I2nvaejELNaxUQU';
+
+    const form = document.getElementById('emailLoginForm');
+    const email = document.getElementById('emailFirebase');
+    const senha = document.getElementById('senhaFirebase');
+    const botao = form.querySelector('.botao-email');
+    const criarConta = document.getElementById('criarConta');
+    const status = document.getElementById('statusLogin');
+
+    function mensagemFirebase(codigo, mensagem) {
+      const mensagens = {
+        'EMAIL_NOT_FOUND': 'O Firebase não encontrou esta conta.',
+        'INVALID_PASSWORD': 'A senha informada está incorreta.',
+        'INVALID_LOGIN_CREDENTIALS': 'E-mail ou senha incorretos.',
+        'USER_DISABLED': 'Esta conta está desativada no Firebase.',
+        'EMAIL_EXISTS': 'Este e-mail já possui uma conta no Firebase.',
+        'OPERATION_NOT_ALLOWED': 'O login por e-mail/senha está desativado no Firebase.',
+        'INVALID_EMAIL': 'O e-mail informado é inválido.',
+        'WEAK_PASSWORD': 'A senha precisa ter pelo menos 6 caracteres.',
+        'TOO_MANY_ATTEMPTS_TRY_LATER': 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+        'INVALID_API_KEY': 'A chave da API do Firebase não foi aceita.',
+        'API_KEY_INVALID': 'A chave da API do Firebase não foi aceita.'
+      };
+
+      return mensagens[codigo] || ('Código Firebase: ' + (codigo || 'desconhecido') + (mensagem ? ' | ' + mensagem : ''));
+    }
+
+    async function firebaseRequest(endpoint, payload) {
+      const resposta = await fetch(
+        'https://identitytoolkit.googleapis.com/v1/' + endpoint + '?key=' + encodeURIComponent(FIREBASE_API_KEY),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const dados = await resposta.json().catch(() => ({}));
+
+      if (!resposta.ok) {
+        const erro = dados?.error || {};
+        const codigo = erro.message || 'ERRO_HTTP_' + resposta.status;
+        const e = new Error(codigo);
+        e.codigoFirebase = codigo;
+        e.mensagemFirebase = erro.message || '';
+        throw e;
+      }
+
+      return dados;
+    }
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const emailDigitado = email.value.trim();
+      const senhaDigitada = senha.value;
+
+      if (!emailDigitado || !senhaDigitada) {
+        status.textContent = 'Informe seu e-mail e sua senha.';
+        return;
+      }
+
+      botao.disabled = true;
+      criarConta.disabled = true;
+      status.textContent = 'Consultando o Firebase...';
+
+      try {
+        const resultado = await firebaseRequest('accounts:signInWithPassword', {
+          email: emailDigitado,
+          password: senhaDigitada,
+          returnSecureToken: true
+        });
+
+        status.textContent = '✓ LOGIN REALIZADO COM SUCESSO! Conta: ' + (resultado.email || emailDigitado);
+        senha.value = '';
+      } catch (erro) {
+        console.error('ERRO FIREBASE:', erro);
+        status.textContent = '✕ ' + mensagemFirebase(erro.codigoFirebase, erro.mensagemFirebase);
+      } finally {
+        botao.disabled = false;
+        criarConta.disabled = false;
+      }
+    });
+
+    criarConta.addEventListener('click', async function() {
+      const emailDigitado = email.value.trim();
+      const senhaDigitada = senha.value;
+
+      if (!emailDigitado || senhaDigitada.length < 6) {
+        status.textContent = 'Informe um e-mail e uma senha com pelo menos 6 caracteres.';
+        return;
+      }
+
+      criarConta.disabled = true;
+      botao.disabled = true;
+      status.textContent = 'Criando a conta no Firebase...';
+
+      try {
+        const resultado = await firebaseRequest('accounts:signUp', {
+          email: emailDigitado,
+          password: senhaDigitada,
+          returnSecureToken: true
+        });
+
+        status.textContent = '✓ CONTA CRIADA COM SUCESSO! Conta: ' + (resultado.email || emailDigitado);
+        senha.value = '';
+      } catch (erro) {
+        console.error('ERRO FIREBASE:', erro);
+        status.textContent = '✕ ' + mensagemFirebase(erro.codigoFirebase, erro.mensagemFirebase);
+      } finally {
+        criarConta.disabled = false;
+        botao.disabled = false;
+      }
+    });
+
+    // Google Identity Services permanece apenas para o teste visual.
+    // Ele não interfere no teste do Firebase por e-mail.
+    window.addEventListener('load', function() {
+      if (!window.google?.accounts?.id) return;
+
+      google.accounts.id.initialize({
+        client_id: '1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com',
+        callback: function() {
+          status.textContent = 'Google selecionado. Este arquivo é somente para testar o login por e-mail.';
+        },
+        ux_mode: 'popup'
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('googleLogin'),
+        {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          width: 360,
+          logo_alignment: 'left'
+        }
+      );
+    });
+  </script>
+
+</body>
+</html>
