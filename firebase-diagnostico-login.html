@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico Firebase Authentication</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#1e293b;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;box-sizing:border-box}
+.card{width:min(620px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 10px 35px rgba(0,0,0,.12)}
+h1{margin-top:0;color:#1d4ed8}
+p{line-height:1.5;color:#475569}
+label{display:block;margin:14px 0 6px;font-weight:700}
+input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:16px}
+button{width:100%;padding:14px;margin-top:18px;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-size:16px;font-weight:700}
+pre{white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:15px;margin-top:18px;font-size:13px}
+.small{font-size:13px}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>Diagnóstico Firebase Authentication</h1>
+<p>
+Este teste usa diretamente o endpoint oficial de login por e-mail e senha
+do Firebase. Não altera o Diário de Notas.
+</p>
+
+<label for="email">E-mail da conta de teste</label>
+<input id="email" type="email" autocomplete="username" placeholder="seu e-mail">
+
+<label for="senha">Senha da conta de teste</label>
+<input id="senha" type="password" autocomplete="current-password" placeholder="sua senha">
+
+<button id="testar">TESTAR LOGIN NO FIREBASE</button>
+
+<pre id="resultado">Aguardando teste...</pre>
+
+<p class="small">
+A senha é enviada diretamente ao Firebase Authentication pela requisição deste teste.
+Ela não é exibida no resultado.
+</p>
+</div>
+
+<script>
+const API_KEY = 'AIzaSyCjigZp8bDSU-7UmvE-FKlg2G9CM2eDVxQ';
+
+document.getElementById('testar').addEventListener('click', async function(){
+  const email = document.getElementById('email').value.trim();
+  const senha = document.getElementById('senha').value;
+  const resultado = document.getElementById('resultado');
+
+  if(!email || !senha){
+    resultado.textContent = 'Informe o e-mail e a senha da conta de teste.';
+    return;
+  }
+
+  resultado.textContent = 'Testando login diretamente no Firebase...';
+
+  try{
+    const url =
+      'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' +
+      encodeURIComponent(API_KEY);
+
+    const resposta = await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        email: email,
+        password: senha,
+        returnSecureToken: true
+      })
+    });
+
+    const texto = await resposta.text();
+
+    let dados;
+    try{
+      dados = JSON.parse(texto);
+    }catch(e){
+      dados = texto;
+    }
+
+    if(resposta.ok){
+      resultado.textContent =
+        'SUCESSO!\n\n' +
+        'HTTP: ' + resposta.status + '\n' +
+        'Firebase aceitou a API Key e autenticou a conta.\n\n' +
+        'UID: ' + (dados.localId || '') + '\n' +
+        'E-mail: ' + (dados.email || '');
+    }else{
+      resultado.textContent =
+        'FALHA\n\n' +
+        'HTTP: ' + resposta.status + '\n\n' +
+        JSON.stringify(dados,null,2);
+    }
+
+  }catch(erro){
+    resultado.textContent =
+      'ERRO DE REDE/NAVEGADOR:\n\n' +
+      erro.name + ': ' + erro.message;
+  }
+});
+</script>
+</body>
+</html>
