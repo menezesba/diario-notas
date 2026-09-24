@@ -15,14 +15,28 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
 
   <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
     name="description"
     content="Diário de Notas do Professor: sistema para professores organizarem turmas, disciplinas, alunos e notas, acompanharem o aproveitamento acadêmico e gerarem relatórios."
   >
 
   <title>Diário de Notas do Professor</title>
 
-  <!-- Login oficial do Google -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- =========================================================
+       LOGIN OFICIAL DO GOOGLE
+       ========================================================= -->
+
+  <script
+    src="https://accounts.google.com/gsi/client"
+    async
+    defer>
+  </script>
+
 
   <style>
 
@@ -47,6 +61,11 @@
       color: #17202a;
     }
 
+
+    /* =========================================================
+       CARTÃO DA TELA DE LOGIN
+       ========================================================= */
+
     .card {
       width: min(460px, 100%);
       background: #fff;
@@ -56,6 +75,7 @@
       box-shadow: 0 10px 32px rgba(0, 0, 0, .12);
     }
 
+
     .logo {
       width: 96px;
       height: 96px;
@@ -63,12 +83,14 @@
       margin-bottom: 10px;
     }
 
+
     h1 {
       margin: 0 0 12px;
       color: #0B3D91;
       font-size: 24px;
       line-height: 1.2;
     }
+
 
     .subtitulo {
       margin: 0 0 18px;
@@ -78,6 +100,7 @@
       line-height: 1.5;
     }
 
+
     .descricao {
       margin: 0 0 24px;
       color: #65717d;
@@ -85,20 +108,25 @@
       line-height: 1.6;
     }
 
-    /* Área do login Google */
+
+    /* =========================================================
+       BOTÃO DO GOOGLE
+       ========================================================= */
 
     .login-google {
       width: 100%;
+      min-height: 44px;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 44px;
       margin-top: 4px;
     }
+
 
     .login-google > div {
       max-width: 100%;
     }
+
 
     .info {
       margin-top: 16px;
@@ -107,13 +135,15 @@
       line-height: 1.5;
     }
 
+
     .status {
-      margin-top: 10px;
       min-height: 18px;
+      margin-top: 10px;
       font-size: 12px;
       color: #0B3D91;
       line-height: 1.5;
     }
+
 
     .rodape {
       margin-top: 22px;
@@ -124,7 +154,10 @@
       line-height: 1.5;
     }
 
-    /* Área onde o Diário será carregado */
+
+    /* =========================================================
+       ÁREA DO DIÁRIO
+       ========================================================= */
 
     #areaDiario {
       display: none;
@@ -136,6 +169,7 @@
       z-index: 9999;
     }
 
+
     #diarioFrame {
       display: block;
       width: 100%;
@@ -144,17 +178,95 @@
       background: #eef1f5;
     }
 
+
+    /* =========================================================
+       BOTÃO SAIR
+       ========================================================= */
+
+    #botaoSair {
+      display: none;
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 10001;
+
+      border: none;
+      border-radius: 10px;
+
+      padding: 9px 14px;
+
+      background: rgba(255, 255, 255, 0.96);
+      color: #0B3D91;
+
+      font-size: 13px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 3px 12px rgba(0, 0, 0, .18);
+    }
+
+
+    #botaoSair:hover {
+      background: #f1f4f8;
+    }
+
+
+    #botaoSair:active {
+      transform: scale(.98);
+    }
+
+
+    /* =========================================================
+       PEQUENAS TELAS
+       ========================================================= */
+
+    @media (max-width: 480px) {
+
+      body {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 28px 20px 24px;
+        border-radius: 20px;
+      }
+
+      .logo {
+        width: 88px;
+        height: 88px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      #botaoSair {
+        top: 8px;
+        right: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+    }
+
   </style>
 
 </head>
 
+
 <body>
+
 
   <!-- =========================================================
        TELA INICIAL
        ========================================================= -->
 
-  <main class="card" id="telaInicial">
+  <main
+    class="card"
+    id="telaInicial"
+  >
 
     <img
       class="logo"
@@ -162,11 +274,16 @@
       alt="Diário de Notas do Professor"
     >
 
-    <h1>Diário de Notas do Professor</h1>
+
+    <h1>
+      Diário de Notas do Professor
+    </h1>
+
 
     <p class="subtitulo">
       Sistema para gerenciamento acadêmico de professores
     </p>
+
 
     <p class="descricao">
       O Diário de Notas do Professor permite organizar turmas, disciplinas
@@ -176,26 +293,47 @@
 
 
     <!-- =======================================================
-         LOGIN OFICIAL DO GOOGLE
+         CONFIGURAÇÃO DO LOGIN GOOGLE
          ======================================================= -->
 
     <div
       id="g_id_onload"
+
       data-client_id="1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com"
+
       data-callback="handleGoogleCredential"
+
       data-auto_prompt="false"
-      data-ux_mode="popup">
+
+      data-ux_mode="popup"
+
+      data-use_fedcm_for_button="true"
+
+      data-button_auto_select="true">
     </div>
+
+
+    <!-- =======================================================
+         BOTÃO CONTINUAR COM GOOGLE
+         ======================================================= -->
 
     <div
       id="googleLogin"
+
       class="login-google g_id_signin"
+
       data-type="standard"
+
       data-theme="outline"
+
       data-size="large"
+
       data-text="continue_with"
+
       data-shape="rectangular"
+
       data-logo_alignment="left"
+
       data-width="360">
     </div>
 
@@ -204,16 +342,19 @@
       Entre com sua conta Google para continuar.
     </div>
 
+
     <div
       id="statusLogin"
       class="status">
     </div>
+
 
     <div class="rodape">
       Diário de Notas do Professor
     </div>
 
   </main>
+
 
 
   <!-- =========================================================
@@ -224,11 +365,29 @@
 
     <iframe
       id="diarioFrame"
+
       title="Diário de Notas do Professor"
-      allow="clipboard-read; clipboard-write"
-    ></iframe>
+
+      allow="clipboard-read; clipboard-write">
+    </iframe>
 
   </div>
+
+
+
+  <!-- =========================================================
+       BOTÃO SAIR
+       ========================================================= -->
+
+  <button
+    id="botaoSair"
+    type="button"
+    onclick="sairDoDiario()">
+
+    SAIR
+
+  </button>
+
 
 
   <!-- =========================================================
@@ -237,15 +396,16 @@
 
   <script>
 
-    /*
-     * Quando o usuário seleciona uma conta Google
-     * e o Google retorna a credencial, abrimos o Diário.
-     */
+
+    /* =========================================================
+       LOGIN GOOGLE
+       ========================================================= */
 
     function handleGoogleCredential(response) {
 
       const status =
         document.getElementById('statusLogin');
+
 
       if (
         response &&
@@ -254,6 +414,7 @@
 
         status.textContent =
           'Conta Google selecionada. Abrindo o Diário...';
+
 
         setTimeout(
           abrirDiario,
@@ -270,20 +431,27 @@
     }
 
 
-    /*
-     * Abre o Diário de Notas dentro da própria página.
-     */
+
+    /* =========================================================
+       ABRIR O DIÁRIO
+       ========================================================= */
 
     function abrirDiario() {
 
       const telaInicial =
         document.getElementById('telaInicial');
 
+
       const areaDiario =
         document.getElementById('areaDiario');
 
+
       const diarioFrame =
         document.getElementById('diarioFrame');
+
+
+      const botaoSair =
+        document.getElementById('botaoSair');
 
 
       /*
@@ -295,11 +463,18 @@
 
 
       /*
-       * Carrega o Diário dentro da própria página.
+       * Só carrega o iframe se ainda não estiver carregado.
        */
 
-      diarioFrame.src =
-        urlDiario;
+      if (
+        !diarioFrame.src ||
+        diarioFrame.src === window.location.href
+      ) {
+
+        diarioFrame.src =
+          urlDiario;
+
+      }
 
 
       telaInicial.style.display =
@@ -309,9 +484,106 @@
       areaDiario.style.display =
         'block';
 
+
+      botaoSair.style.display =
+        'block';
+
     }
 
+
+
+    /* =========================================================
+       SAIR DO DIÁRIO
+       ========================================================= */
+
+    function sairDoDiario() {
+
+      /*
+       * Informa ao Google que o usuário fez logout.
+       *
+       * Isso evita que a mesma conta seja selecionada
+       * automaticamente novamente.
+       */
+
+      if (
+        window.google &&
+        google.accounts &&
+        google.accounts.id
+      ) {
+
+        google.accounts.id.disableAutoSelect();
+
+      }
+
+
+      const telaInicial =
+        document.getElementById('telaInicial');
+
+
+      const areaDiario =
+        document.getElementById('areaDiario');
+
+
+      const diarioFrame =
+        document.getElementById('diarioFrame');
+
+
+      const botaoSair =
+        document.getElementById('botaoSair');
+
+
+      /*
+       * Fecha o Diário.
+       */
+
+      areaDiario.style.display =
+        'none';
+
+
+      /*
+       * Remove o conteúdo do iframe.
+       */
+
+      diarioFrame.src =
+        'about:blank';
+
+
+      /*
+       * Volta para a tela de login.
+       */
+
+      telaInicial.style.display =
+        'block';
+
+
+      /*
+       * Mostra novamente o botão do Google.
+       */
+
+      botaoSair.style.display =
+        'none';
+
+
+      /*
+       * Limpa mensagem de status.
+       */
+
+      const status =
+        document.getElementById('statusLogin');
+
+
+      if (status) {
+
+        status.textContent =
+          '';
+
+      }
+
+    }
+
+
   </script>
+
 
 </body>
 </html>
