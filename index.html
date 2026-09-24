@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -192,34 +191,10 @@
   </div>
 
 
-  <script type="module">
-
-    import { initializeApp } from
-      'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
-
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithCredential
-    } from
-      'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+  <script>
 
     const GOOGLE_CLIENT_ID =
-      '839959456470-4e99sdvpqscck28o9kkultlsk6u366ic.apps.googleusercontent.com';
-
-    const firebaseConfig = {
-      apiKey: 'AIzaSyDjmKNNynwLo4lWr3-2I2nvaejELNaxUQU',
-      authDomain: 'diario-de-notas-do-profe-4085c.firebaseapp.com',
-      projectId: 'diario-de-notas-do-profe-4085c',
-      storageBucket: 'diario-de-notas-do-profe-4085c.firebasestorage.app',
-      messagingSenderId: '839959456470',
-      appId:'1:839959456470:web:3f766b3f2d7a7733957777'
-    };
-
-    const firebaseApp = initializeApp(firebaseConfig);
-    const auth = getAuth(firebaseApp);
-
-    let firebaseIdToken = '';
+      '1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com';
 
     function abrirDiario() {
 
@@ -228,97 +203,4 @@
       const diarioFrame = document.getElementById('diarioFrame');
 
       const urlDiario =
-        'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
-
-      diarioFrame.onload = function () {
-        if (!firebaseIdToken) return;
-
-        diarioFrame.contentWindow.postMessage(
-          {
-            tipo: 'FIREBASE_TOKEN',
-            token: firebaseIdToken
-          },
-          '*'
-        );
-      };
-
-      diarioFrame.src = urlDiario;
-
-      telaInicial.style.display = 'none';
-      areaDiario.style.display = 'block';
-
-    }
-
-    async function handleGoogleCredential(response) {
-      const status = document.getElementById('statusLogin');
-
-      if (!response || !response.credential) {
-        status.textContent =
-          'Não foi possível obter a identificação da conta Google.';
-        return;
-      }
-
-      status.textContent = 'Confirmando sua conta...';
-
-      try {
-        /*
-         * O Google Identity Services fornece um credential JWT.
-         * Aqui ele é trocado por uma sessão Firebase e, em seguida,
-         * obtemos o ID token do Firebase para enviar ao Diário.
-         */
-        const googleCredential =
-          GoogleAuthProvider.credential(response.credential);
-
-        const resultado = await signInWithCredential(
-          auth,
-          googleCredential
-        );
-
-        firebaseIdToken = await resultado.user.getIdToken();
-
-        status.textContent =
-          'Conta confirmada. Abrindo o Diário...';
-
-        setTimeout(abrirDiario, 250);
-
-      } catch (erro) {
-        console.error('ERRO FIREBASE GOOGLE:', erro);
-
-        status.textContent =
-          'ERRO FIREBASE: ' +
-          (erro && erro.code ? erro.code + ' - ' : '') +
-          (erro && erro.message ? erro.message : 'erro desconhecido');
-      }
-    }
-
-    window.addEventListener('load', function () {
-      if (!window.google || !google.accounts || !google.accounts.id) {
-        document.getElementById('statusLogin').textContent =
-          'Não foi possível carregar o login do Google. Atualize a página e tente novamente.';
-        return;
-      }
-
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleCredential,
-        ux_mode: 'popup'
-      });
-
-      google.accounts.id.renderButton(
-        document.getElementById('googleLogin'),
-        {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: 'continue_with',
-          shape: 'rectangular',
-          width: 360,
-          logo_alignment: 'left'
-        }
-      );
-    });
-
-  </script>
-
-</body>
-</html>
+        'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SG
