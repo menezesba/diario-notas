@@ -208,7 +208,8 @@
     const GOOGLE_CLIENT_ID =
       '1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com';
 
-    let contaAtual = { nome: '', email: '' };
+    let contaAtual = { nome: '', email: '', token: '' };
+    const CHAVE_ULTIMA_CONTA = 'diario_notas_ultima_conta_google';
 
     function decodificarJWT(payload) {
       try {
@@ -223,7 +224,8 @@
     }
 
     function mostrarConta(nome, email) {
-      contaAtual = { nome: String(nome || '').trim(), email: String(email || '').trim() };
+      contaAtual.nome = String(nome || '').trim();
+      contaAtual.email = String(email || '').trim();
       document.getElementById('contaNome').textContent = contaAtual.nome || 'Conta Google';
       document.getElementById('contaEmail').textContent = contaAtual.email || '';
       document.getElementById('contaLogada').style.display = 'block';
@@ -275,7 +277,11 @@
       if (!response || !response.credential) return;
 
       const dados = decodificarJWT(response.credential);
+      contaAtual.token = response.credential || '';
       mostrarConta(dados.name || '', dados.email || '');
+      if(dados.email){
+        try { localStorage.setItem(CHAVE_ULTIMA_CONTA, String(dados.email).trim()); } catch(e) {}
+      }
 
       const status = document.getElementById('statusLogin');
       status.textContent = 'Conta Google selecionada. Abrindo o Diário...';
@@ -283,16 +289,13 @@
     }
 
     function trocarConta() {
+      try { localStorage.removeItem(CHAVE_ULTIMA_CONTA); } catch(e) {}
       try { google.accounts.id.disableAutoSelect(); } catch(e) {}
-      document.getElementById('contaLogada').style.display = 'none';
-      document.getElementById('btnTrocarConta').style.display = 'none';
-      document.getElementById('statusLogin').textContent = 'Escolha outra conta Google.';
-      const login = document.getElementById('googleLogin');
-      login.innerHTML = '';
-      try { google.accounts.id.renderButton(login, {
-        type:'standard', theme:'outline', size:'large', text:'continue_with',
-        shape:'rectangular', width:360, logo_alignment:'left'
-      }); } catch(e) {}
+      const continuar = encodeURIComponent(
+        'https://diariodenotasprofessor.com.br/?troca=1&t=' + Date.now()
+      );
+      window.top.location.href =
+        'https://accounts.google.com/AccountChooser?continue=' + continuar;
     }
 
     window.addEventListener('message', function(event) {
@@ -313,20 +316,20 @@
         frame.onload = null;
         frame.src = 'about:blank';
       }
-      areaDiario.style.display = 'none';
-      telaInicial.style.display = 'block';
-      document.getElementById('googleLogin').style.display = 'block';
-      document.getElementById('contaLogada').style.display = 'none';
-      document.getElementById('btnTrocarConta').style.display = 'none';
-      document.getElementById('statusLogin').textContent = 'Escolha a conta Google para entrar.';
+
+      try {
+        localStorage.removeItem(CHAVE_ULTIMA_CONTA);
+      } catch(e) {}
 
       try { google.accounts.id.disableAutoSelect(); } catch(e) {}
-      const login = document.getElementById('googleLogin');
-      login.innerHTML = '';
-      google.accounts.id.renderButton(login, {
-        type: 'standard', theme: 'outline', size: 'large',
-        text: 'continue_with', shape: 'rectangular', width: 360, logo_alignment: 'left'
-      });
+
+      // O AccountChooser do Google é usado aqui para trocar a conta que
+      // será considerada ativa pelo próprio Apps Script.
+      const continuar = encodeURIComponent(
+        'https://diariodenotasprofessor.com.br/?troca=1&t=' + Date.now()
+      );
+      window.top.location.href =
+        'https://accounts.google.com/AccountChooser?continue=' + continuar;
     });
 
     window.addEventListener('load', function () {
@@ -336,11 +339,15 @@
         return;
       }
 
+      let ultimaConta = '';
+      try { ultimaConta = localStorage.getItem(CHAVE_ULTIMA_CONTA) || ''; } catch(e) {}
+
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredential,
         ux_mode: 'popup',
-        auto_select: false
+        auto_select: true,
+        login_hint: ultimaConta || undefined
       });
 
       google.accounts.id.renderButton(
