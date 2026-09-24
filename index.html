@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -234,23 +235,16 @@
 
     function enviarContaParaDiario() {
       const frame = document.getElementById('diarioFrame');
-      if (!frame || !frame.contentWindow) return;
+      if (!frame || !frame.contentWindow || !contaAtual.token) return;
 
       const mensagem = {
         tipo: 'CONTA_GOOGLE_ATUAL',
         nome: contaAtual.nome,
-        email: contaAtual.email
+        email: contaAtual.email,
+        token: contaAtual.token
       };
 
       frame.contentWindow.postMessage(mensagem, '*');
-
-      [300, 800, 1500, 2500].forEach(ms => {
-        setTimeout(() => {
-          if (frame && frame.contentWindow) {
-            frame.contentWindow.postMessage(mensagem, '*');
-          }
-        }, ms);
-      });
     }
 
     function abrirDiario() {
@@ -261,14 +255,8 @@
       const baseUrlDiario =
         'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
 
-      const urlDiario =
-        baseUrlDiario +
-        '?contaEmail=' + encodeURIComponent(contaAtual.email || '') +
-        '&contaNome=' + encodeURIComponent(contaAtual.nome || '') +
-        '&t=' + Date.now();
-
       diarioFrame.onload = enviarContaParaDiario;
-      diarioFrame.src = urlDiario;
+      diarioFrame.src = baseUrlDiario + '?t=' + Date.now();
       telaInicial.style.display = 'none';
       areaDiario.style.display = 'block';
     }
@@ -288,66 +276,18 @@
       setTimeout(abrirDiario, 250);
     }
 
-    function trocarConta() {
-      try { localStorage.removeItem(CHAVE_ULTIMA_CONTA); } catch(e) {}
-      try { google.accounts.id.disableAutoSelect(); } catch(e) {}
-      const continuar = encodeURIComponent(
-        'https://diariodenotasprofessor.com.br/?troca=1&t=' + Date.now()
-      );
-      window.top.location.href =
-        'https://accounts.google.com/AccountChooser?continue=' + continuar;
-    }
+    function prepararLoginGoogle(autoSelect) {
+      if (!window.google || !google.accounts || !google.accounts.id) return;
 
-    window.addEventListener('message', function(event) {
-      if (!event.data) return;
-
-      if (event.data.tipo === 'DIARIO_PRONTO') {
-        enviarContaParaDiario();
-        return;
-      }
-
-      if (event.data.tipo !== 'DIARIO_SAIR_CONTA') return;
-
-      const frame = document.getElementById('diarioFrame');
-      const areaDiario = document.getElementById('areaDiario');
-      const telaInicial = document.getElementById('telaInicial');
-
-      if (frame) {
-        frame.onload = null;
-        frame.src = 'about:blank';
-      }
-
-      try {
-        localStorage.removeItem(CHAVE_ULTIMA_CONTA);
-      } catch(e) {}
-
-      try { google.accounts.id.disableAutoSelect(); } catch(e) {}
-
-      // O AccountChooser do Google é usado aqui para trocar a conta que
-      // será considerada ativa pelo próprio Apps Script.
-      const continuar = encodeURIComponent(
-        'https://diariodenotasprofessor.com.br/?troca=1&t=' + Date.now()
-      );
-      window.top.location.href =
-        'https://accounts.google.com/AccountChooser?continue=' + continuar;
-    });
-
-    window.addEventListener('load', function () {
-      if (!window.google || !google.accounts || !google.accounts.id) {
-        document.getElementById('statusLogin').textContent =
-          'Não foi possível carregar o login do Google. Atualize a página e tente novamente.';
-        return;
-      }
-
-      let ultimaConta = '';
-      try { ultimaConta = localStorage.getItem(CHAVE_ULTIMA_CONTA) || ''; } catch(e) {}
+      const container = document.getElementById('googleLogin');
+      if (container) container.innerHTML = '';
 
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredential,
         ux_mode: 'popup',
-        auto_select: true,
-        login_hint: ultimaConta || undefined
+        auto_select: !!autoSelect,
+        login_hint: autoSelect ? (contaAtual.email || undefined) : undefined
       });
 
       google.accounts.id.renderButton(
@@ -362,6 +302,61 @@
           logo_alignment: 'left'
         }
       );
+    }
+
+    function voltarParaLogin() {
+      const frame = document.getElementById('diarioFrame');
+      const areaDiario = document.getElementById('areaDiario');
+      const telaInicial = document.getElementById('telaInicial');
+
+      if (frame) {
+        frame.onload = null;
+        frame.src = 'about:blank';
+      }
+
+      if (areaDiario) areaDiario.style.display = 'none';
+      if (telaInicial) telaInicial.style.display = 'block';
+
+      contaAtual = { nome: '', email: '', token: '' };
+      document.getElementById('contaLogada').style.display = 'none';
+      document.getElementById('btnTrocarConta').style.display = 'none';
+      document.getElementById('statusLogin').textContent = 'Escolha a conta Google para entrar.';
+
+      try { localStorage.removeItem(CHAVE_ULTIMA_CONTA); } catch(e) {}
+      try { google.accounts.id.disableAutoSelect(); } catch(e) {}
+
+      prepararLoginGoogle(false);
+    }
+
+    function trocarConta() {
+      voltarParaLogin();
+    }
+
+    window.addEventListener('message', function(event) {
+      if (!event.data) return;
+      const frame = document.getElementById('diarioFrame');
+      if (!frame || event.source !== frame.contentWindow) return;
+      if (event.data.tipo !== 'DIARIO_PRONTO' && event.data.tipo !== 'DIARIO_SAIR_CONTA') return;
+
+      if (event.data.tipo === 'DIARIO_PRONTO') {
+        enviarContaParaDiario();
+        return;
+      }
+
+      voltarParaLogin();
+    });
+
+    window.addEventListener('load', function () {
+      if (!window.google || !google.accounts || !google.accounts.id) {
+        document.getElementById('statusLogin').textContent =
+          'Não foi possível carregar o login do Google. Atualize a página e tente novamente.';
+        return;
+      }
+
+      let ultimaConta = '';
+      try { ultimaConta = localStorage.getItem(CHAVE_ULTIMA_CONTA) || ''; } catch(e) {}
+      contaAtual.email = ultimaConta;
+      prepararLoginGoogle(true);
     });
   </script>
 
