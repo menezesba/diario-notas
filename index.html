@@ -19,8 +19,7 @@ header{background:linear-gradient(135deg,#075aa5,#168dcc);color:white;padding:14
 .header-titles{min-width:0;display:flex;flex-direction:column;justify-content:center}
 header h1{margin:0;font-size:clamp(18px,3vw,32px);line-height:1.1;white-space:nowrap;font-weight:800}
 header p{margin:7px 0 0;opacity:.98;font-size:clamp(12px,1.7vw,19px);line-height:1.15;letter-spacing:.2px;white-space:nowrap}
-.header-actions{margin-left:auto;display:flex;align-items:center;flex:0 0 auto}
-.botao-sair-header{border:1px solid rgba(255,255,255,.65);background:rgba(255,255,255,.14);color:#fff;border-radius:7px;width:38px;height:34px;padding:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:10px;flex:0 0 auto}.conta-header{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:0;max-width:360px;line-height:1.15}.conta-header strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}.conta-header span{font-size:11px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;margin-top:3px}.botao-sair-header{border:1px solid rgba(255,255,255,.65);background:rgba(255,255,255,.14);color:#fff;border-radius:7px;width:38px;height:34px;padding:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap}
 .botao-sair-header:hover{background:rgba(255,255,255,.24)}
 .botao-sair-header:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .botao-sair-header svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -482,6 +481,8 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
 
 @media(max-width:800px){.grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.grid{grid-template-columns:1fr}}
+@media(max-width:700px){.conta-header{max-width:190px}.conta-header strong{max-width:190px}.conta-header span{max-width:190px}}
+@media(max-width:520px){.conta-header{max-width:130px}.conta-header strong{font-size:11px;max-width:130px}.conta-header span{font-size:9px;max-width:130px}}
 </style>
 </head>
 <body>
@@ -493,6 +494,10 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
     <p id="subCabecalho">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
   </div>
   <div class="header-actions">
+    <div class="conta-header" id="contaHeader">
+      <strong id="contaHeaderNome">Conta Google</strong>
+      <span id="contaHeaderEmail">Aguardando conta...</span>
+    </div>
     <button type="button" class="botao-sair-header" id="btnSairHeader" onclick="sairDoDiario()" aria-label="Sair da conta" title="Sair da conta">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5"/><path d="M13 8l4 4-4 4"/><path d="M8 12h9"/></svg>
     </button>
@@ -6528,28 +6533,24 @@ function fecharAjudaBotao(){
   document.querySelectorAll('.toolbar-btn.ajuda-ativa').forEach(b => b.classList.remove('ajuda-ativa'));
 }
 
-function atualizarContaHeader(){
+function atualizarContaHeader(nome, email){
+  const nomeEl = document.getElementById('contaHeaderNome');
+  const emailEl = document.getElementById('contaHeaderEmail');
   const btn = document.getElementById('btnSairHeader');
-  if(!btn) return;
+  if(!nomeEl || !emailEl || !btn) return;
 
-  try{
-    if(typeof google !== 'undefined' && google.script && google.script.run){
-      google.script.run
-        .withSuccessHandler(email => {
-          const conta = String(email || '').trim();
-          if(conta){
-            btn.title = 'Sair da conta\nConta atual: ' + conta;
-            btn.setAttribute('aria-label', 'Sair da conta. Conta atual: ' + conta);
-          }else{
-            btn.title = 'Sair da conta';
-            btn.setAttribute('aria-label', 'Sair da conta');
-          }
-        })
-        .withFailureHandler(() => {})
-        .obterEmailUsuario();
-    }
-  }catch(e){}
+  const n = String(nome || '').trim();
+  const e = String(email || '').trim();
+  nomeEl.textContent = n || 'Conta Google';
+  emailEl.textContent = e || 'Conta atual';
+  btn.title = 'Sair da conta\n' + (n || 'Conta Google') + (e ? '\n' + e : '');
+  btn.setAttribute('aria-label', 'Sair da conta. Conta atual: ' + (e || n || 'Conta Google'));
 }
+
+window.addEventListener('message', function(event){
+  if(!event.data || event.data.tipo !== 'CONTA_GOOGLE_ATUAL') return;
+  atualizarContaHeader(event.data.nome, event.data.email);
+});
 
 function sairDoDiario(){
   try{
@@ -6560,7 +6561,6 @@ function sairDoDiario(){
   }catch(e){}
 }
 
-setTimeout(atualizarContaHeader, 500);
 
 </script>
 
