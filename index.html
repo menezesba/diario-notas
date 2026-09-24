@@ -210,6 +210,8 @@
 
     let contaAtual = { nome: '', email: '', token: '' };
     let loginGoogleInicializado = false;
+    let modoLoginGoogle = 'normal';
+    const CHAVE_CONTA_ATUAL = 'diario_notas_conta_google_atual';
 
     function decodificarJWT(payload) {
       try {
@@ -256,8 +258,18 @@
       const baseUrlDiario =
         'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
 
-      diarioFrame.onload = enviarContaParaDiario;
+      diarioFrame.onload = function(){
+        enviarContaParaDiario();
+        setTimeout(enviarContaParaDiario, 300);
+        setTimeout(enviarContaParaDiario, 1000);
+      };
       diarioFrame.src = baseUrlDiario + '?t=' + Date.now();
+
+      // Reforça o envio do token depois que o iframe estiver carregado.
+      // Isso evita perder a mensagem no primeiro carregamento.
+      setTimeout(enviarContaParaDiario, 600);
+      setTimeout(enviarContaParaDiario, 1500);
+
       if(telaInicial) telaInicial.style.display = 'none';
       if(areaDiario) areaDiario.style.display = 'block';
     }
@@ -268,6 +280,12 @@
       const dados = decodificarJWT(response.credential);
       contaAtual.token = response.credential;
       mostrarConta(dados.name || '', dados.email || '');
+
+      try {
+        if(dados.email){
+          localStorage.setItem(CHAVE_CONTA_ATUAL, String(dados.email).trim());
+        }
+      } catch(e) {}
 
       const status = document.getElementById('statusLogin');
       if(status) status.textContent = 'Conta Google selecionada. Abrindo o Diário...';
@@ -295,17 +313,29 @@
 
     function inicializarLoginGoogle() {
       if (!window.google || !google.accounts || !google.accounts.id) return false;
-      if(loginGoogleInicializado) return renderizarBotaoGoogle();
 
-      google.accounts.id.initialize({
+      let contaSalva = '';
+      try {
+        contaSalva = String(localStorage.getItem(CHAVE_CONTA_ATUAL) || '').trim();
+      } catch(e) {}
+
+      const autoSelecionar = (modoLoginGoogle === 'automatico');
+      const config = {
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredential,
         ux_mode: 'popup',
-        auto_select: false,
+        auto_select: autoSelecionar,
         use_fedcm_for_button: false,
-        button_auto_select: false
-      });
+        button_auto_select: autoSelecionar
+      };
 
+      // No carregamento normal, tenta recuperar silenciosamente a última
+      // conta usada. No logout, o modo é manual e não existe login_hint.
+      if(autoSelecionar && contaSalva){
+        config.login_hint = contaSalva;
+      }
+
+      google.accounts.id.initialize(config);
       loginGoogleInicializado = true;
       return renderizarBotaoGoogle();
     }
@@ -336,14 +366,33 @@
       if (telaInicial) telaInicial.style.display = 'block';
 
       contaAtual = { nome: '', email: '', token: '' };
+
+      try { localStorage.removeItem(CHAVE_CONTA_ATUAL); } catch(e) {}
+      try { google.accounts.id.disableAutoSelect(); } catch(e) {}
+
       const contaEl = document.getElementById('contaLogada');
       const trocarEl = document.getElementById('btnTrocarConta');
       const status = document.getElementById('statusLogin');
+
       if(contaEl) contaEl.style.display = 'none';
       if(trocarEl) trocarEl.style.display = 'none';
       if(status) status.textContent = 'Escolha a conta Google para entrar.';
 
-      try { google.accounts.id.disableAutoSelect(); } catch(e) {}
+      // Reconfigura o GIS sem login_hint. Assim, depois de SAIR,
+      // o próximo clique volta a mostrar o seletor completo de contas.
+      modoLoginGoogle = 'manual';
+      try {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredential,
+          ux_mode: 'popup',
+          auto_select: false,
+          use_fedcm_for_button: false,
+          button_auto_select: false
+        });
+        loginGoogleInicializado = true;
+      } catch(e) {}
+
       renderizarBotaoGoogle();
     }
 
@@ -368,7 +417,8 @@
 
     window.addEventListener('load', function () {
       const status = document.getElementById('statusLogin');
-      if(status) status.textContent = 'Escolha a conta Google para entrar.';
+      if(status) status.textContent = 'Verificando a conta Google...';
+      modoLoginGoogle = 'automatico';
       tentarInicializarLogin(0);
     });
   </script>
