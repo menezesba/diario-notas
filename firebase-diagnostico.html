@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico Firebase</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#1e293b;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;box-sizing:border-box}
+.card{width:min(620px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 10px 35px rgba(0,0,0,.12)}
+h1{margin-top:0;color:#1d4ed8}
+button{width:100%;padding:14px;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-size:16px;font-weight:700}
+pre{white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:15px;margin-top:18px;font-size:13px}
+.info{color:#475569;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>Diagnóstico do Firebase</h1>
+<p class="info">Este teste não faz login e não cria usuário. Ele apenas verifica se a API Key consegue chegar ao Firebase Authentication.</p>
+<button id="testar">TESTAR API KEY</button>
+<pre id="resultado">Aguardando teste...</pre>
+</div>
+<script>
+const API_KEY = 'AIzaSyDjmKNNynwLo4lWr3-2I2nvaejELNaxUQ';
+document.getElementById('testar').addEventListener('click', async function(){
+  const resultado = document.getElementById('resultado');
+  resultado.textContent = 'Testando...';
+  try {
+    const url='https://identitytoolkit.googleapis.com/v1/accounts:lookup?key='+encodeURIComponent(API_KEY);
+    const resposta=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idToken:'TOKEN_DE_TESTE_INVALIDO'})});
+    const texto=await resposta.text();
+    let dados;
+    try{dados=JSON.parse(texto)}catch(e){dados=texto}
+    resultado.textContent='HTTP: '+resposta.status+'\n\n'+JSON.stringify(dados,null,2);
+  } catch(erro) {
+    resultado.textContent='ERRO DE REDE/NAVEGADOR:\n\n'+erro.name+': '+erro.message;
+  }
+});
+</script>
+</body>
+</html>
