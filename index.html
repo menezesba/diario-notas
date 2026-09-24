@@ -21,6 +21,9 @@
 
   <title>Diário de Notas do Professor</title>
 
+  <!-- Login oficial do Google -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
 
     * {
@@ -82,33 +85,33 @@
       line-height: 1.6;
     }
 
-    .entrar {
-      display: block;
+    /* Área do login Google */
+
+    .login-google {
       width: 100%;
-      padding: 15px 18px;
-      border: none;
-      border-radius: 12px;
-      background: #0B3D91;
-      color: #fff;
-      text-decoration: none;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 5px 14px rgba(11, 61, 145, .22);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 44px;
+      margin-top: 4px;
     }
 
-    .entrar:hover {
-      background: #092f70;
-    }
-
-    .entrar:active {
-      transform: scale(.99);
+    .login-google > div {
+      max-width: 100%;
     }
 
     .info {
       margin-top: 16px;
       font-size: 12px;
       color: #89939d;
+      line-height: 1.5;
+    }
+
+    .status {
+      margin-top: 10px;
+      min-height: 18px;
+      font-size: 12px;
+      color: #0B3D91;
       line-height: 1.5;
     }
 
@@ -147,7 +150,9 @@
 
 <body>
 
-  <!-- Tela inicial -->
+  <!-- =========================================================
+       TELA INICIAL
+       ========================================================= -->
 
   <main class="card" id="telaInicial">
 
@@ -169,17 +174,39 @@
       aproveitamento acadêmico e gerar relatórios em PDF.
     </p>
 
-    <button
-      type="button"
-      class="entrar"
-      onclick="abrirDiario()"
-    >
-      ENTRAR NO DIÁRIO DE NOTAS
-    </button>
+
+    <!-- =======================================================
+         LOGIN OFICIAL DO GOOGLE
+         ======================================================= -->
+
+    <div
+      id="g_id_onload"
+      data-client_id="1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com"
+      data-callback="handleGoogleCredential"
+      data-auto_prompt="false"
+      data-ux_mode="popup">
+    </div>
+
+    <div
+      id="googleLogin"
+      class="login-google g_id_signin"
+      data-type="standard"
+      data-theme="outline"
+      data-size="large"
+      data-text="continue_with"
+      data-shape="rectangular"
+      data-logo_alignment="left"
+      data-width="360">
+    </div>
+
 
     <div class="info">
-      Ao tocar em entrar, o sistema será aberto utilizando
-      sua conta Google para acessar seus dados.
+      Entre com sua conta Google para continuar.
+    </div>
+
+    <div
+      id="statusLogin"
+      class="status">
     </div>
 
     <div class="rodape">
@@ -189,7 +216,9 @@
   </main>
 
 
-  <!-- Diário de Notas -->
+  <!-- =========================================================
+       DIÁRIO DE NOTAS
+       ========================================================= -->
 
   <div id="areaDiario">
 
@@ -202,13 +231,60 @@
   </div>
 
 
+  <!-- =========================================================
+       JAVASCRIPT
+       ========================================================= -->
+
   <script>
+
+    /*
+     * Quando o usuário seleciona uma conta Google
+     * e o Google retorna a credencial, abrimos o Diário.
+     */
+
+    function handleGoogleCredential(response) {
+
+      const status =
+        document.getElementById('statusLogin');
+
+      if (
+        response &&
+        response.credential
+      ) {
+
+        status.textContent =
+          'Conta Google selecionada. Abrindo o Diário...';
+
+        setTimeout(
+          abrirDiario,
+          250
+        );
+
+      } else {
+
+        status.textContent =
+          'Não foi possível confirmar a conta Google. Tente novamente.';
+
+      }
+
+    }
+
+
+    /*
+     * Abre o Diário de Notas dentro da própria página.
+     */
 
     function abrirDiario() {
 
-      const telaInicial = document.getElementById('telaInicial');
-      const areaDiario = document.getElementById('areaDiario');
-      const diarioFrame = document.getElementById('diarioFrame');
+      const telaInicial =
+        document.getElementById('telaInicial');
+
+      const areaDiario =
+        document.getElementById('areaDiario');
+
+      const diarioFrame =
+        document.getElementById('diarioFrame');
+
 
       /*
        * Web App atual do Google Apps Script
@@ -217,15 +293,21 @@
       const urlDiario =
         'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
 
+
       /*
        * Carrega o Diário dentro da própria página.
        */
 
-      diarioFrame.src = urlDiario;
+      diarioFrame.src =
+        urlDiario;
 
-      telaInicial.style.display = 'none';
 
-      areaDiario.style.display = 'block';
+      telaInicial.style.display =
+        'none';
+
+
+      areaDiario.style.display =
+        'block';
 
     }
 
