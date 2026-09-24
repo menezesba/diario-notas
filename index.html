@@ -1,235 +1,451 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário de Notas do Professor</title>
 
-  <meta charset="UTF-8">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="manifest" href="./manifest.json">
-
-  <meta name="theme-color" content="#0B3D91">
-
-  <meta name="mobile-web-app-capable" content="yes">
-
-  <meta name="apple-mobile-web-app-capable" content="yes">
-
-  <meta
-    name="description"
-    content="Diário de Notas do Professor: sistema para professores organizarem turmas, disciplinas, alunos e notas, acompanharem o aproveitamento acadêmico e gerarem relatórios."
-  >
-
-  <title>Diário de Notas do Professor</title>
-
-  <style>
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      min-height: 100%;
-    }
-
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      background: #eef1f5;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #17202a;
-    }
-
-    .card {
-      width: min(460px, 100%);
-      background: #fff;
-      border-radius: 22px;
-      padding: 32px 26px 28px;
-      text-align: center;
-      box-shadow: 0 10px 32px rgba(0, 0, 0, .12);
-    }
-
-    .logo {
-      width: 96px;
-      height: 96px;
-      object-fit: contain;
-      margin-bottom: 10px;
-    }
-
-    h1 {
-      margin: 0 0 12px;
-      color: #0B3D91;
-      font-size: 24px;
-      line-height: 1.2;
-    }
-
-    .subtitulo {
-      margin: 0 0 18px;
-      color: #3f4b57;
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.5;
-    }
-
-    .descricao {
-      margin: 0 0 24px;
-      color: #65717d;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .entrar {
-      display: block;
-      width: 100%;
-      padding: 15px 18px;
-      border: none;
-      border-radius: 12px;
-      background: #0B3D91;
-      color: #fff;
-      text-decoration: none;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 5px 14px rgba(11, 61, 145, .22);
-    }
-
-    .entrar:hover {
-      background: #092f70;
-    }
-
-    .entrar:active {
-      transform: scale(.99);
-    }
-
-    .info {
-      margin-top: 16px;
-      font-size: 12px;
-      color: #89939d;
-      line-height: 1.5;
-    }
-
-    .rodape {
-      margin-top: 22px;
-      padding-top: 16px;
-      border-top: 1px solid #e5e8eb;
-      font-size: 11px;
-      color: #9aa3ab;
-      line-height: 1.5;
-    }
-
-    /* Área onde o Diário será carregado */
-
-    #areaDiario {
-      display: none;
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      background: #eef1f5;
-      z-index: 9999;
-    }
-
-    #diarioFrame {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #eef1f5;
-    }
-
-  </style>
-
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:#eef1f5;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#263238;
+}
+.painel{
+  width:min(460px,100%);
+  background:#fff;
+  border-radius:22px;
+  padding:28px 26px;
+  box-shadow:0 10px 32px rgba(0,0,0,.12);
+  text-align:center;
+}
+.logo{
+  width:96px;
+  height:96px;
+  object-fit:contain;
+  margin-bottom:10px;
+}
+h1,h2{
+  margin:0 0 12px;
+  color:#0b3d91;
+  font-size:26px;
+}
+.subtitulo{
+  margin:0 0 18px;
+  color:#4e5d6c;
+  font-size:15px;
+  font-weight:600;
+}
+.explicacao{
+  margin:0 auto 20px;
+  max-width:390px;
+  color:#65717d;
+  font-size:14px;
+  line-height:1.55;
+}
+.formulario{
+  width:100%;
+  max-width:380px;
+  margin:0 auto;
+}
+.campo{
+  width:100%;
+  height:48px;
+  margin-bottom:11px;
+  padding:0 14px;
+  border:1px solid #cfd6dd;
+  border-radius:9px;
+  background:#fff;
+  color:#263238;
+  font-size:15px;
+  outline:none;
+}
+.campo:focus{
+  border-color:#1976d2;
+  box-shadow:0 0 0 2px rgba(25,118,210,.10);
+}
+.botao{
+  width:100%;
+  min-height:48px;
+  border:0;
+  border-radius:9px;
+  background:#195daa;
+  color:#fff;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:3px;
+}
+.botao:disabled{opacity:.65;cursor:wait}
+.botao.secundario{
+  background:#fff;
+  color:#315b85;
+  border:1px solid #cfd6dd;
+  margin-top:10px;
+}
+.link{
+  display:inline-block;
+  margin-top:12px;
+  padding:7px 4px;
+  border:0;
+  background:transparent;
+  color:#1455a0;
+  font-size:14px;
+  cursor:pointer;
+}
+.separador{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:18px 0 14px;
+  color:#9aa3ab;
+  font-size:13px;
+}
+.separador:before,.separador:after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:#e2e6ea;
+}
+#googleLogin{
+  min-height:44px;
+  display:flex;
+  justify-content:center;
+}
+.status{
+  min-height:24px;
+  margin:12px auto 0;
+  max-width:380px;
+  color:#526273;
+  font-size:13px;
+  line-height:1.45;
+}
+.sucesso{
+  color:#176b3a;
+  font-weight:700;
+}
+.oculto{display:none !important}
+.rodape{
+  margin-top:20px;
+  padding-top:14px;
+  border-top:1px solid #e5e8eb;
+  color:#9aa3ab;
+  font-size:11px;
+}
+</style>
 </head>
 
 <body>
 
-  <!-- Tela inicial -->
+<div class="painel">
 
-  <main class="card" id="telaInicial">
-
-    <img
-      class="logo"
-      src="./icon-192.png"
-      alt="Diário de Notas do Professor"
-    >
-
+  <section id="telaLogin">
+    <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
     <h1>Diário de Notas do Professor</h1>
+    <p class="subtitulo">Sistema para gerenciamento acadêmico de professores</p>
+    <p class="explicacao">Entre com sua conta Google ou com seu e-mail e senha.</p>
 
-    <p class="subtitulo">
-      Sistema para gerenciamento acadêmico de professores
+    <div id="googleLogin"></div>
+
+    <div class="separador"><span>ou</span></div>
+
+    <form id="loginForm" class="formulario">
+      <input id="loginEmail" class="campo" type="email" autocomplete="email" placeholder="Seu e-mail">
+      <input id="loginSenha" class="campo" type="password" autocomplete="current-password" placeholder="Sua senha">
+      <button id="btnLogin" class="botao" type="submit">ENTRAR COM E-MAIL</button>
+      <button id="abrirCadastro" class="link" type="button">Criar uma conta</button>
+    </form>
+
+    <div id="loginStatus" class="status"></div>
+    <div class="rodape">Diário de Notas do Professor</div>
+  </section>
+
+
+  <section id="telaCadastro" class="oculto">
+    <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
+    <h2>Criar uma nova conta</h2>
+    <p class="explicacao">
+      Preencha seus dados abaixo. Use um e-mail que você tenha acesso
+      e crie uma senha nova para entrar no Diário de Notas.
     </p>
 
-    <p class="descricao">
-      O Diário de Notas do Professor permite organizar turmas, disciplinas
-      e alunos, registrar e acompanhar notas e avaliações, calcular o
-      aproveitamento acadêmico e gerar relatórios em PDF.
-    </p>
+    <form id="cadastroForm" class="formulario">
+      <input id="cadNome" class="campo" type="text" autocomplete="name" placeholder="Seu nome completo">
+      <input id="cadEmail" class="campo" type="email" autocomplete="email" placeholder="Seu e-mail">
+      <input id="cadSenha" class="campo" type="password" autocomplete="new-password" placeholder="Crie uma senha nova (mínimo 6 caracteres)">
+      <input id="cadConfirmacao" class="campo" type="password" autocomplete="new-password" placeholder="Repita a nova senha">
 
-    <button
-      type="button"
-      class="entrar"
-      onclick="abrirDiario()"
-    >
-      ENTRAR NO DIÁRIO DE NOTAS
-    </button>
+      <div id="cadStatus" class="status"></div>
 
-    <div class="info">
-      Ao tocar em entrar, o sistema será aberto utilizando
-      sua conta Google para acessar seus dados.
-    </div>
+      <button id="btnCriar" class="botao" type="submit">CRIAR CONTA</button>
+      <button id="voltarLogin" class="botao secundario" type="button">VOLTAR PARA O LOGIN</button>
+    </form>
+  </section>
 
-    <div class="rodape">
-      Diário de Notas do Professor
-    </div>
+</div>
 
-  </main>
+<script>
+var API_KEY = 'AIzaSyDjmKNNXynwLo4lWr3-2I2nvaejELNaxUQ';
+var GOOGLE_CLIENT_ID = '1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com';
 
+var telaLogin = document.getElementById('telaLogin');
+var telaCadastro = document.getElementById('telaCadastro');
 
-  <!-- Diário de Notas -->
+var loginForm = document.getElementById('loginForm');
+var loginEmail = document.getElementById('loginEmail');
+var loginSenha = document.getElementById('loginSenha');
+var btnLogin = document.getElementById('btnLogin');
+var loginStatus = document.getElementById('loginStatus');
 
-  <div id="areaDiario">
+var cadastroForm = document.getElementById('cadastroForm');
+var cadNome = document.getElementById('cadNome');
+var cadEmail = document.getElementById('cadEmail');
+var cadSenha = document.getElementById('cadSenha');
+var cadConfirmacao = document.getElementById('cadConfirmacao');
+var btnCriar = document.getElementById('btnCriar');
+var cadStatus = document.getElementById('cadStatus');
 
-    <iframe
-      id="diarioFrame"
-      title="Diário de Notas do Professor"
-      allow="clipboard-read; clipboard-write"
-    ></iframe>
+function mostrarCadastro(){
+  telaLogin.classList.add('oculto');
+  telaCadastro.classList.remove('oculto');
 
-  </div>
+  cadStatus.textContent = '';
+  cadNome.value = '';
+  cadEmail.value = loginEmail.value || '';
+  cadSenha.value = '';
+  cadConfirmacao.value = '';
 
+  setTimeout(function(){
+    cadNome.focus();
+  },50);
+}
 
-  <script>
+function mostrarLogin(mensagem){
+  telaCadastro.classList.add('oculto');
+  telaLogin.classList.remove('oculto');
 
-    function abrirDiario() {
+  loginStatus.innerHTML = mensagem || '';
+  loginSenha.value = '';
 
-      const telaInicial = document.getElementById('telaInicial');
-      const areaDiario = document.getElementById('areaDiario');
-      const diarioFrame = document.getElementById('diarioFrame');
+  setTimeout(function(){
+    loginEmail.focus();
+  },50);
+}
 
-      /*
-       * Web App atual do Google Apps Script
-       */
+function mensagemFirebase(codigo){
+  if(codigo === 'EMAIL_EXISTS'){
+    return 'Este e-mail já possui uma conta. Volte ao login para entrar.';
+  }
+  if(codigo === 'INVALID_EMAIL'){
+    return 'Digite um endereço de e-mail válido.';
+  }
+  if(codigo === 'WEAK_PASSWORD'){
+    return 'A senha precisa ter pelo menos 6 caracteres.';
+  }
+  if(codigo === 'EMAIL_NOT_FOUND' || codigo === 'INVALID_PASSWORD' || codigo === 'INVALID_LOGIN_CREDENTIALS'){
+    return 'E-mail ou senha incorretos.';
+  }
+  if(codigo === 'OPERATION_NOT_ALLOWED'){
+    return 'O cadastro por e-mail e senha não está habilitado no Firebase.';
+  }
+  if(codigo === 'API_KEY_INVALID'){
+    return 'A chave do Firebase foi rejeitada pela API. Verifique a configuração do aplicativo.';
+  }
+  return 'Código Firebase: ' + (codigo || 'erro desconhecido');
+}
 
-      const urlDiario =
-        'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
+function firebaseRequest(endpoint, dados){
+  return fetch(
+    'https://identitytoolkit.googleapis.com/v1/' + endpoint + '?key=' + encodeURIComponent(API_KEY),
+    {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(dados)
+    }
+  ).then(function(resposta){
+    return resposta.json().then(function(dadosResposta){
+      if(!resposta.ok){
+        var erro = new Error(dadosResposta && dadosResposta.error ? dadosResposta.error.message : 'Erro Firebase');
+        erro.code = dadosResposta && dadosResposta.error ? dadosResposta.error.message : '';
+        throw erro;
+      }
+      return dadosResposta;
+    });
+  });
+}
 
-      /*
-       * Carrega o Diário dentro da própria página.
-       */
+document.getElementById('abrirCadastro').addEventListener('click', mostrarCadastro);
 
-      diarioFrame.src = urlDiario;
+document.getElementById('voltarLogin').addEventListener('click', function(){
+  mostrarLogin('');
+});
 
-      telaInicial.style.display = 'none';
+loginForm.addEventListener('submit', function(evento){
+  evento.preventDefault();
 
-      areaDiario.style.display = 'block';
+  var email = loginEmail.value.trim();
+  var senha = loginSenha.value;
 
+  if(!email){
+    loginStatus.textContent = 'Digite seu e-mail.';
+    loginEmail.focus();
+    return;
+  }
+
+  if(!senha){
+    loginStatus.textContent = 'Digite sua senha.';
+    loginSenha.focus();
+    return;
+  }
+
+  btnLogin.disabled = true;
+  loginStatus.textContent = 'Verificando sua conta...';
+
+  firebaseRequest('accounts:signInWithPassword',{
+    email:email,
+    password:senha,
+    returnSecureToken:true
+  })
+  .then(function(resultado){
+    loginStatus.innerHTML =
+      '<span class="sucesso">✓ LOGIN REALIZADO COM SUCESSO!</span><br>' +
+      'Conta: ' + resultado.email;
+    loginSenha.value = '';
+  })
+  .catch(function(erro){
+    loginStatus.textContent = '✕ ' + mensagemFirebase(erro.code);
+  })
+  .then(function(){
+    btnLogin.disabled = false;
+  });
+});
+
+cadastroForm.addEventListener('submit', function(evento){
+  evento.preventDefault();
+
+  var nome = cadNome.value.trim();
+  var email = cadEmail.value.trim();
+  var senha = cadSenha.value;
+  var confirmacao = cadConfirmacao.value;
+
+  if(!nome){
+    cadStatus.textContent = 'Digite seu nome completo.';
+    cadNome.focus();
+    return;
+  }
+
+  if(!email){
+    cadStatus.textContent = 'Digite seu e-mail.';
+    cadEmail.focus();
+    return;
+  }
+
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    cadStatus.textContent = 'Digite um e-mail válido, por exemplo: nome@exemplo.com';
+    cadEmail.focus();
+    return;
+  }
+
+  if(senha.length < 6){
+    cadStatus.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+    cadSenha.focus();
+    return;
+  }
+
+  if(senha !== confirmacao){
+    cadStatus.textContent = 'As senhas não são iguais. Digite novamente.';
+    cadConfirmacao.focus();
+    return;
+  }
+
+  btnCriar.disabled = true;
+  cadStatus.textContent = 'Criando sua conta...';
+
+  firebaseRequest('accounts:signUp',{
+    email:email,
+    password:senha,
+    returnSecureToken:true
+  })
+  .then(function(resultado){
+    // Tenta salvar o nome no perfil. A criação da conta já foi concluída.
+    return firebaseRequest('accounts:update',{
+      idToken:resultado.idToken,
+      displayName:nome,
+      returnSecureToken:true
+    }).catch(function(){
+      return resultado;
+    });
+  })
+  .then(function(resultado){
+    cadStatus.innerHTML =
+      '<span class="sucesso">✓ CONTA CRIADA COM SUCESSO!</span><br>' +
+      'Agora faça seu login.';
+
+    setTimeout(function(){
+      loginEmail.value = email;
+      mostrarLogin(
+        '<span class="sucesso">✓ Conta criada com sucesso.</span><br>' +
+        'Digite sua senha para entrar.'
+      );
+    },1800);
+  })
+  .catch(function(erro){
+    cadStatus.textContent = '✕ ' + mensagemFirebase(erro.code);
+  })
+  .then(function(){
+    btnCriar.disabled = false;
+  });
+});
+
+/*
+  O Google é carregado separadamente.
+  Se o serviço do Google demorar ou falhar, a tela de
+  login por e-mail continua funcionando normalmente.
+*/
+function carregarGoogle(){
+  var script = document.createElement('script');
+  script.src = 'https://accounts.google.com/gsi/client';
+  script.async = true;
+  script.onload = function(){
+    if(!window.google || !google.accounts || !google.accounts.id){
+      return;
     }
 
-  </script>
+    google.accounts.id.initialize({
+      client_id:GOOGLE_CLIENT_ID,
+      callback:function(){
+        loginStatus.textContent =
+          'Google selecionado. A integração com o Diário será feita na próxima etapa.';
+      },
+      ux_mode:'popup'
+    });
+
+    google.accounts.id.renderButton(
+      document.getElementById('googleLogin'),
+      {
+        type:'standard',
+        theme:'outline',
+        size:'large',
+        text:'continue_with',
+        shape:'rectangular',
+        width:360,
+        logo_alignment:'left'
+      }
+    );
+  };
+
+  document.head.appendChild(script);
+}
+
+carregarGoogle();
+</script>
 
 </body>
 </html>
