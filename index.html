@@ -233,18 +233,22 @@
     function enviarContaParaDiario() {
       const frame = document.getElementById('diarioFrame');
       if (!frame || !frame.contentWindow) return;
+
       const mensagem = {
         tipo: 'CONTA_GOOGLE_ATUAL',
         nome: contaAtual.nome,
         email: contaAtual.email
       };
+
       frame.contentWindow.postMessage(mensagem, '*');
-      setTimeout(() => {
-        if (frame && frame.contentWindow) frame.contentWindow.postMessage(mensagem, '*');
-      }, 800);
-      setTimeout(() => {
-        if (frame && frame.contentWindow) frame.contentWindow.postMessage(mensagem, '*');
-      }, 1800);
+
+      [300, 800, 1500, 2500].forEach(ms => {
+        setTimeout(() => {
+          if (frame && frame.contentWindow) {
+            frame.contentWindow.postMessage(mensagem, '*');
+          }
+        }, ms);
+      });
     }
 
     function abrirDiario() {
@@ -292,7 +296,14 @@
     }
 
     window.addEventListener('message', function(event) {
-      if (!event.data || event.data.tipo !== 'DIARIO_SAIR_CONTA') return;
+      if (!event.data) return;
+
+      if (event.data.tipo === 'DIARIO_PRONTO') {
+        enviarContaParaDiario();
+        return;
+      }
+
+      if (event.data.tipo !== 'DIARIO_SAIR_CONTA') return;
 
       const frame = document.getElementById('diarioFrame');
       const areaDiario = document.getElementById('areaDiario');
