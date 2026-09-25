@@ -5,216 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#0B3D91">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="description" content="Diário de Notas do Professor">
   <title>Diário de Notas do Professor</title>
-
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-
   <style>
     * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; }
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      background: #eef1f5;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #17202a;
-    }
-    .card {
-      width: min(460px, 100%);
-      background: #fff;
-      border-radius: 22px;
-      padding: 32px 26px 28px;
-      text-align: center;
-      box-shadow: 0 10px 32px rgba(0, 0, 0, .12);
-    }
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: #eef1f5; font-family: Arial, sans-serif; color: #17202a; margin: 0; }
+    .card { width: min(460px, 100%); background: #fff; border-radius: 22px; padding: 32px 26px 28px; text-align: center; box-shadow: 0 10px 32px rgba(0,0,0,.12); }
     .logo { width: 96px; height: 96px; object-fit: contain; margin-bottom: 10px; }
-    h1 { margin: 0 0 12px; color: #0B3D91; font-size: 24px; line-height: 1.2; }
-    .subtitulo { margin: 0 0 18px; color: #3f4b57; font-size: 15px; font-weight: 600; line-height: 1.5; }
-    .descricao { margin: 0 0 24px; color: #65717d; font-size: 14px; line-height: 1.6; }
+    h1 { margin: 0 0 12px; color: #0B3D91; font-size: 24px; }
+    .subtitulo { margin: 0 0 18px; color: #3f4b57; font-size: 15px; font-weight: 600; }
+    .descricao { margin: 0 0 24px; color: #65717d; font-size: 14px; }
     #googleLogin { display: flex; justify-content: center; min-height: 44px; margin-top: 4px; }
-    #statusLogin { margin-top: 12px; font-size: 12px; color: #65717d; min-height: 18px; }
-    .info { margin-top: 16px; font-size: 12px; color: #89939d; line-height: 1.5; }
-    .rodape { margin-top: 22px; padding-top: 16px; border-top: 1px solid #e5e8eb; font-size: 11px; color: #9aa3ab; line-height: 1.5; }
-
-    /* Barra de Conta / Sair no topo quando logado */
-    #barraConta {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      text-align: left;
-    }
-    #emailLogadoSpan {
-      font-weight: bold;
-      color: #0B3D91;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 250px;
-    }
-    .btn-sair {
-      background: #b42318;
-      color: white;
-      border: 0;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 11px;
-    }
-    .btn-sair:hover { filter: brightness(0.9); }
-
-    #areaDiario {
-      display: none;
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      background: #eef1f5;
-      z-index: 9999;
-    }
-    #diarioFrame {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #eef1f5;
-    }
+    #statusLogin { margin-top: 12px; font-size: 12px; color: #65717d; }
+    .info { margin-top: 16px; font-size: 12px; color: #89939d; }
+    .rodape { margin-top: 22px; padding-top: 16px; border-top: 1px solid #e5e8eb; font-size: 11px; color: #9aa3ab; }
+    #areaDiario { display: none; position: fixed; inset: 0; width: 100%; height: 100%; background: #eef1f5; z-index: 9999; }
+    #diarioFrame { display: block; width: 100%; height: 100%; border: 0; }
   </style>
 </head>
 <body>
-
   <main class="card" id="telaInicial">
-    <img class="logo" src="./icon-192.png" alt="Diário de Notas do Professor">
+    <img class="logo" src="./icon-192.png" alt="Logo">
     <h1>Diário de Notas do Professor</h1>
-    <p class="subtitulo">Sistema para gerenciamento acadêmico de professores</p>
-
-    <!-- Barra com o e-mail logado e o botão Sair / Trocar de conta -->
-    <div id="barraConta">
-      <div>
-        <div style="font-size:10px;color:#64748b;">Conectado como:</div>
-        <div id="emailLogadoSpan">carregando...</div>
-      </div>
-      <button class="btn-sair" onclick="sairDaConta()">Sair / Trocar</button>
-    </div>
-
-    <p class="descricao" id="textoDescricao">
-      O Diário de Notas do Professor permite organizar turmas, disciplinas e alunos, registrar e acompanhar notas e avaliações.
-    </p>
-
+    <p class="subtitulo">Sistema para gerenciamento acadêmico</p>
+    <p class="descricao">Organize turmas, disciplinas e alunos, registre notas e acompanhe o aproveitamento acadêmico.</p>
     <div id="googleLogin"></div>
     <div id="statusLogin"></div>
-
-    <div class="info">Entre com sua conta Google para continuar com cadastros e dados independentes em cada diário.</div>
+    <div class="info">Entre com sua conta Google para continuar.</div>
     <div class="rodape">Diário de Notas do Professor</div>
   </main>
 
   <div id="areaDiario">
-    <iframe id="diarioFrame" title="Diário de Notas do Professor" allow="clipboard-read; clipboard-write"></iframe>
+    <iframe id="diarioFrame" title="Diário de Notas" allow="clipboard-read; clipboard-write"></iframe>
   </div>
 
   <script>
     const GOOGLE_CLIENT_ID = '1073009990150-bb3bic5e039aasipe0d015osuh92omtg.apps.googleusercontent.com';
 
     function abrirDiario(emailUsuario) {
-      const telaInicial = document.getElementById('telaInicial');
-      const areaDiario = document.getElementById('areaDiario');
-      const diarioFrame = document.getElementById('diarioFrame');
+      if (emailUsuario) localStorage.setItem('diario_email_ativo', emailUsuario);
+      // Substitua abaixo pela sua URL correta do Web App do Google Apps Script
       const urlDiario = 'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
-
-      if (emailUsuario) {
-        localStorage.setItem('diario_email_ativo', emailUsuario);
-      }
-
-      diarioFrame.src = urlDiario;
-      telaInicial.style.display = 'none';
-      areaDiario.style.display = 'block';
-    }
-
-    function sairDaConta() {
-      localStorage.removeItem('diario_email_ativo');
-      // Força revogar o cookie do Google One Tap se possível ou recarrega a tela de login
-      if (window.google && google.accounts && google.accounts.id) {
-        google.accounts.id.disableAutoSelect();
-      }
-      location.reload();
+      document.getElementById('diarioFrame').src = urlDiario;
+      document.getElementById('telaInicial').style.display = 'none';
+      document.getElementById('areaDiario').style.display = 'block';
     }
 
     function handleGoogleCredential(response) {
-      const status = document.getElementById('statusLogin');
-      status.textContent = 'Autenticado com sucesso. Abrindo o Diário...';
-
       if (response && response.credential) {
-        // Decodifica o JWT básico do Google para extrair o e-mail do usuário logado
         try {
           const base64Url = response.credential.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          }).join(''));
-          const payload = JSON.parse(jsonPayload);
-          
+          const payload = JSON.parse(decodeURIComponent(atob(base64Url.replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
           if (payload && payload.email) {
             abrirDiario(payload.email);
             return;
           }
-        } catch (e) {
-          console.error("Erro ao decodificar token", e);
-        }
+        } catch (e) {}
         abrirDiario('conta-google');
       }
     }
 
     window.addEventListener('load', function () {
-      // Verifica se já existe uma sessão salva para evitar voltar pra tela de login ao atualizar a página (F5)
       const emailSalvo = localStorage.getItem('diario_email_ativo');
       if (emailSalvo) {
-        document.getElementById('barraConta').style.display = 'flex';
-        document.getElementById('emailLogadoSpan').textContent = emailSalvo;
-        document.getElementById('googleLogin').style.display = 'none';
-        document.getElementById('textoDescricao').style.display = 'none';
-        
-        // Abre automaticamente o diário sem exigir clique se já tava logado na sessão do navegador
         abrirDiario(emailSalvo);
         return;
       }
-
-      if (!window.google || !google.accounts || !google.accounts.id) {
-        document.getElementById('statusLogin').textContent = 'Não foi possível carregar o login do Google. Atualize a página e tente novamente.';
-        return;
-      }
-
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleCredential,
-        ux_mode: 'popup',
-        auto_select: false
-      });
-
-      google.accounts.id.renderButton(
-        document.getElementById('googleLogin'),
-        {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: 'continue_with',
-          shape: 'rectangular',
-          width: 360,
-          logo_alignment: 'left'
-        }
-      );
+      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential, ux_mode: 'popup' });
+      google.accounts.id.renderButton(document.getElementById('googleLogin'), { type: 'standard', theme: 'outline', size: 'large', width: 360 });
     });
   </script>
 </body>
