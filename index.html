@@ -214,8 +214,6 @@
     const CHAVE_CONTA_ATUAL = 'diario_notas_conta_google_atual';
 
     let contaAtual = { nome: '', email: '', token: '' };
-    let modoLogin = 'manual';
-    let autoLoginTentado = false;
     let diarioAberto = false;
 
     function decodificarJWT(payload) {
@@ -295,7 +293,14 @@
         setTimeout(enviarContaParaDiario, 1500);
       };
 
-      frame.src = URL_DIARIO + '?t=' + Date.now();
+      // O token vai no fragmento (#), que não é enviado ao servidor.
+      // Isso elimina a dependência exclusiva do postMessage entre o site
+      // público e o iframe do Apps Script.
+      const hash = '#google_token=' + encodeURIComponent(contaAtual.token)
+        + '&google_nome=' + encodeURIComponent(contaAtual.nome)
+        + '&google_email=' + encodeURIComponent(contaAtual.email);
+
+      frame.src = URL_DIARIO + '?v=' + Date.now() + hash;
 
       if (telaInicial) telaInicial.style.display = 'none';
       if (areaDiario) areaDiario.style.display = 'block';
@@ -307,21 +312,21 @@
       const dados = decodificarJWT(response.credential);
       const email = String(dados.email || '').trim();
 
-      contaAtual.token = response.credential;
-      contaAtual.nome = String(dados.name || '').trim();
-      contaAtual.email = email;
-
       if (!email) {
         const status = document.getElementById('statusLogin');
         if (status) status.textContent = 'Não foi possível identificar a conta Google.';
         return;
       }
 
+      contaAtual.token = response.credential;
+      contaAtual.nome = String(dados.name || '').trim();
+      contaAtual.email = email;
+
       guardarUltimaConta(email);
       mostrarConta(contaAtual.nome, contaAtual.email);
 
       const status = document.getElementById('statusLogin');
-      if (status) status.textContent = 'Conta confirmada. Abrindo o Diário...';
+      if (status) status.textContent = 'Conta confirmada: ' + email + '. Abrindo o Diário...';
 
       abrirDiario();
     }
@@ -345,103 +350,94 @@
       return true;
     }
 
-    function inicializarGIS(modo) {
+    function inicializarGIS() {
       if (!window.google || !google.accounts || !google.accounts.id) return false;
 
-      modoLogin = modo || 'manual';
       const ultimaConta = obterUltimaConta();
-      const deveAutoSelecionar = modoLogin === 'automatico' && !!ultimaConta;
+      let pediuLogout = false;
+      try {
+        pediuLogout = new URLSearchParams(window.location.search).get('logout') === '1';
+      } catch (e) {}
 
-      const config = {
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleCredential,
-        ux_mode: 'popup',
-        auto_select: deveAutoSelecionar,
-        use_fedcm_for_button: false,
-        button_auto_select: false
-      };
+      if (pediuLogout) limparUltimaConta();
 
-      if (deveAutoSelecionar) {
-        config.login_hint = ultimaConta;
-      }
+      const autoSelecionar = !pediuLogout && !!ultimaConta;
 
       try {
-        google.accounts.id.initialize(config);
+        // Uma única inicialização por carregamento da página.
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredential,
+          ux_mode: 'popup',
+          auto_select: autoSelecionar,
+          use_fedcm_for_button: false,
+          button_auto_select: false,
+          ...(autoSelecionar ? { login_hint: ultimaConta } : {})
+        });
       } catch (e) {
         return false;
       }
 
       renderizarBotaoGoogle();
 
-      // No F5, tenta recuperar a última conta sem mostrar o seletor.
-      // Se o Google não puder fazer a seleção automática, o botão continua disponível.
-      if (deveAutoSelecionar && !autoLoginTentado) {
-        autoLoginTentado = true;
+      const status = document.getElementById('statusLogin');
+      if (status) {
+        status.textContent = pediuLogout
+          ? 'Escolha a conta Google para entrar.'
+          : (ultimaConta
+              ? 'Verificando a conta Google: ' + ultimaConta + '...'
+              : 'Escolha a conta Google para entrar.');
+      }
+
+      // No carregamento normal, tenta recuperar a mesma conta.
+      // Depois de SAIR, não usamos login_hint nem auto_select.
+      if (autoSelecionar) {
         try {
-          google.accounts.id.prompt(function (notification) {
+          google.accounts.id.prompt(function(notification) {
             if (notification && notification.isNotDisplayed && notification.isNotDisplayed()) {
-              const status = document.getElementById('statusLogin');
-              if (status) status.textContent = 'Clique no botão para entrar com sua conta Google.';
+              if (status) status.textContent =
+                'Clique no botão para entrar com sua conta Google.';
             }
           });
         } catch (e) {}
+      }
+
+      if (pediuLogout) {
+        try { history.replaceState({}, document.title, window.location.pathname); } catch (e) {}
       }
 
       return true;
     }
 
     function tentarInicializarGIS(tentativa) {
-      if (inicializarGIS('automatico')) return;
+      if (inicializarGIS()) return;
       if (tentativa >= 60) {
         const status = document.getElementById('statusLogin');
-        if (status) status.textContent = 'Não foi possível carregar o login do Google. Atualize a página e tente novamente.';
+        if (status) status.textContent =
+          'Não foi possível carregar o login do Google. Atualize a página e tente novamente.';
         return;
       }
       setTimeout(() => tentarInicializarGIS(tentativa + 1), 100);
     }
 
     function voltarParaLogin() {
-      const frame = document.getElementById('diarioFrame');
-      const areaDiario = document.getElementById('areaDiario');
-      const telaInicial = document.getElementById('telaInicial');
-
-      diarioAberto = false;
-      if (frame) {
-        frame.onload = null;
-        frame.src = 'about:blank';
-      }
-      if (areaDiario) areaDiario.style.display = 'none';
-      if (telaInicial) telaInicial.style.display = 'block';
-
-      contaAtual = { nome: '', email: '', token: '' };
       limparUltimaConta();
-
       try { google.accounts.id.disableAutoSelect(); } catch (e) {}
 
-      const contaEl = document.getElementById('contaLogada');
-      const trocarEl = document.getElementById('btnTrocarConta');
-      const status = document.getElementById('statusLogin');
-      if (contaEl) contaEl.style.display = 'none';
-      if (trocarEl) trocarEl.style.display = 'none';
-      if (status) status.textContent = 'Escolha a conta Google para entrar.';
-
-      // Depois do logout, não existe login_hint nem auto_select.
-      inicializarGIS('manual');
+      // Recarrega a página. Assim o GIS é inicializado apenas uma vez,
+      // agora em modo manual, sem a conta anterior.
+      window.location.href = URL_PUBLICA + '?logout=1&t=' + Date.now();
     }
 
     function trocarConta() {
       voltarParaLogin();
     }
 
-    function tratarLogoutSolicitado() {
-      voltarParaLogin();
-    }
-
-    window.addEventListener('message', function (event) {
+    window.addEventListener('message', function(event) {
       if (!event.data || !event.data.tipo) return;
 
       const frame = document.getElementById('diarioFrame');
-      const origemConfiavel = event.source === window || (frame && event.source === frame.contentWindow);
+      const origemConfiavel = frame && event.source === frame.contentWindow;
       if (!origemConfiavel) return;
 
       if (event.data.tipo === 'DIARIO_PRONTO') {
@@ -450,38 +446,11 @@
       }
 
       if (event.data.tipo === 'DIARIO_SAIR_CONTA') {
-        tratarLogoutSolicitado();
+        voltarParaLogin();
       }
     });
 
     window.addEventListener('load', function () {
-      let pediuLogout = false;
-      try {
-        pediuLogout = new URLSearchParams(window.location.search).get('logout') === '1';
-      } catch (e) {}
-
-      if (pediuLogout) {
-        limparUltimaConta();
-        try { google.accounts.id.disableAutoSelect(); } catch (e) {}
-        try { history.replaceState({}, document.title, window.location.pathname); } catch (e) {}
-      }
-
-      const status = document.getElementById('statusLogin');
-      if (status) status.textContent = pediuLogout
-        ? 'Escolha a conta Google para entrar.'
-        : 'Verificando a conta Google...';
-
-      // Se veio do logout, obrigatoriamente mostra o seletor.
-      if (pediuLogout) {
-        let tentativas = 0;
-        const iniciarManual = () => {
-          if (inicializarGIS('manual')) return;
-          if (++tentativas < 60) setTimeout(iniciarManual, 100);
-        };
-        iniciarManual();
-        return;
-      }
-
       tentarInicializarGIS(0);
     });
   </script>
