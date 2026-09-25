@@ -119,12 +119,6 @@
 
     #areaDiario {
       display: none;
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      background: #eef1f5;
-      z-index: 9999;
     }
 
     #diarioFrame {
@@ -264,46 +258,36 @@
       try { localStorage.removeItem(CHAVE_CONTA_ATUAL); } catch (e) {}
     }
 
-    function enviarContaParaDiario() {
-      const frame = document.getElementById('diarioFrame');
-      if (!frame || !frame.contentWindow || !contaAtual.token) return;
+    function guardarSessaoLocal(token, nome, email) {
+      try {
+        sessionStorage.setItem('diario_google_token', String(token || ''));
+        sessionStorage.setItem('diario_google_nome', String(nome || ''));
+        sessionStorage.setItem('diario_google_email', String(email || ''));
+      } catch(e) {}
+    }
 
-      frame.contentWindow.postMessage({
-        tipo: 'CONTA_GOOGLE_ATUAL',
-        nome: contaAtual.nome,
-        email: contaAtual.email,
-        token: contaAtual.token
-      }, '*');
+    function limparSessaoLocal() {
+      try {
+        sessionStorage.removeItem('diario_google_token');
+        sessionStorage.removeItem('diario_google_nome');
+        sessionStorage.removeItem('diario_google_email');
+      } catch(e) {}
     }
 
     function abrirDiario() {
       if (!contaAtual.token) return;
 
-      const telaInicial = document.getElementById('telaInicial');
-      const areaDiario = document.getElementById('areaDiario');
-      const frame = document.getElementById('diarioFrame');
-      if (!frame) return;
+      guardarSessaoLocal(contaAtual.token, contaAtual.nome, contaAtual.email);
 
-      diarioAberto = true;
-
-      frame.onload = function () {
-        enviarContaParaDiario();
-        setTimeout(enviarContaParaDiario, 250);
-        setTimeout(enviarContaParaDiario, 700);
-        setTimeout(enviarContaParaDiario, 1500);
-      };
-
-      // O token vai no fragmento (#), que não é enviado ao servidor.
-      // Isso elimina a dependência exclusiva do postMessage entre o site
-      // público e o iframe do Apps Script.
+      // V4: o Diário deixa de ser carregado em iframe.
+      // A página do Apps Script vira a página principal e recebe o token
+      // no fragmento da URL. Assim eliminamos completamente o problema
+      // de comunicação entre duas janelas/origens.
       const hash = '#google_token=' + encodeURIComponent(contaAtual.token)
         + '&google_nome=' + encodeURIComponent(contaAtual.nome)
         + '&google_email=' + encodeURIComponent(contaAtual.email);
 
-      frame.src = URL_DIARIO + '?v=' + Date.now() + hash;
-
-      if (telaInicial) telaInicial.style.display = 'none';
-      if (areaDiario) areaDiario.style.display = 'block';
+      window.location.href = URL_DIARIO + '?v=' + Date.now() + hash;
     }
 
     function handleGoogleCredential(response) {
@@ -422,33 +406,14 @@
 
     function voltarParaLogin() {
       limparUltimaConta();
-      try { google.accounts.id.disableAutoSelect(); } catch (e) {}
-
-      // Recarrega a página. Assim o GIS é inicializado apenas uma vez,
-      // agora em modo manual, sem a conta anterior.
+      limparSessaoLocal();
+      try { google.accounts.id.disableAutoSelect(); } catch(e) {}
       window.location.href = URL_PUBLICA + '?logout=1&t=' + Date.now();
     }
 
     function trocarConta() {
       voltarParaLogin();
     }
-
-    window.addEventListener('message', function(event) {
-      if (!event.data || !event.data.tipo) return;
-
-      const frame = document.getElementById('diarioFrame');
-      const origemConfiavel = frame && event.source === frame.contentWindow;
-      if (!origemConfiavel) return;
-
-      if (event.data.tipo === 'DIARIO_PRONTO') {
-        enviarContaParaDiario();
-        return;
-      }
-
-      if (event.data.tipo === 'DIARIO_SAIR_CONTA') {
-        voltarParaLogin();
-      }
-    });
 
     window.addEventListener('load', function () {
       tentarInicializarGIS(0);
