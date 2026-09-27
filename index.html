@@ -263,11 +263,17 @@
       const baseUrlDiario =
         'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
 
-      const urlDiario =
-        baseUrlDiario +
-        '?contaEmail=' + encodeURIComponent(contaAtual.email || '') +
+      // A identificação da conta vai no fragmento (#), que não é enviado ao
+      // servidor do Apps Script. Assim o próprio iframe consegue recuperar
+      // o token imediatamente, sem depender da corrida do postMessage.
+      const fragmentoConta =
+        '#googleToken=' + encodeURIComponent(contaAtual.token || '') +
+        '&contaEmail=' + encodeURIComponent(contaAtual.email || '') +
         '&contaNome=' + encodeURIComponent(contaAtual.nome || '') +
+        '&picture=' + encodeURIComponent(contaAtual.picture || '') +
         '&t=' + Date.now();
+
+      const urlDiario = baseUrlDiario + fragmentoConta;
 
       diarioFrame.onload = enviarContaParaDiario;
       diarioFrame.src = urlDiario;
