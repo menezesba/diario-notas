@@ -202,6 +202,10 @@
       const areaDiario = document.getElementById('areaDiario');
       const diarioFrame = document.getElementById('diarioFrame');
 
+      diarioFrame.onload = function(){
+        enviarTokenAoDiario();
+      };
+
       const urlDiario =
         'https://script.google.com/macros/s/AKfycbzv0ZqXlNlAft-cDq3pA-6CGTDwKt0dqdE2DdzaCaLV2ji769b_SGguMd_f5taS_SHG/exec';
 
@@ -210,6 +214,23 @@
       areaDiario.style.display = 'block';
 
     }
+
+    let tokenGoogleAtual = '';
+
+    function enviarTokenAoDiario(){
+      const frame = document.getElementById('diarioFrame');
+      if(!frame || !frame.contentWindow || !tokenGoogleAtual) return;
+      frame.contentWindow.postMessage({
+        tipo: 'DIARIO_NOTAS_TOKEN_GOOGLE',
+        credential: tokenGoogleAtual
+      }, '*');
+    }
+
+    window.addEventListener('message', function(event){
+      if(event && event.data && event.data.tipo === 'DIARIO_NOTAS_PRONTO'){
+        enviarTokenAoDiario();
+      }
+    });
 
     function handleGoogleCredential(response) {
       const status = document.getElementById('statusLogin');
@@ -220,6 +241,7 @@
        * A autorização do Google Apps Script continua sendo independente.
        */
       if (response && response.credential) {
+        tokenGoogleAtual = response.credential;
         setTimeout(abrirDiario, 250);
       }
     }
