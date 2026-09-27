@@ -293,7 +293,6 @@
 
     function trocarConta() {
       try { localStorage.removeItem(CHAVE_ULTIMA_CONTA); } catch(e) {}
-      try { google.accounts.id.disableAutoSelect(); } catch(e) {}
       const continuar = encodeURIComponent(
         'https://diariodenotasprofessor.com.br/?troca=1&t=' + Date.now()
       );
@@ -324,7 +323,6 @@
         localStorage.removeItem(CHAVE_ULTIMA_CONTA);
       } catch(e) {}
 
-      try { google.accounts.id.disableAutoSelect(); } catch(e) {}
 
       // O AccountChooser do Google é usado aqui para trocar a conta que
       // será considerada ativa pelo próprio Apps Script.
