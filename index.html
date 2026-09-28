@@ -243,13 +243,23 @@
         picture: contaAtual.picture,
         token: contaAtual.token
       };
+      const mensagemCompat = {
+        tipo: 'DIARIO_GOOGLE_AUTH',
+        nome: contaAtual.nome,
+        email: contaAtual.email,
+        picture: contaAtual.picture,
+        credential: contaAtual.token,
+        token: contaAtual.token
+      };
 
       frame.contentWindow.postMessage(mensagem, '*');
+      frame.contentWindow.postMessage(mensagemCompat, '*');
 
       [300, 800, 1500, 2500].forEach(ms => {
         setTimeout(() => {
           if (frame && frame.contentWindow) {
             frame.contentWindow.postMessage(mensagem, '*');
+            frame.contentWindow.postMessage(mensagemCompat, '*');
           }
         }, ms);
       });
