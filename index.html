@@ -210,6 +210,7 @@
 
     let contaAtual = { nome: '', email: '', picture: '', token: '' };
     const CHAVE_ULTIMA_CONTA = 'diario_notas_ultima_conta_google';
+    const MODO_TROCA_CONTA = new URLSearchParams(window.location.search).get('troca') === '1';
 
     function decodificarJWT(payload) {
       try {
@@ -292,6 +293,12 @@
         try { localStorage.setItem(CHAVE_ULTIMA_CONTA, String(dados.email).trim()); } catch(e) {}
       }
 
+      try {
+        if (MODO_TROCA) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } catch(e) {}
+
       const status = document.getElementById('statusLogin');
       status.textContent = 'Conta Google selecionada. Abrindo o Diário...';
       setTimeout(abrirDiario, 250);
@@ -299,11 +306,17 @@
 
     function trocarConta() {
       try { localStorage.removeItem(CHAVE_ULTIMA_CONTA); } catch(e) {}
-      const continuar = encodeURIComponent(
-        'https://diariodenotasprofessor.com.br/?troca=1&t=' + Date.now()
-      );
+      try {
+        if (window.google && google.accounts && google.accounts.id && google.accounts.id.disableAutoSelect) {
+          google.accounts.id.disableAutoSelect();
+        }
+      } catch(e) {}
+
+      // Não usamos mais accounts.google.com/AccountChooser aqui.
+      // No Android, esse endereço pode abrir o fluxo de ADICIONAR CONTA AO DISPOSITIVO.
+      // O próprio botão do Google fará a seleção da conta do navegador/app.
       window.top.location.href =
-        'https://accounts.google.com/AccountChooser?continue=' + continuar;
+        window.location.origin + window.location.pathname + '?troca=1&t=' + Date.now();
     }
 
     window.addEventListener('message', function(event) {
@@ -330,13 +343,16 @@
       } catch(e) {}
 
 
-      // O AccountChooser do Google é usado aqui para trocar a conta que
-      // será considerada ativa pelo próprio Apps Script.
-      const continuar = encodeURIComponent(
-        'https://diariodenotasprofessor.com.br/?troca=1&t=' + Date.now()
-      );
+      // Volta para a própria tela de login em modo de troca.
+      // Não abre o AccountChooser externo, evitando o fluxo Android
+      // de 'Esta conta já existe no seu dispositivo'.
+      try {
+        if (window.google && google.accounts && google.accounts.id && google.accounts.id.disableAutoSelect) {
+          google.accounts.id.disableAutoSelect();
+        }
+      } catch(e) {}
       window.top.location.href =
-        'https://accounts.google.com/AccountChooser?continue=' + continuar;
+        window.location.origin + window.location.pathname + '?troca=1&t=' + Date.now();
     });
 
     window.addEventListener('load', function () {
@@ -349,12 +365,20 @@
       let ultimaConta = '';
       try { ultimaConta = localStorage.getItem(CHAVE_ULTIMA_CONTA) || ''; } catch(e) {}
 
+      // No modo normal, mantemos a abertura automática da última conta.
+      // No modo de troca, desligamos a seleção automática e removemos o login_hint
+      // para que o usuário possa escolher outra conta pelo próprio Google.
+      if (MODO_TROCA_CONTA) {
+        try { google.accounts.id.disableAutoSelect(); } catch(e) {}
+        ultimaConta = '';
+      }
+
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredential,
         ux_mode: 'popup',
-        auto_select: true,
-        login_hint: ultimaConta || undefined
+        auto_select: !MODO_TROCA_CONTA,
+        login_hint: MODO_TROCA_CONTA ? undefined : (ultimaConta || undefined)
       });
 
       google.accounts.id.renderButton(
