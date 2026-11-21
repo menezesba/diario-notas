@@ -1222,25 +1222,7 @@ function corrigirDisciplinasVazadasEntreCursos(){
 
 // Enfileira sempre a versão mais recente do estado. Enquanto uma gravação
 // estiver em andamento, novas alterações substituem apenas o conteúdo pendente.
-function obterCarimboEstado(dados){
-  const valor = Number(dados && dados._metaSincronizacao && dados._metaSincronizacao.atualizadoEm);
-  return Number.isFinite(valor) ? valor : 0;
-}
-function marcarEstadoComoAtualizado(){
-  if(!estado || typeof estado !== 'object') return;
-  if(!estado._metaSincronizacao || typeof estado._metaSincronizacao !== 'object') estado._metaSincronizacao = {};
-  const anterior = obterCarimboEstado(estado);
-  estado._metaSincronizacao.atualizadoEm = Math.max(Date.now(), anterior + 1);
-}
-function salvarCopiaLocalAtual(){
-  try { localStorage.setItem(KEY, JSON.stringify(estado)); return true; }
-  catch(e) { erroUltimaNuvem = 'Não foi possível gravar os dados neste aparelho: ' + (e && e.message ? e.message : e); return false; }
-}
 function salvarNuvemAgora(callback){
-  // Toda gravação recebe um carimbo monotônico. Assim, na próxima abertura,
-  // é possível distinguir a cópia local mais nova de uma resposta antiga da nuvem.
-  marcarEstadoComoAtualizado();
-  salvarCopiaLocalAtual();
   if(!contaNuvemCarregada){
     const erro = 'Aguarde o carregamento dos dados da sua conta Google antes de salvar. A nuvem ainda não confirmou a leitura.';
     if(typeof callback === 'function') callback(false, erro);
@@ -1618,35 +1600,20 @@ function aplicarRenomeacaoInstituicao(nomeAntigo, nomeNovo, idForcado){
   if(!estado._idsInstituicoes || typeof estado._idsInstituicoes !== 'object') estado._idsInstituicoes = {};
   if(!estado._dadosPorInstituicao || typeof estado._dadosPorInstituicao !== 'object') estado._dadosPorInstituicao = {};
 
+  // A identidade vem primeiro do cadastro antigo. Se ele não estiver disponível,
+  // usa o ID que já está ativo. Nunca cria um ID novo para uma renomeação ativa.
   const id = idForcado || estado._idsInstituicoes[nomeAntigo] ||
     ((instituicaoNomeAtiva === nomeAntigo && instituicaoAtiva) ? instituicaoAtiva : '');
   if(!id) return '';
 
-  // Se esta é a instituição aberta, a memória ativa é a fonte mais recente.
-  // Capturamos antes de trocar o nome para não depender de snapshot antigo.
-  const ativaEhEsta = instituicaoAtiva === id || instituicaoNomeAtiva === nomeAntigo;
-  const snapshotAtivo = ativaEhEsta ? capturarDadosDaInstituicao() : null;
-  const snapshotId = estado._dadosPorInstituicao[id];
-  const snapshotLegado = estado._dadosPorInstituicao[nomeAntigo];
+  // Recupera o snapshot pelo ID, pelo nome legado ou pelo estado que está aberto.
+  // A cópia é feita antes de alterar qualquer referência.
+  let snapshot = estado._dadosPorInstituicao[id] || estado._dadosPorInstituicao[nomeAntigo];
+  if(!snapshot && instituicaoAtiva === id) snapshot = capturarDadosDaInstituicao();
+  if(snapshot) estado._dadosPorInstituicao[id] = copiarProfundo(snapshot);
 
-  // Evita escolher um snapshot vazio só porque ele já existe sob o ID.
-  // Quando a instituição não está aberta, escolhe o snapshot com mais conteúdo.
-  const pontuar = dados => {
-    if(!dados || typeof dados !== 'object') return -1;
-    const diarios = dados.diarios && typeof dados.diarios === 'object' ? Object.values(dados.diarios) : [];
-    const alunos = Array.isArray(dados.alunos) ? dados.alunos.length : 0;
-    const turmas = dados.listasTurmas && typeof dados.listasTurmas === 'object'
-      ? Object.values(dados.listasTurmas).reduce((n, mapa) => n + (mapa && typeof mapa === 'object' ? Object.keys(mapa).length : 0), 0) : 0;
-    const disciplinas = dados.disciplinasCursos && typeof dados.disciplinasCursos === 'object'
-      ? Object.values(dados.disciplinasCursos).reduce((n, lista) => n + (Array.isArray(lista) ? lista.length : 0), 0) : 0;
-    const registros = diarios.reduce((n, d) => n + (Array.isArray(d?.alunos) ? d.alunos.length : 0), 0);
-    return diarios.length * 100000 + registros * 100 + alunos * 10 + turmas + disciplinas;
-  };
-  let snapshot = snapshotAtivo || (pontuar(snapshotLegado) > pontuar(snapshotId) ? snapshotLegado : snapshotId) || snapshotLegado;
-  if(snapshot) snapshot = copiarProfundo(snapshot);
-
-  // Transfere o nome para o mesmo ID. Não cria outro ID e não altera as chaves
-  // internas dos diários, que são formadas pelo ID permanente.
+  // Transfere somente o nome para o mesmo ID. O snapshot antigo por nome é
+  // mantido como arquivo de segurança, mas deixa de ser a fonte ativa.
   estado._idsInstituicoes[nomeNovo] = id;
   delete estado._idsInstituicoes[nomeAntigo];
 
@@ -1659,18 +1626,18 @@ function aplicarRenomeacaoInstituicao(nomeAntigo, nomeNovo, idForcado){
     });
   };
 
+  // Atualiza os dados ativos e o snapshot canônico. Não reconstrói nem reescreve
+  // as chaves dos diários: elas já usam o ID permanente.
   atualizarNomeNosDados({ diarios: estado.diarios || {} });
-  atualizarNomeNosDados(snapshot);
+  atualizarNomeNosDados(estado._dadosPorInstituicao[id]);
 
-  if(snapshot) estado._dadosPorInstituicao[id] = snapshot;
-  if(ativaEhEsta){
+  if(instituicaoAtiva === id || instituicaoNomeAtiva === nomeAntigo){
     instituicaoAtiva = id;
     instituicaoNomeAtiva = nomeNovo;
-    // A cópia ativa, após atualizar o nome, passa a ser o snapshot canônico.
-    estado._dadosPorInstituicao[id] = capturarDadosDaInstituicao();
   }
   return id;
 }
+
 function obterInstituicaoLegada(){
   const cadastradas = Array.isArray(estado.config?.instituicao) ? estado.config.instituicao : [];
   const contagem = {};
@@ -1753,15 +1720,8 @@ function trocarInstituicaoSeNecessario(){
 
 function salvarLocal(callback){
   salvarDadosDaInstituicaoAtiva();
-  marcarEstadoComoAtualizado();
   const dadosJson = JSON.stringify(estado);
-  try { localStorage.setItem(KEY, dadosJson); }
-  catch(e) {
-    const erro = 'Não foi possível gravar os dados neste aparelho: ' + (e && e.message ? e.message : e);
-    if(typeof callback === 'function') callback(false, erro);
-    if($id('badgeUsuario')) $id('badgeUsuario').textContent = '⚠️ Falha ao salvar neste aparelho';
-    return;
-  }
+  try { localStorage.setItem(KEY, dadosJson); } catch(e) {}
   salvarNuvemAgora(callback);
 }
 
@@ -1797,31 +1757,6 @@ function carregarDaNuvemAoAbrir(){
         if(res && res.sucesso && res.dados){
           const dados = JSON.parse(res.dados);
           if(dados && dados.config && dados.diarios){
-            // Compara a cópia local persistida com a cópia da nuvem antes de
-            // substituir o estado. A nuvem antiga não pode desfazer uma
-            // renomeação/edição local que já foi gravada neste aparelho.
-            let local = null;
-            try { local = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e) {}
-            const localValido = !!(local && local.config && local.diarios);
-            const localMaisNovo = localValido && obterCarimboEstado(local) > obterCarimboEstado(dados);
-
-            if(localMaisNovo){
-              estado = local;
-              garantirEstruturaAssinatura();
-              ordenarTodasConfiguracoes();
-              normalizarEstruturasPorCurso();
-              corrigirDisciplinasVazadasEntreCursos();
-              inicializarSeparacaoInstituicoes();
-              contaNuvemCarregada = true;
-              salvarCopiaLocalAtual();
-              nuvemPendente = JSON.stringify(estado);
-              preencherSelects();
-              trocarSelecao();
-              if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Atualização local mais recente. Sincronizando com a nuvem...';
-              processarFilaNuvem();
-              return;
-            }
-
             estado = dados;
             garantirEstruturaAssinatura();
             ordenarTodasConfiguracoes();
@@ -1829,34 +1764,13 @@ function carregarDaNuvemAoAbrir(){
             corrigirDisciplinasVazadasEntreCursos();
             inicializarSeparacaoInstituicoes();
             contaNuvemCarregada = true;
-            salvarCopiaLocalAtual();
+            try { localStorage.setItem(KEY, JSON.stringify(estado)); } catch(e) {}
             processarFilaNuvem();
             preencherSelects();
             trocarSelecao();
             if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Dados carregados da nuvem';
             return;
           }
-        }
-        // Se a nuvem ainda não tem conteúdo, mas existe uma cópia local
-        // criada/atualizada por esta versão, preserva-a e envia para a nuvem.
-        // Cópias antigas sem carimbo não são reaproveitadas, para evitar misturar contas.
-        let localSemNuvem = null;
-        try { localSemNuvem = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e) {}
-        if(localSemNuvem && localSemNuvem.config && localSemNuvem.diarios && obterCarimboEstado(localSemNuvem) > 0){
-          estado = localSemNuvem;
-          garantirEstruturaAssinatura();
-          ordenarTodasConfiguracoes();
-          normalizarEstruturasPorCurso();
-          corrigirDisciplinasVazadasEntreCursos();
-          inicializarSeparacaoInstituicoes();
-          contaNuvemCarregada = true;
-          salvarCopiaLocalAtual();
-          nuvemPendente = JSON.stringify(estado);
-          preencherSelects();
-          trocarSelecao();
-          if($id('badgeUsuario')) $id('badgeUsuario').textContent = '☁️ Recuperando a versão local mais recente para a nuvem...';
-          processarFilaNuvem();
-          return;
         }
         // Primeira utilização desta conta: não reaproveita nenhum dado pessoal
         // que possa ter ficado no navegador de outra conta. O catálogo de cursos,
@@ -3686,17 +3600,12 @@ function salvarConfig(){
   // renomeada, conserva o mesmo snapshot canônico e o mesmo ID.
   if(renomeacaoAtiva){
     estado._idsInstituicoes[instituicaoNomeAtiva] = instituicaoAtiva;
-    // O snapshot ativo é reconstruído a partir do estado que está na tela,
-    // evitando reaproveitar uma cópia antiga guardada antes da renomeação.
-    estado._dadosPorInstituicao[instituicaoAtiva] = capturarDadosDaInstituicao();
+    if(!estado._dadosPorInstituicao[instituicaoAtiva]){
+      estado._dadosPorInstituicao[instituicaoAtiva] = capturarDadosDaInstituicao();
+    }
   }
   salvarDadosDaInstituicaoAtiva();
-  salvarLocal(function(ok, erro){
-    if(!ok){
-      if($id('badgeUsuario')) $id('badgeUsuario').textContent = '⚠️ Alterações locais mantidas, mas a nuvem não confirmou o salvamento';
-      console.warn('Falha ao sincronizar Diário de Notas:', erro);
-    }
-  });
+  salvarLocal();
   preencherSelects();
   if(instituicaoNomeAtiva && estado.config.instituicao.includes(instituicaoNomeAtiva)){
     $id('instituicao').value = instituicaoNomeAtiva;
