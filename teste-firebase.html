@@ -1089,7 +1089,7 @@ body.disciplina-fechada #corpoTabela input{background:#f7f7f7;cursor:not-allowed
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-const firebaseConfig={apiKey:'AIzaSyDjmKNKXynWlo4lWr-3-2I2nvaejELNaxUQ',authDomain:'diario-de-notas-do-profe-4085c.firebaseapp.com',projectId:'diario-de-notas-do-profe-4085c',storageBucket:'diario-de-notas-do-profe-4085c.firebasestorage.app',messagingSenderId:'839959456470',appId:'1:839959456470:web:3f766b3f2d7a7733957777'};
+const firebaseConfig={apiKey:'AIzaSyDjmKNNXynwLo4lWr-3-2I2nvaejELNaxUQ',authDomain:'diario-de-notas-do-profe-4085c.firebaseapp.com',projectId:'diario-de-notas-do-profe-4085c',storageBucket:'diario-de-notas-do-profe-4085c.firebasestorage.app',messagingSenderId:'839959456470',appId:'1:839959456470:web:3f766b3f2d7a7733957777'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),googleProvider=new GoogleAuthProvider();
 const $=id=>document.getElementById(id); const status=t=>{if($('statusLoginFirebase')) $('statusLoginFirebase').textContent=t||''};
 function utf8Chunks(str,maxBytes=400000){const out=[];let part='',bytes=0;for(const ch of str){const n=new TextEncoder().encode(ch).length;if(bytes+n>maxBytes){out.push(part);part='';bytes=0;}part+=ch;bytes+=n;}if(part||!out.length)out.push(part);return out;}
