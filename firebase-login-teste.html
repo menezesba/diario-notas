@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0B3D91">
+  <title>Diário de Notas | Acesso de teste Firebase</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:22px;background:#eef1f5;font-family:Arial,Helvetica,sans-serif;color:#17202a;display:flex;align-items:center;justify-content:center}
+    .card{width:min(480px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 8px 28px #00000014}
+    h1{margin:0 0 8px;color:#0B3D91;font-size:23px;text-align:center}.sub{margin:0 0 22px;text-align:center;color:#647282;line-height:1.5;font-size:14px}
+    .tabs{display:flex;gap:8px;margin-bottom:18px}.tabs button{flex:1;border:1px solid #d4dce5;background:#f6f8fa;padding:11px;border-radius:9px;font-weight:700;color:#334155;cursor:pointer}.tabs button.active{background:#0B3D91;color:white;border-color:#0B3D91}
+    label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px}button.action{width:100%;border:0;border-radius:9px;padding:13px;background:#0B3D91;color:white;font-size:15px;font-weight:700;margin-top:16px;cursor:pointer}button:disabled{opacity:.55;cursor:wait}
+    .google{background:#fff!important;color:#243447!important;border:1px solid #cbd5e1!important}.sep{display:flex;align-items:center;gap:12px;color:#94a3b8;font-size:12px;margin:17px 0}.sep:before,.sep:after{content:'';height:1px;background:#e2e8f0;flex:1}
+    .links{display:flex;justify-content:space-between;gap:12px;margin-top:15px}.links button{border:0;background:none;color:#1769aa;font-size:13px;cursor:pointer;padding:4px}.status{margin-top:16px;padding:11px;border-radius:9px;background:#f1f5f9;color:#334155;font-size:13px;line-height:1.5;white-space:pre-wrap;display:none}.status.ok{background:#e8f5e9;color:#1b5e20}.status.err{background:#ffebee;color:#b71c1c}.hint{font-size:12px;color:#64748b;line-height:1.5;margin-top:18px}.profile{display:none}.profile p{font-size:14px;line-height:1.6}.profile strong{color:#0B3D91}.small{font-size:12px;color:#64748b}
+  </style>
+</head>
+<body>
+<main class="card">
+  <h1>Diário de Notas do Professor</h1>
+  <p class="sub">Tela de teste do novo acesso pelo Firebase. Esta página não altera o Diário publicado.</p>
+  <section id="authArea">
+    <div class="tabs"><button id="tabLogin" class="active" type="button">Entrar</button><button id="tabCadastro" type="button">Criar conta</button></div>
+    <form id="authForm">
+      <div id="nomeWrap" hidden><label for="nome">Nome completo</label><input id="nome" autocomplete="name" maxlength="120"></div>
+      <div id="telefoneWrap" hidden><label for="telefone">Telefone com DDD</label><input id="telefone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000" maxlength="20"></div>
+      <label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required>
+      <label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" minlength="6" required>
+      <div id="confirmWrap" hidden><label for="confirmarSenha">Confirmar senha</label><input id="confirmarSenha" type="password" autocomplete="new-password" minlength="6"></div>
+      <button class="action" id="submitAuth" type="submit">Entrar</button>
+    </form>
+    <div class="sep">ou</div>
+    <button class="action google" id="googleBtn" type="button">Continuar com Google</button>
+    <div class="links"><button id="forgotBtn" type="button">Esqueci minha senha</button><button id="backLoginBtn" type="button" hidden>Voltar para entrar</button></div>
+    <p class="hint">No cadastro por e-mail, será enviado um link para confirmar o endereço. O telefone é apenas informativo: não haverá SMS nem validação por telefone.</p>
+  </section>
+  <section id="profileArea" class="profile">
+    <p id="profileText"></p>
+    <p class="small">Autenticação Firebase confirmada nesta página de teste. Nenhum dado de notas é lido ou alterado por esta tela.</p>
+    <button class="action" id="verifyBtn" type="button" hidden>Reenviar confirmação de e-mail</button>
+    <button class="action google" id="logoutBtn" type="button">Sair da conta</button>
+  </section>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+</main>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword,
+    signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail,
+    updateProfile, onAuthStateChanged, signOut
+  } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyDjmKNNXynWlo4lWr3-2I2nvaejELNaxUQ',
+    authDomain: 'diario-de-notas-do-profe-4085c.firebaseapp.com',
+    projectId: 'diario-de-notas-do-profe-4085c',
+    storageBucket: 'diario-de-notas-do-profe-4085c.firebasestorage.app',
+    messagingSenderId: '839959456470',
+    appId: '1:839959456470:web:3f766b3f2d7a7733957777'
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const googleProvider = new GoogleAuthProvider();
+  googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+  const $ = id => document.getElementById(id);
+  let modo = 'login';
+  function mensagem(msg, tipo='') { const el=$('status'); el.textContent=msg; el.className='status'+(tipo?' '+tipo:''); el.style.display='block'; }
+  function limparMensagem(){ $('status').style.display='none'; }
+  function alternarModo(novo){
+    modo=novo; limparMensagem();
+    $('tabLogin').classList.toggle('active',modo==='login');
+    $('tabCadastro').classList.toggle('active',modo==='cadastro');
+    $('nomeWrap').hidden=modo!=='cadastro'; $('telefoneWrap').hidden=modo!=='cadastro'; $('confirmWrap').hidden=modo!=='cadastro';
+    $('submitAuth').textContent=modo==='cadastro'?'Criar minha conta':'Entrar';
+    $('forgotBtn').hidden=modo!=='login'; $('backLoginBtn').hidden=modo!=='recuperar';
+    $('tabLogin').hidden=modo==='recuperar'; $('tabCadastro').hidden=modo==='recuperar';
+    $('senha').autocomplete=modo==='cadastro'?'new-password':'current-password';
+    $('senha').required=modo!=='recuperar';
+    $('senha').parentElement;
+    $('senha').closest('form').querySelector('label[for="senha"]').hidden=modo==='recuperar';
+    $('senha').hidden=modo==='recuperar';
+  }
+  $('tabLogin').addEventListener('click',()=>alternarModo('login'));
+  $('tabCadastro').addEventListener('click',()=>alternarModo('cadastro'));
+  $('backLoginBtn').addEventListener('click',()=>alternarModo('login'));
+
+  function erroAmigavel(e){
+    const cod=e?.code||'';
+    const mapa={
+      'auth/email-already-in-use':'Este e-mail já possui uma conta. Tente entrar ou recuperar a senha.',
+      'auth/invalid-email':'Digite um endereço de e-mail válido.',
+      'auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.',
+      'auth/user-not-found':'Não encontrei uma conta com esse e-mail.',
+      'auth/wrong-password':'Senha incorreta.',
+      'auth/invalid-credential':'E-mail ou senha incorretos.',
+      'auth/popup-closed-by-user':'A janela do Google foi fechada antes de concluir o acesso.',
+      'auth/unauthorized-domain':'Este domínio ainda não está autorizado no Firebase Authentication.',
+      'permission-denied':'O login funcionou, mas as regras do Firestore ainda bloqueiam o cadastro do perfil. Isso será configurado na etapa de segurança.'
+    };
+    return mapa[cod]||e?.message||'Ocorreu um erro inesperado.';
+  }
+  $('authForm').addEventListener('submit',async ev=>{
+    ev.preventDefault(); limparMensagem(); const btn=$('submitAuth'); btn.disabled=true;
+    const email=$('email').value.trim(); const senha=$('senha').value;
+    try{
+      if(modo==='recuperar'){
+        await sendPasswordResetEmail(auth,email);
+        mensagem('Enviamos um link de recuperação para '+email+'. Confira também a caixa de spam.','ok'); return;
+      }
+      if(modo==='cadastro'){
+        const nome=$('nome').value.trim(); const telefone=$('telefone').value.trim();
+        if(!nome){mensagem('Informe seu nome completo.','err');return;}
+        if(senha!==$('confirmarSenha').value){mensagem('As senhas não são iguais.','err');return;}
+        const cred=await createUserWithEmailAndPassword(auth,email,senha);
+        await updateProfile(cred.user,{displayName:nome});
+        await sendEmailVerification(cred.user);
+        await signOut(auth);
+        mensagem('Conta criada. Enviamos um link de confirmação para '+email+'. Abra o e-mail e confirme o endereço antes de usar o Diário.','ok');
+        return;
+      }
+      const cred=await signInWithEmailAndPassword(auth,email,senha);
+      if(!cred.user.emailVerified){
+        await sendEmailVerification(cred.user);
+        await signOut(auth);
+        mensagem('Seu e-mail ainda não foi confirmado. Enviamos um novo link para '+email+'. Confirme o endereço e depois entre novamente.','err');
+        return;
+      }
+      mensagem('Acesso realizado.','ok');
+    }catch(e){mensagem(erroAmigavel(e),'err');}
+    finally{btn.disabled=false;}
+  });
+  $('forgotBtn').addEventListener('click',()=>{alternarModo('recuperar');mensagem('Digite seu e-mail e toque em Enviar link de recuperação.');$('submitAuth').textContent='Enviar link de recuperação';});
+  $('googleBtn').addEventListener('click',async()=>{
+    limparMensagem();$('googleBtn').disabled=true;
+    try{
+      const cred=await signInWithPopup(auth,googleProvider);
+      mensagem('Acesso Google realizado. UID: '+cred.user.uid,'ok');
+    }catch(e){mensagem(erroAmigavel(e),'err');}
+    finally{$('googleBtn').disabled=false;}
+  });
+  $('verifyBtn').addEventListener('click',async()=>{try{await sendEmailVerification(auth.currentUser);mensagem('Novo link de confirmação enviado.','ok');}catch(e){mensagem(erroAmigavel(e),'err');}});
+  $('logoutBtn').addEventListener('click',async()=>{await signOut(auth);mensagem('Você saiu da conta.','ok');});
+  onAuthStateChanged(auth,user=>{
+    if(!user){$('authArea').style.display='block';$('profileArea').style.display='none';return;}
+    $('authArea').style.display='none';$('profileArea').style.display='block';
+    $('profileText').innerHTML='<strong>Conta autenticada</strong><br>Nome: '+escapeHtml(user.displayName||'Não informado')+'<br>E-mail: '+escapeHtml(user.email||'')+'<br>UID: '+escapeHtml(user.uid)+'<br>E-mail confirmado: '+(user.emailVerified?'Sim':'Não');
+    $('verifyBtn').hidden=user.emailVerified||user.providerData.some(p=>p.providerId==='google.com');
+  });
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+</script>
+</body>
+</html>
