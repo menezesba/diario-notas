@@ -19,9 +19,8 @@ header{background:linear-gradient(135deg,#075aa5,#168dcc);color:white;padding:14
 .header-titles{min-width:0;display:flex;flex-direction:column;justify-content:center}
 header h1{margin:0;font-size:clamp(18px,3vw,32px);line-height:1.1;white-space:nowrap;font-weight:800}
 header p{margin:7px 0 0;opacity:.98;font-size:clamp(12px,1.7vw,19px);line-height:1.15;letter-spacing:.2px;white-space:nowrap}
-#firebaseContaAtual{display:block;margin-top:5px;font-size:12px;line-height:1.15;opacity:.95;overflow-wrap:anywhere}
 .user-badge{display:none!important}
-@media(max-width:520px){header{padding:10px 14px;gap:10px;min-height:78px}.header-logo{width:62px;height:62px;border-radius:14px}.header-titles{flex:1 1 auto}header h1{font-size:clamp(17px,5vw,22px);white-space:normal}header p{font-size:clamp(10px,3.3vw,14px);margin-top:5px;white-space:normal}#firebaseContaAtual{font-size:10px}}
+@media(max-width:520px){header{padding:10px 14px;gap:10px;min-height:78px}.header-logo{width:62px;height:62px;border-radius:14px}header h1{font-size:clamp(17px,5vw,22px)}header p{font-size:clamp(10px,3.3vw,14px);margin-top:5px}}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #ddd;background:#fff;position:sticky;top:0;z-index:5}
 button,.file-label{border:0;border-radius:7px;padding:10px 13px;font-weight:700;cursor:pointer;background:#e8eef4;color:#17324a}
 button.primary{background:var(--azul);color:white}
@@ -734,6 +733,31 @@ body.disciplina-fechada #corpoTabela input{background:#f7f7f7;cursor:not-allowed
 .login-status{font-size:13px;min-height:20px;margin-top:10px;color:#a32626;white-space:pre-wrap}.login-status.status-success{color:#137333}.login-status.status-info{color:#174b78}
 #btnSairFirebase{margin-left:auto;background:#a52b2b;color:#fff}
 @media(max-width:520px){.login-card{padding:20px}}
+
+/* Cabeçalho da conta: e-mail agrupado ao botão Sair */
+header{gap:12px;padding:12px 18px}
+.header-titles{flex:1 1 340px;min-width:0}
+.header-account-actions{
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+  flex:0 1 auto;min-width:0;margin-left:auto
+}
+#firebaseContaAtual{
+  display:block;flex:0 1 230px;min-width:0;max-width:230px;
+  color:#fff;font-size:13px;font-weight:700;line-height:1.25;
+  overflow-wrap:anywhere;text-align:right;padding:7px 0
+}
+#btnSairFirebase{flex:0 0 auto;white-space:nowrap;padding:10px 15px;background:#b42318;color:#fff}
+@media(max-width:760px){
+  header{display:flex;flex-wrap:wrap;gap:9px;padding:10px 12px}
+  .header-logo{width:58px;height:58px}
+  .header-titles{flex:1 1 calc(100% - 75px)}
+  header h1{font-size:clamp(17px,4vw,23px);white-space:normal}
+  header p{font-size:12px;white-space:normal}
+  .header-account-actions{order:3;flex:1 1 100%;justify-content:flex-end;gap:9px;margin-left:0}
+  #firebaseContaAtual{flex:1 1 auto;max-width:none;min-width:0;text-align:right;padding:4px 0;font-size:12px}
+  #btnSairFirebase{order:2}
+}
+
 </style>
 </head>
 <body>
@@ -769,10 +793,12 @@ body.disciplina-fechada #corpoTabela input{background:#f7f7f7;cursor:not-allowed
   <div class="header-titles">
     <h1 id="tituloCabecalho">Diário de Notas do Professor</h1>
     <p id="subCabecalho">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
-    <span id="firebaseContaAtual" aria-live="polite">Conta não identificada</span>
   </div>
   <div class="user-badge" id="badgeUsuario" aria-hidden="true"></div>
-  <button type="button" id="btnSairFirebase" onclick="sairFirebase()">Sair</button>
+  <div class="header-account-actions">
+    <span id="firebaseContaAtual" aria-live="polite">Conta não identificada</span>
+    <button type="button" id="btnSairFirebase" onclick="sairFirebase()">Sair</button>
+  </div>
 </header>
 
 
@@ -1164,30 +1190,6 @@ window.firebaseSalvarEstado=async json=>{
   });
 };
 
-
-window.firebasePublicarEstruturaAcademica=async json=>{
-  const user=auth.currentUser;
-  if(!user || !isPrincipalEmail(user)) throw new Error('Somente a conta administradora pode publicar a estrutura acadêmica.');
-  await setDoc(doc(db,'estruturaAcademica','catalogo'),{
-    json,atualizadoEm:serverTimestamp(),atualizadoPor:user.uid
-  });
-};
-window.firebaseCarregarEstruturaAcademica=async()=>{
-  const user=auth.currentUser;
-  if(!user || user.uid!==window.currentFirebaseUid) throw new Error('Sessão inválida ao carregar a estrutura compartilhada.');
-  const snap=await getDoc(doc(db,'estruturaAcademica','catalogo'));
-  if(!snap.exists()) throw new Error('A estrutura acadêmica ainda não foi publicada. Entre primeiro na conta administradora e aguarde o carregamento.');
-  return snap.data().json;
-};
-window.firebaseMarcarLimpezaInicial=async uid=>{
-  const user=auth.currentUser;
-  if(!user || user.uid!==uid || uid!==window.currentFirebaseUid) throw new Error('A conta mudou durante a inicialização.');
-  await setDoc(doc(db,'usuarios',uid),{
-    dadosPrivadosLimposV1:true,
-    estruturaCompartilhadaVersao:2,
-    dadosPrivadosLimposEm:serverTimestamp()
-  },{merge:true});
-};
 window.firebaseCarregarEstado=async expectedUid=>{
   const uid=auth.currentUser?.uid;
   if(!uid || uid!==window.currentFirebaseUid || (expectedUid && uid!==expectedUid)){
@@ -1220,19 +1222,14 @@ function mostrarApp(user,profile){
   $('appPrincipal').style.display='block';
   window.usuarioFirebase=user;
   window.perfilFirebaseAtual=profile;
+  const nome=profile?.nome||user.displayName||'';
   const conta=$('firebaseContaAtual');
   if(conta){
-    conta.textContent=user.email||'Conta conectada';
+    conta.textContent=user.email||'Conta Google';
     conta.title=`Conta conectada: ${user.email||''}`;
   }
   window.dispatchEvent(new CustomEvent('firebase-usuario-pronto',{
-    detail:{
-      uid:user.uid,
-      email:user.email||'',
-      nome:user.displayName||profile?.nome||'',
-      role:profile?.role||'professional',
-      profile
-    }
+    detail:{uid:user.uid,email:user.email||'',nome,role:profile?.role||'professional',profile}
   }));
 }
 function mostrarLogin(){
@@ -1245,44 +1242,47 @@ function mostrarLogin(){
   if(account)account.textContent='Conta não identificada';
 }
 
-
 async function obterOuCriarPerfil(user){
   const ref=doc(db,'usuarios',user.uid);
   const snap=await getDoc(ref);
   const agora=serverTimestamp();
 
   if(isPrincipalEmail(user)){
-    const antigo=snap.exists()?snap.data():{};
     const profile={
-      ...antigo,
-      uid:user.uid,nome:user.displayName||antigo.nome||'',
-      email:user.email||ADMIN_PRINCIPAL_EMAIL,
-      role:'admin',adminLevel:'principal',status:'approved',
-      courseIds:Array.isArray(antigo.courseIds)?antigo.courseIds:[],
+      uid:user.uid,nome:user.displayName||'Moisés Menezes',email:user.email||ADMIN_PRINCIPAL_EMAIL,
+      role:'admin',adminLevel:'principal',status:'approved',courseIds:[],
       atualizadoEm:agora
     };
-    await setDoc(ref,{...profile,criadoEm:antigo.criadoEm||agora},{merge:true});
+    await setDoc(ref,{...profile,criadoEm:snap.exists()?(snap.data().criadoEm||agora):agora},{merge:true});
     return profile;
   }
 
-  const antigo=snap.exists()?snap.data():{};
-  const profile={
-    ...antigo,
+  if(!snap.exists()){
+    const profile={
+      uid:user.uid,nome:user.displayName||'',email:user.email||'',
+      role:'professional',adminLevel:null,status:'approved',courseIds:[],
+      origem:user.providerData?.[0]?.providerId||'email',
+      criadoEm:agora,atualizadoEm:agora
+    };
+    await setDoc(ref,profile);
+    return profile;
+  }
+
+  const profile=snap.data();
+  const atualizado={
     uid:user.uid,
-    nome:antigo.nome||user.displayName||'',
-    email:user.email||antigo.email||'',
+    nome:profile.nome||user.displayName||'',
+    email:user.email||profile.email||'',
     role:'professional',
     adminLevel:null,
     status:'approved',
-    courseIds:Array.isArray(antigo.courseIds)?antigo.courseIds:[],
-    origem:antigo.origem||user.providerData?.[0]?.providerId||'email',
-    dadosPrivadosLimposV1:!!antigo.dadosPrivadosLimposV1,
-    estruturaCompartilhadaVersao:Number(antigo.estruturaCompartilhadaVersao||0),
-    criadoEm:antigo.criadoEm||agora,
+    courseIds:[],
+    origem:profile.origem||user.providerData?.[0]?.providerId||'email',
+    criadoEm:profile.criadoEm||agora,
     atualizadoEm:agora
   };
-  await setDoc(ref,profile,{merge:true});
-  return profile;
+  await setDoc(ref,atualizado,{merge:true});
+  return atualizado;
 }
 
 async function processarUsuarioAutenticado(user){
@@ -1303,22 +1303,24 @@ async function processarUsuarioAutenticado(user){
     const profile=await obterOuCriarPerfil(user);
     if(auth.currentUser?.uid!==user.uid)return;
 
+    // Qualquer conta autenticada pode usar o Diário imediatamente.
+    // Os privilégios administrativos continuam limitados ao perfil principal
+    // e às coordenações atribuídas pelo administrador principal.
     if(profile.role!=='admin' && profile.role!=='professional'){
-      authProcessingUid='';
-      await signOut(auth);
-      mostrarLogin();
-      status('O perfil desta conta não está configurado. Procure o administrador.');
+      const perfilBasico={
+        ...profile,role:'professional',adminLevel:null,status:'approved',courseIds:[]
+      };
+      await setDoc(doc(db,'usuarios',user.uid),perfilBasico,{merge:true});
+      mostrarApp(user,perfilBasico);
       return;
     }
     mostrarApp(user,profile);
   }catch(err){
     authProcessingUid='';
     window.diarioFirebaseAutenticado=false;
-    console.error('Falha ao preparar a sessão do Diário:',err);
-    // Preserve the authenticated session for diagnosis; do not force sign-out
-    // because of a client-side rendering/profile-event exception.
+    await signOut(auth).catch(()=>{});
     mostrarLogin();
-    status('Não foi possível concluir a abertura do Diário: '+(err.message||err));
+    status('Não foi possível validar seu cadastro no Firestore: '+(err.message||err));
   }
 }
 
@@ -1358,7 +1360,7 @@ $('btnCriarContaFirebase').addEventListener('click',async()=>{
       role:'professional',adminLevel:null,status:'approved',courseIds:[],
       origem:'email',criadoEm:serverTimestamp(),atualizadoEm:serverTimestamp()
     };
-    await setDoc(doc(db,'usuarios',cred.user.uid),{...profile,dadosPrivadosLimposV1:false});
+    await setDoc(doc(db,'usuarios',cred.user.uid),profile);
     await setDoc(doc(db,'usuarios',cred.user.uid,'perfil','dados'),{
       nome,email,telefone,criadoEm:serverTimestamp()
     });
@@ -1366,7 +1368,8 @@ $('btnCriarContaFirebase').addEventListener('click',async()=>{
     authProcessingUid='';
     $('areaCadastroFirebase').style.display='none';
     $('btnAlternarCadastroFirebase').textContent='Criar uma conta';
-    status('Conta criada. Carregando a estrutura acadêmica compartilhada...','success');
+    $('loginSenhaFirebase').value='';
+    status('Conta criada com sucesso! Você já pode começar a usar seu Diário.','success');
     await processarUsuarioAutenticado(cred.user);
   }catch(err){
     registrationInProgress=false;
@@ -1385,6 +1388,7 @@ window.sairFirebase=async()=>{
     await signOut(auth);
   }catch(e){alert('Não foi possível encerrar a sessão: '+(e.message||e));}
 };
+
 
 onAuthStateChanged(auth,user=>{processarUsuarioAutenticado(user);});
 </script>
@@ -2054,162 +2058,43 @@ function carregarLocal(){
   }
 }
 
-
-function limparAlunoParaNovaConta(aluno){
-  if(!aluno || typeof aluno!=='object') return;
-  if(Array.isArray(aluno.notas)) aluno.notas=aluno.notas.map(()=> '');
-  if(Array.isArray(aluno.avaliacoes)) aluno.avaliacoes=aluno.avaliacoes.map(()=> '');
-  ['recuperacao','notaRecuperacao','observacao','observacaoGeral','comentario','comentarios','anotacao','anotacoes'].forEach(k=>{
-    if(k in aluno) aluno[k]=Array.isArray(aluno[k])?[]:'';
-  });
-  ['observacoes','detalhes','historico','registros'].forEach(k=>{
-    if(k in aluno && Array.isArray(aluno[k])) aluno[k]=[];
-  });
-}
-function limparDiarioParaNovaConta(diario){
-  if(!diario || typeof diario!=='object') return;
-  diario.fechada=false;
-  if(Array.isArray(diario.alunos)) diario.alunos.forEach(limparAlunoParaNovaConta);
-  ['detalhesAvaliacoes','avaliacoesDetalhes'].forEach(k=>{
-    if(Array.isArray(diario[k])) diario[k].forEach(x=>{
-      if(x && typeof x==='object'){
-        if('observacao' in x) x.observacao='';
-        if('data' in x) x.data='';
-        if('valor' in x) x.valor='';
-      }
-    });
-  });
-  ['observacao','observacoes','comentario','comentarios','anotacao','anotacoes','notasObservacoes'].forEach(k=>{
-    if(k in diario) diario[k]=Array.isArray(diario[k])?[]:'';
-  });
-}
-function criarEstruturaCompartilhadaLimpa(origem){
-  const copia=JSON.parse(JSON.stringify(origem));
-  (copia.alunos||[]).forEach(limparAlunoParaNovaConta);
-  Object.values(copia.diarios||{}).forEach(limparDiarioParaNovaConta);
-  if(Array.isArray(copia.detalhesAvaliacoes)) copia.detalhesAvaliacoes.forEach(x=>{
-    if(x && typeof x==='object'){x.data='';x.valor='';x.observacao='';}
-  });
-  copia.config=copia.config||{};
-  copia.config.professor=[];
-  copia.assinatura={imagem:''};
-  Object.values(copia._dadosPorInstituicao||{}).forEach(s=>{
-    if(!s || typeof s!=='object') return;
-    (s.alunos||[]).forEach(limparAlunoParaNovaConta);
-    Object.values(s.diarios||{}).forEach(limparDiarioParaNovaConta);
-    if(Array.isArray(s.detalhesAvaliacoes)) s.detalhesAvaliacoes.forEach(x=>{
-      if(x && typeof x==='object'){x.data='';x.valor='';x.observacao='';}
-    });
-    s.config=s.config||{};
-    s.config.professor=[];
-    s.assinatura={imagem:''};
-  });
-  return copia;
-}
-
 function carregarDaNuvemAoAbrir(){
   const uidConsulta=window.currentFirebaseUid;
-  const perfil=window.perfilFirebaseAtual||{};
-  const ehAdministrador=isPrincipalEmail(window.usuarioFirebase) ||
-    (perfil.role==='admin' && perfil.adminLevel==='principal');
   contaNuvemCarregada=false;
   if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Carregando dados da nuvem...';
-
-  (async()=>{
+  window.firebaseCarregarEstado(uidConsulta).then(json=>{
+    if(!uidConsulta || uidConsulta!==window.currentFirebaseUid) return;
     try{
-      const json=await window.firebaseCarregarEstado(uidConsulta);
-      if(!uidConsulta || uidConsulta!==window.currentFirebaseUid) return;
-
-      if(ehAdministrador){
-        let dadosAdmin=null;
-        if(json){
-          dadosAdmin=JSON.parse(json);
-          if(!dadosAdmin || !dadosAdmin.config || !dadosAdmin.diarios || !dadosAdmin.listasTurmas)
-            throw new Error('O backup administrativo encontrado na nuvem está incompleto. Ele foi preservado e não será substituído.');
-        }else{
-          // Migração segura: tenta recuperar a cópia local vinculada ao UID do administrador.
-          try{
-            const local=JSON.parse(localStorage.getItem(KEY)||'null');
-            if(local && local.config && local.diarios && local.listasTurmas) dadosAdmin=local;
-          }catch(e){}
-          if(!dadosAdmin){
-            throw new Error('Não encontrei o backup administrativo na nuvem nem uma cópia local válida. Nenhum dado foi recriado ou sobrescrito. Use Restaurar para importar seu backup, se necessário.');
-          }
-        }
-
-        estado=dadosAdmin;
-        garantirEstruturaAssinatura();
-        ordenarTodasConfiguracoes();
-        normalizarEstruturasPorCurso();
-        corrigirDisciplinasVazadasEntreCursos();
-        inicializarSeparacaoInstituicoes();
-
-        // Migra a cópia local antiga para o formato atual da nuvem sem apagar o original.
-        if(!json){
-          await window.firebaseSalvarEstado(JSON.stringify(estado));
-          if(uidConsulta!==window.currentFirebaseUid) return;
-        }
-
-        const catalogo=criarEstruturaCompartilhadaLimpa(estado);
-        await window.firebasePublicarEstruturaAcademica(JSON.stringify(catalogo));
-        if(uidConsulta!==window.currentFirebaseUid) return;
-
-        contaNuvemCarregada=true;
-        localStorage.setItem(KEY,JSON.stringify(estado));
-        preencherSelects(); trocarSelecao(); render();
-        if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Dados administrativos carregados';
-        return;
-      }
-
-      const versaoEstrutura=Number(perfil.estruturaCompartilhadaVersao||0);
-      const precisaReceberEstrutura=!perfil.dadosPrivadosLimposV1 || versaoEstrutura<2;
-
-      if(precisaReceberEstrutura){
-        const jsonEstrutura=await window.firebaseCarregarEstruturaAcademica();
-        const estrutura=JSON.parse(jsonEstrutura);
-        if(!estrutura || !estrutura.config || !estrutura.diarios || !estrutura.listasTurmas)
-          throw new Error('A estrutura acadêmica compartilhada está incompleta.');
-
-        // O catálogo do administrador fornece os cadastros estruturais atuais.
-        // O conteúdo pessoal do professor começa limpo, sem notas ou assinatura.
-        estado=criarEstruturaCompartilhadaLimpa(estrutura);
-        garantirEstruturaAssinatura();
-        ordenarTodasConfiguracoes();
-        normalizarEstruturasPorCurso();
-        corrigirDisciplinasVazadasEntreCursos();
-        inicializarSeparacaoInstituicoes();
-        cursoAtivo=''; turmaAtiva=''; diarioAtivo='';
-
-        await window.firebaseSalvarEstado(JSON.stringify(estado));
-        await window.firebaseMarcarLimpezaInicial(uidConsulta);
-        perfil.dadosPrivadosLimposV1=true;
-        perfil.estruturaCompartilhadaVersao=2;
-        window.perfilFirebaseAtual=perfil;
-      }else{
-        if(!json) throw new Error('O diário particular desta conta não foi encontrado na nuvem. Não vou criar dados vazios nem sobrescrever informações automaticamente.');
+      if(json){
         const dados=JSON.parse(json);
-        if(!dados || !dados.config || !dados.diarios || !dados.listasTurmas)
-          throw new Error('Os dados particulares desta conta estão incompletos.');
-        estado=dados;
-        garantirEstruturaAssinatura();
-        ordenarTodasConfiguracoes();
-        normalizarEstruturasPorCurso();
-        corrigirDisciplinasVazadasEntreCursos();
-        inicializarSeparacaoInstituicoes();
+        if(dados && dados.config && dados.diarios){
+          estado=dados; garantirEstruturaAssinatura(); ordenarTodasConfiguracoes();
+          normalizarEstruturasPorCurso(); corrigirDisciplinasVazadasEntreCursos(); inicializarSeparacaoInstituicoes();
+          contaNuvemCarregada=true; localStorage.setItem(KEY,JSON.stringify(estado));
+          preencherSelects(); trocarSelecao(); render();
+          if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Dados carregados da sua conta';
+          return;
+        }
+        throw new Error('Os dados encontrados na nuvem não têm a estrutura esperada.');
       }
-
-      if(uidConsulta!==window.currentFirebaseUid) return;
-      contaNuvemCarregada=true;
-      localStorage.setItem(KEY,JSON.stringify(estado));
-      preencherSelects(); trocarSelecao(); render();
-      if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Diário particular desta conta';
+      // Conta nova: inicia vazia, sem reaproveitar dados de outra conta no aparelho.
+      inicializarEstruturaBase(); estado.config.professor=[]; estado.diarios={}; estado.alunos=[];
+      estado.assinatura={imagem:''}; cursoAtivo=''; inicializarSeparacaoInstituicoes();
+      contaNuvemCarregada=true; corrigirDisciplinasVazadasEntreCursos();
+      preencherSelects(); trocarSelecao(); render(); localStorage.setItem(KEY,JSON.stringify(estado));
+      salvarNuvemAgora();
+      if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Nova conta, diário vazio';
     }catch(err){
       contaNuvemCarregada=false;
-      if($id('badgeUsuario')) $id('badgeUsuario').textContent='⚠️ Nuvem indisponível';
-      console.error('Falha ao carregar os dados do Diário:',err);
+      if($id('badgeUsuario')) $id('badgeUsuario').textContent='⚠️ Não foi possível ler os dados';
       alert('Falha ao carregar os dados da nuvem: '+(err?.message||err));
     }
-  })();
+  }).catch(err=>{
+    if(uidConsulta!==window.currentFirebaseUid) return;
+    contaNuvemCarregada=false;
+    if($id('badgeUsuario')) $id('badgeUsuario').textContent='⚠️ Nuvem indisponível';
+    alert('Não foi possível acessar os dados da sua conta. Nenhuma informação local será enviada para evitar sobrescrever a nuvem.\n\n'+(err?.message||err));
+  });
 }
 
 function formatarDataBackup(valor){
@@ -2257,8 +2142,10 @@ async function importarArquivoBackup(e){
       alert('Entre na sua conta antes de restaurar o backup.');
       return;
     }
-    // A restauração manual é justamente o caminho de recuperação quando a leitura
-    // inicial da nuvem falha. Não exigir contaNuvemCarregada aqui.
+    if(!contaNuvemCarregada){
+      alert('Aguarde o carregamento dos dados da sua conta terminar. Quando aparecer "Dados carregados da sua conta" ou "Nova conta, diário vazio", tente restaurar novamente.');
+      return;
+    }
     if(typeof window.firebaseSalvarEstado !== 'function'){
       alert('O serviço de gravação do Firebase ainda não está pronto. Atualize a página e tente novamente.');
       return;
@@ -2282,18 +2169,19 @@ async function importarArquivoBackup(e){
       normalizarEstruturasPorCurso();
       inicializarSeparacaoInstituicoes();
 
-      // Grava diretamente no Firebase. A fila normal exige contaNuvemCarregada,
-      // mas a restauração manual precisa funcionar mesmo quando a leitura inicial falhou.
+      // Aguarda a fila de gravação e só confirma a restauração após resposta positiva.
       jsonRestaurado = JSON.stringify(estado);
-      await window.firebaseSalvarEstado(jsonRestaurado);
+      await new Promise((resolve, reject) => {
+        salvarNuvemAgora((ok, erro) => {
+          if(ok) resolve();
+          else reject(new Error(erro || 'O Firebase não confirmou a gravação do backup.'));
+        });
+      });
 
       // A cópia local e a interface só são atualizadas depois da confirmação na nuvem.
       try { localStorage.setItem(KEY, jsonRestaurado); } catch(errLocal) {
         console.warn('Não foi possível atualizar a cópia local:', errLocal);
       }
-      nuvemPendente = null;
-      nuvemCallbacksPendentes.splice(0).forEach(cb=>{try{cb(true,'')}catch(e){}});
-      contaNuvemCarregada = true;
       preencherSelects();
       trocarSelecao();
       render();
