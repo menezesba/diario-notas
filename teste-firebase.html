@@ -3297,6 +3297,14 @@ document.addEventListener('keydown', e => {
   const dentroDaGrade = alvo && alvo.closest && alvo.closest('#corpoTabela');
   if(!dentroDaGrade) return;
 
+  // Quando uma célula está em edição, Backspace/Delete pertencem ao teclado
+  // do próprio campo. Só limpamos a seleção da grade quando o foco não está
+  // dentro de um editor de nota/recuperação.
+  const editorAtivo = alvo.matches?.('input, textarea')
+    || alvo.isContentEditable
+    || !!alvo.closest?.('[contenteditable="true"]');
+  if(editorAtivo) return;
+
   const celulas = [];
   gradeCelulasSelecionadas.forEach(chave => {
     const partes = String(chave).split(':');
