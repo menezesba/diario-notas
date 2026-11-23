@@ -672,6 +672,18 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
    ===================================================== */
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;padding:18px;z-index:10050;}
 .disciplina-status-wrap{display:block;margin-top:0;}
+.nome-disciplina-selecionada{
+  display:block;
+  min-height:16px;
+  margin:5px 2px 0;
+  color:#344054;
+  font-size:11px;
+  font-weight:600;
+  line-height:1.3;
+  overflow-wrap:anywhere;
+}
+.nome-disciplina-selecionada:empty{display:none;}
+
 .disciplina-control-row{display:flex;align-items:center;gap:7px;width:100%;}
 .disciplina-control-row select{flex:1;min-width:0;}
 .btn-disciplina-status{position:relative;flex:0 0 38px;width:38px;height:38px;border:1px solid #b7c1ca;border-radius:8px;padding:0;font-weight:700;font-size:17px;cursor:pointer;background:#eef7ef;color:#216b35;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;transition:background .15s,border-color .15s,transform .1s;}
@@ -833,6 +845,7 @@ header{gap:12px;padding:12px 18px}
           <select id="disciplina" onchange="trocarSelecao(true)"></select>
           <button type="button" id="btnStatusDisciplina" class="btn-disciplina-status" onclick="alternarDisciplinaFechada()" aria-label="Status da disciplina" data-tooltip="Disciplina aberta: novos alunos podem ser incorporados normalmente. Clique no cadeado para fechar a disciplina.">🔓</button>
         </div>
+        <div id="nomeDisciplinaSelecionada" class="nome-disciplina-selecionada" aria-live="polite"></div>
       </div>
     </div>
     <div class="field"><label>Professor</label><select id="professor" onchange="atualizarCabecalho();salvarDiarioAtual()"></select></div>
@@ -1216,6 +1229,36 @@ window.firebaseCarregarEstado=async expectedUid=>{
   return json;
 };
 
+// Catálogo acadêmico compartilhado: somente o administrador principal publica.
+// Todos os usuários autenticados podem ler o modelo; os diários individuais
+// continuam armazenados exclusivamente em usuarios/{uid}.
+window.firebaseSalvarEstruturaCompartilhada=async estrutura=>{
+  const user=auth.currentUser;
+  if(!user || user.uid!==window.currentFirebaseUid || !isPrincipalEmail(user)){
+    throw new Error('Somente a conta administrativa pode atualizar a estrutura compartilhada.');
+  }
+  await setDoc(doc(db,'estrutura_compartilhada','academica'),{
+    estrutura,
+    atualizadoEm:serverTimestamp(),
+    administrador:user.email
+  });
+};
+
+window.firebaseCarregarEstruturaCompartilhada=async expectedUid=>{
+  const user=auth.currentUser;
+  if(!user || user.uid!==window.currentFirebaseUid || (expectedUid && user.uid!==expectedUid)){
+    throw new Error('A sessão mudou. Entre novamente para carregar a estrutura acadêmica.');
+  }
+  const snap=await getDoc(doc(db,'estrutura_compartilhada','academica'));
+  if(auth.currentUser?.uid!==user.uid || window.currentFirebaseUid!==user.uid) return null;
+  if(!snap.exists()) return null;
+  const data=snap.data()?.estrutura;
+  if(!data || !data.config || !data.listasTurmas || !data.disciplinasCursos){
+    throw new Error('A estrutura compartilhada publicada pelo administrador está incompleta.');
+  }
+  return data;
+};
+
 function mostrarApp(user,profile){
   currentProfile=profile;
   $('telaLogin').style.display='none';
@@ -1586,9 +1629,19 @@ function processarFilaNuvem(){
   const json=nuvemPendente; nuvemPendente=null;
   const cbs=nuvemCallbacksPendentes.splice(0); nuvemSalvando=true;
   if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Salvando na nuvem...';
-  window.firebaseSalvarEstado(json).then(()=>{
+  window.firebaseSalvarEstado(json).then(async()=>{
     nuvemSalvando=false; erroUltimaNuvem='';
-    if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Nuvem atualizada';
+    if(ehContaAdministradoraAtual() && typeof window.firebaseSalvarEstruturaCompartilhada==='function'){
+      try{
+        await window.firebaseSalvarEstruturaCompartilhada(montarEstruturaAcademicaCompartilhada());
+        if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Diário e estrutura acadêmica sincronizados';
+      }catch(errEstrutura){
+        console.error('Falha ao publicar a estrutura acadêmica compartilhada:',errEstrutura);
+        if($id('badgeUsuario')) $id('badgeUsuario').textContent='⚠️ Diário salvo; estrutura compartilhada não atualizada';
+      }
+    }else if($id('badgeUsuario')){
+      $id('badgeUsuario').textContent='☁️ Nuvem atualizada';
+    }
     cbs.forEach(cb=>{try{cb(true,'')}catch(e){}}); processarFilaNuvem();
   }).catch(err=>{
     nuvemSalvando=false; erroUltimaNuvem=err?.message||String(err);
@@ -2058,11 +2111,167 @@ function carregarLocal(){
   }
 }
 
+
+function ehContaAdministradoraAtual(){
+  return String(window.usuarioFirebase?.email || '').toLowerCase() === 'menezesba@gmail.com';
+}
+
+// Publica somente a estrutura acadêmica. Notas, recuperação, observações,
+// assinatura e nome do professor nunca entram no documento compartilhado.
+function montarEstruturaAcademicaCompartilhada(){
+  salvarDadosDaInstituicaoAtiva();
+  const snapshots = {};
+  Object.entries(estado._dadosPorInstituicao || {}).forEach(([id, snap])=>{
+    if(!snap || typeof snap !== 'object') return;
+    const diarios = {};
+    Object.entries(snap.diarios || {}).forEach(([chave, d])=>{
+      if(!d || typeof d !== 'object') return;
+      diarios[chave] = {
+        turma:d.turma || '',
+        disciplina:d.disciplina || '',
+        instituicao:d.instituicao || '',
+        curso:d.curso || '',
+        fechada:false,
+        tipoCalculo:d.tipoCalculo || 'soma',
+        periodoIni:'',
+        periodoFim:'',
+        notaMin:d.notaMin || '6',
+        avaliacoes:Array.isArray(d.avaliacoes) ? copiarProfundo(d.avaliacoes) : ['1ª Aval.','2ª Aval.','3ª Aval.'],
+        detalhesAvaliacoes:(d.detalhesAvaliacoes || []).map(x=>({
+          data:'', valor:'', observacao:''
+        })),
+        alunos:(d.alunos || []).map(a=>({
+          nome:normalizarNomeAluno(a?.nome)
+        })).filter(a=>a.nome),
+        // Mantém exclusões explícitas do administrador para que nomes removidos
+        // não reapareçam ao abrir a disciplina em outra conta.
+        alunosExcluidos:obterExcluidosDaDisciplina(d)
+      };
+    });
+    snapshots[id] = {
+      config:{professor:[]},
+      avaliacoes:Array.isArray(snap.avaliacoes) ? copiarProfundo(snap.avaliacoes) : ['1ª Aval.','2ª Aval.','3ª Aval.'],
+      detalhesAvaliacoes:(snap.detalhesAvaliacoes || []).map(()=>({data:'',valor:'',observacao:''})),
+      alunos:[],
+      diarios,
+      listasTurmas:copiarProfundo(snap.listasTurmas || {}),
+      disciplinasCursos:copiarProfundo(snap.disciplinasCursos || {}),
+      assinatura:{imagem:''}
+    };
+  });
+  return {
+    versao:1,
+    instituicaoSelecionada:instituicaoNomeAtiva || $id('instituicao')?.value || '',
+    config:{
+      instituicao:copiarProfundo(estado.config?.instituicao || []),
+      curso:copiarProfundo(estado.config?.curso || []),
+      professor:[]
+    },
+    _instituicoesPadraoAplicadas:true,
+    _idsInstituicoes:copiarProfundo(estado._idsInstituicoes || {}),
+    _dadosPorInstituicao:snapshots
+  };
+}
+
+function aplicarEstruturaCompartilhadaParaNovoProfessor(estrutura){
+  estado = {
+    assinatura:{imagem:''},
+    config:{
+      instituicao:copiarProfundo(estrutura.config.instituicao || []),
+      curso:copiarProfundo(estrutura.config.curso || []),
+      turma:[],
+      disciplina:[],
+      professor:[]
+    },
+    avaliacoes:['1ª Aval.','2ª Aval.','3ª Aval.'],
+    detalhesAvaliacoes:[{data:'',valor:'',observacao:''},{data:'',valor:'',observacao:''},{data:'',valor:'',observacao:''}],
+    alunos:[],
+    diarios:{},
+    listasTurmas:{},
+    disciplinasCursos:{},
+    _instituicoesPadraoAplicadas:true,
+    _idsInstituicoes:copiarProfundo(estrutura._idsInstituicoes || {}),
+    _dadosPorInstituicao:copiarProfundo(estrutura._dadosPorInstituicao || {})
+  };
+  estado.config.professor=[];
+  estado.assinatura={imagem:''};
+  estado._estruturaAdminVersaoAplicada=1;
+  if(Array.isArray(estrutura.config.instituicao)){
+    populate('instituicao',estrutura.config.instituicao,estrutura.instituicaoSelecionada || estrutura.config.instituicao[0] || '');
+  }
+  Object.values(estado._dadosPorInstituicao).forEach(snap=>{
+    if(!snap || typeof snap!=='object') return;
+    snap.config={professor:[]};
+    snap.alunos=[];
+    snap.assinatura={imagem:''};
+    snap.diarios=snap.diarios || {};
+    Object.values(snap.diarios).forEach(d=>{
+      d.fechada=false;
+      d.periodoIni='';
+      d.periodoFim='';
+      d.detalhesAvaliacoes=(d.detalhesAvaliacoes || []).map(()=>({data:'',valor:'',observacao:''}));
+      d.alunos=(d.alunos || []).map(a=>({
+        nome:normalizarNomeAluno(a?.nome),
+        notas:Array.isArray(d.avaliacoes) ? Array(d.avaliacoes.length).fill('') : ['','',''],
+        recuperacao:'',
+        observacao:''
+      })).filter(a=>a.nome);
+    });
+  });
+  inicializarSeparacaoInstituicoes();
+  estado.config.professor=[];
+  estado.assinatura={imagem:''};
+  estado.alunos=[];
+  cursoAtivo='';
+  turmaAtiva='';
+  diarioAtivo='';
+}
+
+
+function atualizarEstruturaDoProfessorPreservandoDadosPrivados(estrutura){
+  const anterior=JSON.parse(JSON.stringify(estado));
+  const diariosAnteriores=anterior.diarios || {};
+  const professorAnterior=anterior.config?.professor || [];
+  const assinaturaAnterior=anterior.assinatura || {imagem:''};
+  aplicarEstruturaCompartilhadaParaNovoProfessor(estrutura);
+
+  // Reaplica somente dados pessoais do professor, por UID: notas, recuperação,
+  // observações, assinatura e nome de professor. A composição da turma e das
+  // disciplinas continua sendo exatamente a publicada pelo administrador.
+  Object.entries(estado.diarios || {}).forEach(([chave, novoDiario])=>{
+    const antigo=diariosAnteriores[chave];
+    if(!antigo) return;
+    const notasPorNome=new Map((antigo.alunos || []).map(a=>[
+      normalizarNomeAluno(a?.nome), a
+    ]));
+    novoDiario.alunos=(novoDiario.alunos || []).map(a=>{
+      const pessoal=notasPorNome.get(normalizarNomeAluno(a?.nome));
+      if(!pessoal) return a;
+      return {
+        ...a,
+        notas:Array.isArray(pessoal.notas) ? copiarProfundo(pessoal.notas) : a.notas,
+        recuperacao:pessoal.recuperacao ?? '',
+        observacao:pessoal.observacao ?? ''
+      };
+    });
+    novoDiario.detalhesAvaliacoes=(novoDiario.detalhesAvaliacoes || []).map((x,i)=>({
+      ...x,
+      observacao:antigo.detalhesAvaliacoes?.[i]?.observacao || ''
+    }));
+  });
+  estado.config.professor=copiarProfundo(professorAnterior);
+  estado.assinatura=copiarProfundo(assinaturaAnterior);
+  estado._estruturaAdminVersaoAplicada=1;
+  inicializarSeparacaoInstituicoes();
+  estado.config.professor=copiarProfundo(professorAnterior);
+  estado.assinatura=copiarProfundo(assinaturaAnterior);
+}
+
 function carregarDaNuvemAoAbrir(){
   const uidConsulta=window.currentFirebaseUid;
   contaNuvemCarregada=false;
   if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Carregando dados da nuvem...';
-  window.firebaseCarregarEstado(uidConsulta).then(json=>{
+  window.firebaseCarregarEstado(uidConsulta).then(async json=>{
     if(!uidConsulta || uidConsulta!==window.currentFirebaseUid) return;
     try{
       if(json){
@@ -2070,20 +2279,50 @@ function carregarDaNuvemAoAbrir(){
         if(dados && dados.config && dados.diarios){
           estado=dados; garantirEstruturaAssinatura(); ordenarTodasConfiguracoes();
           normalizarEstruturasPorCurso(); corrigirDisciplinasVazadasEntreCursos(); inicializarSeparacaoInstituicoes();
-          contaNuvemCarregada=true; localStorage.setItem(KEY,JSON.stringify(estado));
+          contaNuvemCarregada=true;
+          if(!ehContaAdministradoraAtual() && dados._estruturaAdminVersaoAplicada!==1){
+            const estruturaExistente=await window.firebaseCarregarEstruturaCompartilhada(uidConsulta);
+            if(!estruturaExistente) throw new Error('A estrutura acadêmica compartilhada ainda não foi publicada pelo administrador. Entre na conta administrativa e aguarde a sincronização antes de abrir esta conta de professor.');
+            if(uidConsulta!==window.currentFirebaseUid) return;
+            atualizarEstruturaDoProfessorPreservandoDadosPrivados(estruturaExistente);
+            localStorage.setItem(KEY,JSON.stringify(estado));
+            await window.firebaseSalvarEstado(JSON.stringify(estado));
+          }else{
+            localStorage.setItem(KEY,JSON.stringify(estado));
+          }
           preencherSelects(); trocarSelecao(); render();
-          if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Dados carregados da sua conta';
+          if(ehContaAdministradoraAtual() && typeof window.firebaseSalvarEstruturaCompartilhada==='function'){
+            try{
+              await window.firebaseSalvarEstruturaCompartilhada(montarEstruturaAcademicaCompartilhada());
+              if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Dados administrativos e estrutura compartilhada sincronizados';
+            }catch(errEstrutura){
+              console.error('Não foi possível publicar a estrutura acadêmica:',errEstrutura);
+              if($id('badgeUsuario')) $id('badgeUsuario').textContent='⚠️ Dados carregados; estrutura compartilhada não publicada';
+            }
+          }else if($id('badgeUsuario')){
+            $id('badgeUsuario').textContent='☁️ Dados carregados da sua conta';
+          }
           return;
         }
         throw new Error('Os dados encontrados na nuvem não têm a estrutura esperada.');
       }
-      // Conta nova: inicia vazia, sem reaproveitar dados de outra conta no aparelho.
-      inicializarEstruturaBase(); estado.config.professor=[]; estado.diarios={}; estado.alunos=[];
-      estado.assinatura={imagem:''}; cursoAtivo=''; inicializarSeparacaoInstituicoes();
-      contaNuvemCarregada=true; corrigirDisciplinasVazadasEntreCursos();
-      preencherSelects(); trocarSelecao(); render(); localStorage.setItem(KEY,JSON.stringify(estado));
-      salvarNuvemAgora();
-      if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Nova conta, diário vazio';
+      // Conta sem diário próprio:
+      // administrador preserva seus dados atuais; professor recebe o catálogo
+      // estrutural publicado pelo administrador, sem dados pessoais.
+      if(ehContaAdministradoraAtual()){
+        throw new Error('A conta administrativa não possui diário salvo na nuvem. Para proteger seus dados, o aplicativo não criará um diário vazio por cima deles. Restaure o backup administrativo.');
+      }
+      const estrutura = await window.firebaseCarregarEstruturaCompartilhada(uidConsulta);
+      if(!estrutura){
+        throw new Error('O administrador ainda não publicou a estrutura acadêmica compartilhada. Entre primeiro na conta administrativa, aguarde a sincronização e depois entre novamente nesta conta de professor.');
+      }
+      if(uidConsulta!==window.currentFirebaseUid) return;
+      aplicarEstruturaCompartilhadaParaNovoProfessor(estrutura);
+      contaNuvemCarregada=true;
+      preencherSelects(); trocarSelecao(); render();
+      localStorage.setItem(KEY,JSON.stringify(estado));
+      await window.firebaseSalvarEstado(JSON.stringify(estado));
+      if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Estrutura do administrador carregada; diário particular novo';
     }catch(err){
       contaNuvemCarregada=false;
       if($id('badgeUsuario')) $id('badgeUsuario').textContent='⚠️ Não foi possível ler os dados';
@@ -2443,6 +2682,15 @@ function salvarDiarioAtual(){
   salvarLocal();
 }
 
+function atualizarNomeDisciplinaSelecionada(){
+  const select = $id('disciplina');
+  const display = $id('nomeDisciplinaSelecionada');
+  if(!display) return;
+  const option = select && select.selectedIndex >= 0 ? select.options[select.selectedIndex] : null;
+  const nome = option ? String(option.textContent || option.text || '').trim() : '';
+  display.textContent = nome && select.value ? nome : '';
+}
+
 function trocarSelecao(perguntarDisciplinaFechada = false){
   trocarInstituicaoSeNecessario();
   normalizarEstruturasPorCurso();
@@ -2481,6 +2729,7 @@ function trocarSelecao(perguntarDisciplinaFechada = false){
 
   const turma = turmaSelect?.value || '';
   const disciplina = disciplinaSelect?.value || '';
+  atualizarNomeDisciplinaSelecionada();
 
   if(!cursoAtual || !turma || !disciplina){
     diarioAtivo = '';
@@ -2571,9 +2820,10 @@ function trocarSelecao(perguntarDisciplinaFechada = false){
     // A lista da disciplina é independente. Se estiver aberta, novos nomes
     // do catálogo da turma entram, mas nomes excluídos nesta disciplina ficam
     // fora. Se estiver fechada, a composição permanece congelada.
-    const nomesBase = d.fechada
-      ? (d.alunos || []).map(al => al?.nome || '')
-      : [...nomesDaTurma, ...(d.alunos || []).map(al => al?.nome || '')];
+    // Uma disciplina já cadastrada mantém exatamente sua própria lista.
+    // A lista geral da turma só é usada quando a disciplina ainda não existe.
+    // Assim, nomes excluídos pelo administrador não reaparecem automaticamente.
+    const nomesBase = (d.alunos || []).map(al => al?.nome || '');
     nomesBase.forEach(nome => {
       const n = normalizarNomeAluno(nome);
       if(n && !excluidos.has(n) && !nomesUnicos.includes(n)) nomesUnicos.push(n);
@@ -2789,13 +3039,6 @@ function configurarSelecaoGrade(td, linha, coluna){
   td.dataset.gradeCol = coluna;
   td.dataset.gradeCell = chaveCelulaGrade(linha, coluna);
   td.classList.add('grade-selectable');
-  td.addEventListener('mousedown', e => {
-    if(e.button !== 0) return;
-    prepararSelecaoGrade(td, e);
-  });
-  td.addEventListener('mouseenter', e => {
-    if(gradeArrastando && e.buttons === 1) selecionarIntervaloGrade(gradeCelulaAncora || td, td);
-  });
 
   // No celular/tablet, um toque longo inicia a seleção e o dedo pode
   // ser arrastado pelas células, como no Excel. Um toque simples continua
@@ -2851,6 +3094,7 @@ function configurarSelecaoGrade(td, linha, coluna){
     gradeToqueTd = null;
     gradeToqueIniciouSelecao = false;
     gradeArrastando = false;
+    gradePonteiroAtivo = false;
   }, {passive:true});
 
   td.addEventListener('touchcancel', () => {
@@ -2862,10 +3106,32 @@ function configurarSelecaoGrade(td, linha, coluna){
   }, {passive:true});
 }
 
-document.addEventListener('mousedown', e => {
-  if(e.button === 0 && e.target.closest('#corpoTabela td.grade-selectable')) gradeArrastando = true;
-});
-document.addEventListener('mouseup', () => { gradeArrastando = false; });
+// Seleção por arraste no computador e com caneta: começa na célula pressionada
+// e acompanha o ponteiro mesmo quando ele passa por cima dos campos de nota.
+let gradePonteiroAtivo = false;
+document.addEventListener('pointerdown', e => {
+  if(e.pointerType === 'touch' || e.button !== 0) return;
+  const td = e.target.closest?.('#corpoTabela td.grade-selectable');
+  if(!td) return;
+  prepararSelecaoGrade(td, e);
+  gradePonteiroAtivo = true;
+  gradeArrastando = true;
+}, true);
+
+document.addEventListener('pointermove', e => {
+  if(!gradePonteiroAtivo || (e.buttons !== 1 && e.pointerType !== 'pen')) return;
+  const alvo = document.elementFromPoint(e.clientX, e.clientY);
+  const td = alvo?.closest?.('#corpoTabela td.grade-selectable');
+  if(td && gradeCelulaAncora) selecionarIntervaloGrade(gradeCelulaAncora, td);
+}, true);
+
+function encerrarArrasteGrade(){
+  gradePonteiroAtivo = false;
+  gradeArrastando = false;
+}
+document.addEventListener('pointerup', encerrarArrasteGrade, true);
+document.addEventListener('pointercancel', encerrarArrasteGrade, true);
+window.addEventListener('blur', encerrarArrasteGrade);
 
 // Colagem em várias células selecionadas. Se o conteúdo copiado for uma
 // única nota, ela é aplicada a todas as células selecionadas. Se vier em
@@ -2913,6 +3179,7 @@ document.addEventListener('paste', e => {
 
   e.preventDefault();
   e.stopPropagation();
+  e.__gradePasteTratado = true;
 
   if(unitaria){
     let num = parseFloat(String(linhas[0][0]).trim().replace(',', '.'));
@@ -3407,7 +3674,11 @@ function render(){
         }
       });
 
-      inp.addEventListener('paste', e => { e.__gradePasteTratado = true; colarNotasGrade(e, idx, j); });
+      inp.addEventListener('paste', e => {
+        if(e.__gradePasteTratado) return;
+        e.__gradePasteTratado = true;
+        colarNotasGrade(e, idx, j);
+      });
 
       inp.addEventListener('blur', e => {
         let val = e.target.value.replace(',', '.').trim();
@@ -3436,8 +3707,8 @@ function render(){
           const linhaAtual = linhas.indexOf(tr);
           if(linhaAtual < 0 || linhaAtual >= linhas.length - 1) return;
 
-          // Enter avança para o aluno seguinte, mantendo a mesma coluna
-          // de avaliação.
+          // Enter avança para a célula imediatamente abaixo, mantendo
+          // a mesma coluna de avaliação.
           const proximoInput = linhas[linhaAtual + 1]?.children?.[2 + j]?.querySelector('input');
           if(proximoInput){
             proximoInput.focus();
