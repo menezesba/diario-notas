@@ -19,8 +19,9 @@ header{background:linear-gradient(135deg,#075aa5,#168dcc);color:white;padding:14
 .header-titles{min-width:0;display:flex;flex-direction:column;justify-content:center}
 header h1{margin:0;font-size:clamp(18px,3vw,32px);line-height:1.1;white-space:nowrap;font-weight:800}
 header p{margin:7px 0 0;opacity:.98;font-size:clamp(12px,1.7vw,19px);line-height:1.15;letter-spacing:.2px;white-space:nowrap}
+#firebaseContaAtual{display:block;margin-top:5px;font-size:12px;line-height:1.15;opacity:.95;overflow-wrap:anywhere}
 .user-badge{display:none!important}
-@media(max-width:520px){header{padding:10px 14px;gap:10px;min-height:78px}.header-logo{width:62px;height:62px;border-radius:14px}header h1{font-size:clamp(17px,5vw,22px)}header p{font-size:clamp(10px,3.3vw,14px);margin-top:5px}}
+@media(max-width:520px){header{padding:10px 14px;gap:10px;min-height:78px}.header-logo{width:62px;height:62px;border-radius:14px}.header-titles{flex:1 1 auto}header h1{font-size:clamp(17px,5vw,22px);white-space:normal}header p{font-size:clamp(10px,3.3vw,14px);margin-top:5px;white-space:normal}#firebaseContaAtual{font-size:10px}}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #ddd;background:#fff;position:sticky;top:0;z-index:5}
 button,.file-label{border:0;border-radius:7px;padding:10px 13px;font-weight:700;cursor:pointer;background:#e8eef4;color:#17324a}
 button.primary{background:var(--azul);color:white}
@@ -768,9 +769,9 @@ body.disciplina-fechada #corpoTabela input{background:#f7f7f7;cursor:not-allowed
   <div class="header-titles">
     <h1 id="tituloCabecalho">Diário de Notas do Professor</h1>
     <p id="subCabecalho">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
+    <span id="firebaseContaAtual" aria-live="polite">Conta não identificada</span>
   </div>
   <div class="user-badge" id="badgeUsuario" aria-hidden="true"></div>
-  <span id="firebaseContaAtual" aria-live="polite">Conta não identificada</span>
   <button type="button" id="btnSairFirebase" onclick="sairFirebase()">Sair</button>
 </header>
 
@@ -1183,6 +1184,7 @@ window.firebaseMarcarLimpezaInicial=async uid=>{
   if(!user || user.uid!==uid || uid!==window.currentFirebaseUid) throw new Error('A conta mudou durante a inicialização.');
   await setDoc(doc(db,'usuarios',uid),{
     dadosPrivadosLimposV1:true,
+    estruturaCompartilhadaVersao:2,
     dadosPrivadosLimposEm:serverTimestamp()
   },{merge:true});
 };
@@ -1275,6 +1277,7 @@ async function obterOuCriarPerfil(user){
     courseIds:Array.isArray(antigo.courseIds)?antigo.courseIds:[],
     origem:antigo.origem||user.providerData?.[0]?.providerId||'email',
     dadosPrivadosLimposV1:!!antigo.dadosPrivadosLimposV1,
+    estruturaCompartilhadaVersao:Number(antigo.estruturaCompartilhadaVersao||0),
     criadoEm:antigo.criadoEm||agora,
     atualizadoEm:agora
   };
@@ -2103,10 +2106,12 @@ function criarEstruturaCompartilhadaLimpa(origem){
   });
   return copia;
 }
+
 function carregarDaNuvemAoAbrir(){
   const uidConsulta=window.currentFirebaseUid;
   const perfil=window.perfilFirebaseAtual||{};
-  const ehAdministrador=isPrincipalProfile(perfil);
+  const ehAdministrador=isPrincipalEmail(window.usuarioFirebase) ||
+    (perfil.role==='admin' && perfil.adminLevel==='principal');
   contaNuvemCarregada=false;
   if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Carregando dados da nuvem...';
 
@@ -2116,50 +2121,75 @@ function carregarDaNuvemAoAbrir(){
       if(!uidConsulta || uidConsulta!==window.currentFirebaseUid) return;
 
       if(ehAdministrador){
+        let dadosAdmin=null;
         if(json){
-          const dados=JSON.parse(json);
-          if(!dados || !dados.config || !dados.diarios) throw new Error('Os dados administrativos não têm a estrutura esperada.');
-          estado=dados;
+          dadosAdmin=JSON.parse(json);
+          if(!dadosAdmin || !dadosAdmin.config || !dadosAdmin.diarios || !dadosAdmin.listasTurmas)
+            throw new Error('O backup administrativo encontrado na nuvem está incompleto. Ele foi preservado e não será substituído.');
         }else{
-          inicializarEstruturaBase();
-          estado.config.professor=[];
-          estado.assinatura={imagem:''};
+          // Migração segura: tenta recuperar a cópia local vinculada ao UID do administrador.
+          try{
+            const local=JSON.parse(localStorage.getItem(KEY)||'null');
+            if(local && local.config && local.diarios && local.listasTurmas) dadosAdmin=local;
+          }catch(e){}
+          if(!dadosAdmin){
+            throw new Error('Não encontrei o backup administrativo na nuvem nem uma cópia local válida. Nenhum dado foi recriado ou sobrescrito. Use Restaurar para importar seu backup, se necessário.');
+          }
         }
+
+        estado=dadosAdmin;
         garantirEstruturaAssinatura();
         ordenarTodasConfiguracoes();
         normalizarEstruturasPorCurso();
         corrigirDisciplinasVazadasEntreCursos();
         inicializarSeparacaoInstituicoes();
+
+        // Migra a cópia local antiga para o formato atual da nuvem sem apagar o original.
+        if(!json){
+          await window.firebaseSalvarEstado(JSON.stringify(estado));
+          if(uidConsulta!==window.currentFirebaseUid) return;
+        }
+
         const catalogo=criarEstruturaCompartilhadaLimpa(estado);
         await window.firebasePublicarEstruturaAcademica(JSON.stringify(catalogo));
         if(uidConsulta!==window.currentFirebaseUid) return;
+
         contaNuvemCarregada=true;
         localStorage.setItem(KEY,JSON.stringify(estado));
         preencherSelects(); trocarSelecao(); render();
-        if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Estrutura compartilhada atualizada';
+        if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Dados administrativos carregados';
         return;
       }
 
-      if(!perfil.dadosPrivadosLimposV1){
+      const versaoEstrutura=Number(perfil.estruturaCompartilhadaVersao||0);
+      const precisaReceberEstrutura=!perfil.dadosPrivadosLimposV1 || versaoEstrutura<2;
+
+      if(precisaReceberEstrutura){
         const jsonEstrutura=await window.firebaseCarregarEstruturaAcademica();
         const estrutura=JSON.parse(jsonEstrutura);
-        if(!estrutura || !estrutura.config || !estrutura.diarios) throw new Error('A estrutura acadêmica compartilhada está incompleta.');
-        estado=estrutura;
+        if(!estrutura || !estrutura.config || !estrutura.diarios || !estrutura.listasTurmas)
+          throw new Error('A estrutura acadêmica compartilhada está incompleta.');
+
+        // O catálogo do administrador fornece os cadastros estruturais atuais.
+        // O conteúdo pessoal do professor começa limpo, sem notas ou assinatura.
+        estado=criarEstruturaCompartilhadaLimpa(estrutura);
         garantirEstruturaAssinatura();
         ordenarTodasConfiguracoes();
         normalizarEstruturasPorCurso();
         corrigirDisciplinasVazadasEntreCursos();
         inicializarSeparacaoInstituicoes();
-        estado=criarEstruturaCompartilhadaLimpa(estado);
         cursoAtivo=''; turmaAtiva=''; diarioAtivo='';
+
         await window.firebaseSalvarEstado(JSON.stringify(estado));
         await window.firebaseMarcarLimpezaInicial(uidConsulta);
         perfil.dadosPrivadosLimposV1=true;
+        perfil.estruturaCompartilhadaVersao=2;
         window.perfilFirebaseAtual=perfil;
       }else{
-        if(!json) throw new Error('Esta conta já foi inicializada, mas não há diário particular salvo. Não vou substituir seus dados automaticamente.');
+        if(!json) throw new Error('O diário particular desta conta não foi encontrado na nuvem. Não vou criar dados vazios nem sobrescrever informações automaticamente.');
         const dados=JSON.parse(json);
-        if(!dados || !dados.config || !dados.diarios) throw new Error('Os dados particulares desta conta estão incompletos.');
+        if(!dados || !dados.config || !dados.diarios || !dados.listasTurmas)
+          throw new Error('Os dados particulares desta conta estão incompletos.');
         estado=dados;
         garantirEstruturaAssinatura();
         ordenarTodasConfiguracoes();
@@ -2176,6 +2206,7 @@ function carregarDaNuvemAoAbrir(){
     }catch(err){
       contaNuvemCarregada=false;
       if($id('badgeUsuario')) $id('badgeUsuario').textContent='⚠️ Nuvem indisponível';
+      console.error('Falha ao carregar os dados do Diário:',err);
       alert('Falha ao carregar os dados da nuvem: '+(err?.message||err));
     }
   })();
