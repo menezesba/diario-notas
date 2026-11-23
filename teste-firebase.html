@@ -1224,7 +1224,13 @@ function mostrarApp(user,profile){
     conta.title=`Conta conectada: ${user.email||''}`;
   }
   window.dispatchEvent(new CustomEvent('firebase-usuario-pronto',{
-    detail:{uid:user.uid,email:user.email||'',nome,role:profile?.role||'professional',profile}
+    detail:{
+      uid:user.uid,
+      email:user.email||'',
+      nome:user.displayName||profile?.nome||'',
+      role:profile?.role||'professional',
+      profile
+    }
   }));
 }
 function mostrarLogin(){
@@ -1305,9 +1311,11 @@ async function processarUsuarioAutenticado(user){
   }catch(err){
     authProcessingUid='';
     window.diarioFirebaseAutenticado=false;
-    await signOut(auth).catch(()=>{});
+    console.error('Falha ao preparar a sessão do Diário:',err);
+    // Preserve the authenticated session for diagnosis; do not force sign-out
+    // because of a client-side rendering/profile-event exception.
     mostrarLogin();
-    status('Não foi possível validar seu cadastro no Firestore: '+(err.message||err));
+    status('Não foi possível concluir a abertura do Diário: '+(err.message||err));
   }
 }
 
