@@ -3794,40 +3794,9 @@ function render(){
         if(e.key === 'ArrowLeft'){ navegarGrade(celulaAtual, 0, -1, e); return; }
         if(e.key === 'ArrowDown'){ navegarGrade(celulaAtual, 1, 0, e); return; }
         if(e.key === 'ArrowUp'){ navegarGrade(celulaAtual, -1, 0, e); return; }
-        if(e.key === 'Delete' || e.key === 'Backspace'){
-          e.preventDefault();
-          e.stopPropagation();
-          // Apaga a seleção inteira, inclusive uma única célula.
-          const selecionadas = Array.from(gradeCelulasSelecionadas);
-          if(!selecionadas.length) return;
-          const linhasAlteradas = new Set();
-          selecionadas.forEach(chave => {
-            const partes = String(chave).split(':');
-            const linha = Number(partes[0]);
-            const coluna = Number(partes[1]);
-            const alvoTd = obterCelulaEditavelGrade(linha, coluna);
-            const aluno = estado.alunos[linha];
-            if(!alvoTd || !aluno) return;
-            if(coluna < estado.avaliacoes.length){
-              if(!Array.isArray(aluno.notas)) aluno.notas = [];
-              aluno.notas[coluna] = '';
-              const campo = alvoTd.querySelector('input');
-              if(campo) campo.value = '';
-            }else if(coluna === estado.avaliacoes.length){
-              aluno.recuperacao = '';
-              alvoTd.textContent = '';
-            }
-            linhasAlteradas.add(linha);
-          });
-          linhasAlteradas.forEach(linha => {
-            const trLinha = document.querySelector(`#corpoTabela tr:nth-child(${linha + 1})`);
-            if(trLinha) atualizarLinha(linha, trLinha);
-          });
-          atualizarStats();
-          salvarDiarioAtual();
-          aplicarSelecaoGrade();
-          return;
-        }
+        // Backspace e Delete devem permanecer sob controle do teclado nativo
+        // enquanto o input da nota estiver em edição. A limpeza de intervalos
+        // continua disponível fora do campo de edição, pelo manipulador global.
       });
 
 
