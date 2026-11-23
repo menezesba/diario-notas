@@ -1151,7 +1151,7 @@ import {
   createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import {
-  getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp
+  getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const firebaseConfig={
@@ -1230,12 +1230,19 @@ window.firebaseCarregarEstado=async expectedUid=>{
   const meta=m.data();
   if(!meta.generation||!Number.isInteger(meta.total)||meta.total<1||meta.total>1000)
     throw new Error('Índice do backup na nuvem inválido.');
-  const refs=await getDocs(collection(db,root,'estado_partes'));
+  // Busca somente os fragmentos da versão apontada pelo manifesto.
+  // Antes, getDocs(collection) baixava também fragmentos de gerações antigas,
+  // que ficam guardados como histórico e aumentam a espera a cada novo backup.
+  const partesAtuais=query(
+    collection(db,root,'estado_partes'),
+    where('generation','==',meta.generation)
+  );
+  const refs=await getDocs(partesAtuais);
   if(auth.currentUser?.uid!==uid || window.currentFirebaseUid!==uid) return null;
   const parts=new Array(meta.total);
   refs.forEach(d=>{
     const x=d.data();
-    if(x.generation===meta.generation&&Number.isInteger(x.index)&&x.index>=0&&x.index<meta.total)parts[x.index]=x.data;
+    if(Number.isInteger(x.index)&&x.index>=0&&x.index<meta.total)parts[x.index]=x.data;
   });
   if(parts.some(x=>typeof x!=='string'))throw new Error('A cópia na nuvem está incompleta. A versão anterior foi mantida.');
   const json=parts.join('');
