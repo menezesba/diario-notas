@@ -956,8 +956,8 @@ header{gap:12px;padding:12px 18px}
     <div class="pdf-assinatura-box">
       <div id="pdfAssinaturaImagem"></div>
       <div class="pdf-linha"></div>
-      <div class="pdf-prof-nome" id="pdfAssinaturaNome">Docente Responsável</div>
-      <div class="pdf-prof-cargo">Professor Radiologia</div>
+      <div class="pdf-prof-nome" id="pdfAssinaturaNome">MOISÉS MENEZES DOS SANTOS</div>
+      <div class="pdf-prof-cargo">PROF. RADIOLOGIA</div>
     </div>
   </div>
 </div>
@@ -2610,7 +2610,7 @@ function atualizarCabecalho(){
   else if(pIni) $id('pdfPeriodo').textContent = `A partir de ${pIni}`;
   else $id('pdfPeriodo').textContent = 'Período não informado';
 
-  $id('pdfAssinaturaNome').textContent = profPadrao || 'Assinatura do Docente';
+  $id('pdfAssinaturaNome').textContent = (profPadrao || 'MOISÉS MENEZES DOS SANTOS').toLocaleUpperCase('pt-BR');
   const boxAssinatura = $id('pdfAssinaturaImagem');
   if(boxAssinatura){
     boxAssinatura.innerHTML = assinaturaImagemPdfAtual
@@ -5129,7 +5129,7 @@ function prepararHtmlExportacaoTurmaPDF(){
               : ''}
             <div class="pdf-linha"></div>
             <div class="pdf-prof-nome">${escaparHtmlTurma(d.professor || professor || 'Professor')}</div>
-            <div class="pdf-prof-cargo">Professor Radiologia</div>
+            <div class="pdf-prof-cargo">PROF. RADIOLOGIA</div>
           </div>
         </div>
 
