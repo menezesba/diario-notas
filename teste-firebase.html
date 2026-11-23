@@ -1253,8 +1253,30 @@ window.firebaseCarregarEstruturaCompartilhada=async expectedUid=>{
   if(auth.currentUser?.uid!==user.uid || window.currentFirebaseUid!==user.uid) return null;
   if(!snap.exists()) return null;
   const data=snap.data()?.estrutura;
-  if(!data || !data.config || !data.listasTurmas || !data.disciplinasCursos){
-    throw new Error('A estrutura compartilhada publicada pelo administrador está incompleta.');
+
+  // A estrutura publicada pelo administrador guarda as listas e disciplinas
+  // dentro de cada instituição em _dadosPorInstituicao, não na raiz.
+  const instituicoes = data?._dadosPorInstituicao;
+  const configValida = !!data?.config
+    && Array.isArray(data.config.instituicao)
+    && Array.isArray(data.config.curso);
+  const instituicoesValidas = !!instituicoes
+    && typeof instituicoes === 'object'
+    && !Array.isArray(instituicoes)
+    && Object.values(instituicoes).some(snapInstituicao =>
+      snapInstituicao
+      && typeof snapInstituicao === 'object'
+      && snapInstituicao.diarios
+      && typeof snapInstituicao.diarios === 'object'
+      && snapInstituicao.listasTurmas
+      && typeof snapInstituicao.listasTurmas === 'object'
+      && snapInstituicao.disciplinasCursos
+      && typeof snapInstituicao.disciplinasCursos === 'object'
+    );
+
+  if(!data || !configValida || !instituicoesValidas){
+    console.error('Estrutura compartilhada recebida com formato inesperado:', data);
+    throw new Error('A estrutura compartilhada publicada pelo administrador está incompleta ou em formato inválido.');
   }
   return data;
 };
