@@ -3518,26 +3518,49 @@ function aplicarBloqueioDisciplinaNaUI(){
 }
 
 function alternarDisciplinaFechada(){
-  const chave = diarioAtivo || chaveDiario();
-  if(!chave || chave === '¦¦¦') return;
-  const d = estado.diarios[chave];
-  if(!d) return;
+  // O cadeado deve alterar SOMENTE a propriedade "fechada" do diário
+  // atualmente selecionado. Não pode chamar trocarSelecao(), renderizar
+  // novamente nem sincronizar alunos, pois isso pode recarregar outra lista.
+  const chaveSelecionada = chaveDiario(
+    $id('turma')?.value || '',
+    $id('disciplina')?.value || '',
+    $id('instituicao')?.value || '',
+    $id('curso')?.value || ''
+  );
+  const chave = (diarioAtivo === chaveSelecionada) ? diarioAtivo : chaveSelecionada;
+  if(!chave || chave === '¦¦¦' || !estado.diarios || !estado.diarios[chave]){
+    alert('Não foi possível identificar com segurança o diário desta disciplina. Nenhum dado foi alterado.');
+    return;
+  }
 
-  if(d.fechada){
-    // Reabrir: libera a edição e permite que a disciplina volte a sincronizar
-    // novos alunos da turma.
-    d.fechada = false;
-    salvarDiarioAtual();
-    trocarSelecao();
-    const aviso=$id('aviso');
-    if(aviso){ aviso.textContent='🔓 Disciplina reaberta para edição.'; aviso.style.display='block'; setTimeout(()=>aviso.style.display='none',2500); }
-  }else{
-    // Fechar: não pede confirmação. O professor pode reabrir posteriormente.
-    d.fechada = true;
-    salvarDiarioAtual();
-    trocarSelecao();
-    const aviso=$id('aviso');
-    if(aviso){ aviso.textContent='🔒 Disciplina fechada. Ela continua disponível para consulta e PDF.'; aviso.style.display='block'; setTimeout(()=>aviso.style.display='none',3000); }
+  const d = estado.diarios[chave];
+  const estavaFechada = !!d.fechada;
+
+  // Única alteração de dados permitida nesta ação.
+  d.fechada = !estavaFechada;
+  diarioAtivo = chave;
+
+  // Persistência direta: evita salvarLocal(), que também executa rotinas
+  // de sincronização da instituição ativa.
+  try {
+    localStorage.setItem(KEY, JSON.stringify(estado));
+  } catch(e) {
+    console.error('Não foi possível salvar localmente o status da disciplina:', e);
+  }
+
+  atualizarStatusDisciplinaUI(d.fechada);
+  aplicarBloqueioDisciplinaNaUI();
+
+  // Envia o estado atual à nuvem sem reconstruir listas ou trocar de diário.
+  if(typeof salvarNuvemAgora === 'function') salvarNuvemAgora();
+
+  const aviso = $id('aviso');
+  if(aviso){
+    aviso.textContent = d.fechada
+      ? '🔒 Disciplina fechada. Alunos e notas foram preservados.'
+      : '🔓 Disciplina reaberta. Alunos e notas foram preservados.';
+    aviso.style.display = 'block';
+    setTimeout(() => { aviso.style.display = 'none'; }, 2500);
   }
 }
 
