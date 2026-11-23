@@ -2257,10 +2257,8 @@ async function importarArquivoBackup(e){
       alert('Entre na sua conta antes de restaurar o backup.');
       return;
     }
-    if(!contaNuvemCarregada){
-      alert('Aguarde o carregamento dos dados da sua conta terminar. Quando aparecer "Dados carregados da sua conta" ou "Nova conta, diário vazio", tente restaurar novamente.');
-      return;
-    }
+    // A restauração manual é justamente o caminho de recuperação quando a leitura
+    // inicial da nuvem falha. Não exigir contaNuvemCarregada aqui.
     if(typeof window.firebaseSalvarEstado !== 'function'){
       alert('O serviço de gravação do Firebase ainda não está pronto. Atualize a página e tente novamente.');
       return;
@@ -2284,19 +2282,18 @@ async function importarArquivoBackup(e){
       normalizarEstruturasPorCurso();
       inicializarSeparacaoInstituicoes();
 
-      // Aguarda a fila de gravação e só confirma a restauração após resposta positiva.
+      // Grava diretamente no Firebase. A fila normal exige contaNuvemCarregada,
+      // mas a restauração manual precisa funcionar mesmo quando a leitura inicial falhou.
       jsonRestaurado = JSON.stringify(estado);
-      await new Promise((resolve, reject) => {
-        salvarNuvemAgora((ok, erro) => {
-          if(ok) resolve();
-          else reject(new Error(erro || 'O Firebase não confirmou a gravação do backup.'));
-        });
-      });
+      await window.firebaseSalvarEstado(jsonRestaurado);
 
       // A cópia local e a interface só são atualizadas depois da confirmação na nuvem.
       try { localStorage.setItem(KEY, jsonRestaurado); } catch(errLocal) {
         console.warn('Não foi possível atualizar a cópia local:', errLocal);
       }
+      nuvemPendente = null;
+      nuvemCallbacksPendentes.splice(0).forEach(cb=>{try{cb(true,'')}catch(e){}});
+      contaNuvemCarregada = true;
       preencherSelects();
       trocarSelecao();
       render();
