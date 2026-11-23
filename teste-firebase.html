@@ -743,8 +743,7 @@ header{gap:12px;padding:12px 18px}
   line-height:1.25;overflow-wrap:anywhere;text-align:right;
   padding:7px 0;
 }
-#btnAbrirAdmin,#btnSairFirebase{flex:0 0 auto;white-space:nowrap}
-#btnAbrirAdmin{padding:10px 13px}
+#btnSairFirebase{flex:0 0 auto;white-space:nowrap}
 #btnSairFirebase{padding:10px 15px;background:#b42318;color:#fff}
 #painelAdministracao{
   display:none;margin:12px 18px 16px;padding:16px 18px;
@@ -782,7 +781,6 @@ header{gap:12px;padding:12px 18px}
   .header-titles{flex:1 1 calc(100% - 75px)}
   header h1{font-size:clamp(17px,4vw,23px);white-space:normal}
   header p{font-size:12px;white-space:normal}
-  #btnAbrirAdmin{order:3;margin-left:auto}
   #firebaseContaAtual{order:4;flex:1 1 auto;max-width:none;min-width:0;margin-left:0;text-align:right;padding:4px 0;font-size:12px}
   #btnSairFirebase{order:5}
   #painelAdministracao{margin:10px 10px 14px;padding:13px}
@@ -826,7 +824,6 @@ header{gap:12px;padding:12px 18px}
     <p id="subCabecalho">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
   </div>
   <div class="user-badge" id="badgeUsuario" aria-hidden="true"></div>
-  <button type="button" id="btnAbrirAdmin" onclick="abrirPainelAdministracao()">Gerenciar contas</button>
   <span id="firebaseContaAtual" aria-live="polite">Conta não identificada</span>
   <button type="button" id="btnSairFirebase" onclick="sairFirebase()">Sair</button>
 </header>
@@ -1227,6 +1224,14 @@ window.firebaseSalvarEstado=async json=>{
   });
 };
 
+window.firebaseMarcarLimpezaInicial=async uid=>{
+  if(!uid || auth.currentUser?.uid!==uid || window.currentFirebaseUid!==uid)
+    throw new Error('A conta mudou antes de concluir a limpeza inicial.');
+  await setDoc(doc(db,'usuarios',uid),{
+    dadosPrivadosLimposV1:true,
+    dadosPrivadosLimposEm:serverTimestamp()
+  },{merge:true});
+};
 window.firebaseCarregarEstado=async expectedUid=>{
   const uid=auth.currentUser?.uid;
   if(!uid || uid!==window.currentFirebaseUid || (expectedUid && uid!==expectedUid)){
@@ -1265,8 +1270,6 @@ function mostrarApp(user,profile){
     conta.textContent=user.email||'Conta Google';
     conta.title=`Conta conectada: ${user.email||''}`;
   }
-  const adminButton=$('btnAbrirAdmin');
-  if(adminButton)adminButton.style.display=isPrincipalProfile(profile)?'inline-flex':'none';
   window.dispatchEvent(new CustomEvent('firebase-usuario-pronto',{
     detail:{uid:user.uid,email:user.email||'',nome,role:profile?.role||'professional',profile}
   }));
@@ -1279,8 +1282,6 @@ function mostrarLogin(){
   window.usuarioFirebase=null;
   const account=$('firebaseContaAtual');
   if(account)account.textContent='Conta não identificada';
-  const adminButton=$('btnAbrirAdmin');
-  if(adminButton)adminButton.style.display='none';
 }
 
 async function obterOuCriarPerfil(user){
@@ -2134,11 +2135,69 @@ function carregarLocal(){
   }
 }
 
-function carregarDaNuvemAoAbrir(){
+
+function limparConteudoPrivadoDoProfessor(){
+  const limparAluno = aluno => {
+    if(!aluno || typeof aluno!=='object') return;
+    aluno.notas = Array.isArray(aluno.notas) ? aluno.notas.map(()=> '') : [];
+    aluno.recuperacao = '';
+    aluno.observacao = '';
+    if(Array.isArray(aluno.observacoes)) aluno.observacoes = aluno.observacoes.map(()=> '');
+    if(Array.isArray(aluno.comentarios)) aluno.comentarios = aluno.comentarios.map(()=> '');
+  };
+  const limparDiario = diario => {
+    if(!diario || typeof diario!=='object') return;
+    diario.fechada = false;
+    if(Array.isArray(diario.alunos)) diario.alunos.forEach(limparAluno);
+    if(Array.isArray(diario.detalhesAvaliacoes)){
+      diario.detalhesAvaliacoes.forEach(x=>{
+        if(x && typeof x==='object') x.observacao='';
+      });
+    }
+    if(Array.isArray(diario.avaliacoesDetalhes)){
+      diario.avaliacoesDetalhes.forEach(x=>{
+        if(x && typeof x==='object') x.observacao='';
+      });
+    }
+    // Remove campos adicionais de anotações privadas, sem alterar a estrutura da turma.
+    ['observacoes','anotacoes','comentarios','notasObservacoes'].forEach(k=>{
+      if(k in diario) diario[k] = Array.isArray(diario[k]) ? [] : '';
+    });
+  };
+
+  (estado.alunos||[]).forEach(limparAluno);
+  Object.values(estado.diarios||{}).forEach(limparDiario);
+  (estado.detalhesAvaliacoes||[]).forEach(x=>{
+    if(x && typeof x==='object') x.observacao='';
+  });
+  estado.config.professor = [];
+  estado.assinatura = {imagem:''};
+
+  // Também limpa os snapshots internos por instituição, preservando o catálogo acadêmico.
+  Object.values(estado._dadosPorInstituicao||{}).forEach(snapshot=>{
+    if(!snapshot || typeof snapshot!=='object') return;
+    (snapshot.alunos||[]).forEach(limparAluno);
+    Object.values(snapshot.diarios||{}).forEach(limparDiario);
+    (snapshot.detalhesAvaliacoes||[]).forEach(x=>{
+      if(x && typeof x==='object') x.observacao='';
+    });
+    snapshot.config = snapshot.config || {};
+    snapshot.config.professor = [];
+    snapshot.assinatura = {imagem:''};
+  });
+
+  // Qualquer disciplina já existente fica aberta. Disciplinas ainda sem diário
+  // também aparecem abertas porque não possuem o indicador "fechada".
+  diarioAtivo = '';
+  cursoAtivo = '';
+  turmaAtiva = '';
+}
+
+async function carregarDaNuvemAoAbrir(){
   const uidConsulta=window.currentFirebaseUid;
   contaNuvemCarregada=false;
   if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Carregando dados da nuvem...';
-  window.firebaseCarregarEstado(uidConsulta).then(json=>{
+  window.firebaseCarregarEstado(uidConsulta).then(async json=>{
     if(!uidConsulta || uidConsulta!==window.currentFirebaseUid) return;
     try{
       if(json){
@@ -2146,6 +2205,18 @@ function carregarDaNuvemAoAbrir(){
         if(dados && dados.config && dados.diarios){
           estado=dados; garantirEstruturaAssinatura(); ordenarTodasConfiguracoes();
           normalizarEstruturasPorCurso(); corrigirDisciplinasVazadasEntreCursos(); inicializarSeparacaoInstituicoes();
+
+          const perfilAtual=window.perfilFirebaseAtual||{};
+          const ehAdministrador=perfilAtual.role==='admin' && perfilAtual.adminLevel==='principal';
+          if(!ehAdministrador && !perfilAtual.dadosPrivadosLimposV1){
+            limparConteudoPrivadoDoProfessor();
+            const jsonLimpo=JSON.stringify(estado);
+            await window.firebaseSalvarEstado(jsonLimpo);
+            await window.firebaseMarcarLimpezaInicial(uidConsulta);
+            perfilAtual.dadosPrivadosLimposV1=true;
+            window.perfilFirebaseAtual=perfilAtual;
+          }
+
           contaNuvemCarregada=true; localStorage.setItem(KEY,JSON.stringify(estado));
           preencherSelects(); trocarSelecao(); render();
           if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Dados carregados da sua conta';
@@ -2157,6 +2228,13 @@ function carregarDaNuvemAoAbrir(){
       inicializarEstruturaBase(); estado.config.professor=[]; estado.diarios={}; estado.alunos=[];
       estado.assinatura={imagem:''}; cursoAtivo=''; inicializarSeparacaoInstituicoes();
       contaNuvemCarregada=true; corrigirDisciplinasVazadasEntreCursos();
+      const perfilAtual=window.perfilFirebaseAtual||{};
+      const ehAdministrador=perfilAtual.role==='admin' && perfilAtual.adminLevel==='principal';
+      if(!ehAdministrador){
+        await window.firebaseMarcarLimpezaInicial(uidConsulta);
+        perfilAtual.dadosPrivadosLimposV1=true;
+        window.perfilFirebaseAtual=perfilAtual;
+      }
       preencherSelects(); trocarSelecao(); render(); localStorage.setItem(KEY,JSON.stringify(estado));
       salvarNuvemAgora();
       if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Nova conta, diário vazio';
