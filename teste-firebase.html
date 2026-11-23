@@ -218,7 +218,7 @@ td input:focus{outline:2px solid #75a9d2;background:white}
 .stat{padding:9px 12px;background:#f5f7f9;border:1px solid #ddd;border-radius:7px;font-size:13px}
 .modal{display:none;position:fixed;inset:0;background:#0007;z-index:20;align-items:center;justify-content:center;padding:20px}
 .modal-box{background:white;border-radius:10px;max-width:700px;width:100%;max-height:90vh;overflow:auto;padding:20px}
-.signature-preview{display:flex;align-items:center;justify-content:center;min-height:110px;border:1px dashed #b8c2cc;border-radius:8px;background:#fafbfd;padding:10px;margin:10px 0}.signature-preview img{max-width:100%;max-height:90px;object-fit:contain}.signature-canvas-wrap{border:1px solid #9aa7b2;border-radius:8px;background:#fff;touch-action:none;overflow:hidden}.signature-canvas{display:block;width:100%;height:180px;background:#fff;cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none}.signature-status{padding:9px 12px;border-radius:7px;background:#f4f5f7;font-size:13px;margin-top:10px}.signature-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.signature-tabs button{flex:1;min-width:170px}.signature-tab{display:none}.signature-tab.active{display:block} .pdf-assinatura-box{position:relative;width:270px;height:66px;margin:0 auto;text-align:center}.pdf-assinatura-img{position:absolute;left:50%;transform:translateX(-50%);bottom:31px;display:block;width:auto;max-width:180px;max-height:34px;object-fit:contain;z-index:2}.pdf-assinatura-box .pdf-linha{position:absolute;left:0;right:0;top:39px;border-top:1px solid #000;margin:0;z-index:1}.pdf-prof-nome{position:absolute;left:0;right:0;top:41px;font-weight:bold;font-size:9px;text-transform:uppercase;line-height:11px;background:#fff;z-index:3}.pdf-prof-cargo{position:absolute;left:0;right:0;top:52px;font-size:8px;color:#444;line-height:10px}
+.signature-preview{display:flex;align-items:center;justify-content:center;min-height:110px;border:1px dashed #b8c2cc;border-radius:8px;background:#fafbfd;padding:10px;margin:10px 0}.signature-preview img{max-width:100%;max-height:90px;object-fit:contain}.signature-canvas-wrap{border:1px solid #9aa7b2;border-radius:8px;background:#fff;touch-action:none;overflow:hidden}.signature-canvas{display:block;width:100%;height:180px;background:#fff;cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none}.signature-status{padding:9px 12px;border-radius:7px;background:#f4f5f7;font-size:13px;margin-top:10px}.signature-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.signature-tabs button{flex:1;min-width:170px}.signature-tab{display:none}.signature-tab.active{display:block} .pdf-assinatura-box{position:relative;width:270px;height:66px;margin:0 auto;text-align:center}.pdf-assinatura-img{position:absolute;left:50%;transform:translateX(-50%);bottom:27px;display:block;width:auto;max-width:234px;max-height:44px;object-fit:contain;z-index:2}.pdf-assinatura-box .pdf-linha{position:absolute;left:0;right:0;top:39px;border-top:1px solid #000;margin:0;z-index:1}.pdf-prof-nome{position:absolute;left:0;right:0;top:41px;font-weight:bold;font-size:9px;text-transform:uppercase;line-height:11px;background:#fff;z-index:3}.pdf-prof-cargo{position:absolute;left:0;right:0;top:52px;font-size:8px;color:#444;line-height:10px}
 .modal-box h2{margin-top:0}
 footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
 
@@ -487,11 +487,11 @@ footer{padding:15px 18px;color:#666;font-size:11px;text-align:center}
   position:absolute;
   left:50%;
   transform:translateX(-50%);
-  bottom:31px;
+  bottom:27px;
   display:block;
   width:auto;
-  max-width:180px;
-  max-height:34px;
+  max-width:234px;
+  max-height:44px;
   object-fit:contain;
   z-index:2;
 }
@@ -730,7 +730,7 @@ body.disciplina-fechada #corpoTabela input{background:#f7f7f7;cursor:not-allowed
 .login-card h1{margin:0 0 8px;color:#124c7a;font-size:25px}.login-card p{color:#56616b;line-height:1.45}
 .login-card input{margin:7px 0}.login-card button{width:100%;margin-top:9px;min-height:43px}
 .login-google{background:#fff;border:1px solid #bbb;color:#333}.login-primary{background:#1268a8;color:#fff}.login-link{background:transparent;color:#1268a8;text-decoration:underline}
-.login-status{font-size:13px;min-height:20px;margin-top:10px;color:#a32626;white-space:pre-wrap}
+.login-status{font-size:13px;min-height:20px;margin-top:10px;color:#a32626;white-space:pre-wrap}.login-status.status-success{color:#137333}.login-status.status-info{color:#174b78}
 #btnSairFirebase{margin-left:auto;background:#a52b2b;color:#fff}
 @media(max-width:520px){.login-card{padding:20px}}
 </style>
@@ -769,8 +769,23 @@ body.disciplina-fechada #corpoTabela input{background:#f7f7f7;cursor:not-allowed
     <h1 id="tituloCabecalho">Diário de Notas do Professor</h1>
     <p id="subCabecalho">INSTITUTO DO CONHECIMENTO DA BAHIA</p>
   </div>
-  <div class="user-badge" id="badgeUsuario" aria-hidden="true"></div><button type="button" id="btnSairFirebase" onclick="sairFirebase()">Sair</button>
+  <div class="user-badge" id="badgeUsuario" aria-hidden="true"></div>
+  <span id="firebaseContaAtual" aria-live="polite">Conta não identificada</span>
+  <button type="button" id="btnAbrirAdmin" onclick="abrirPainelAdministracao()">Gerenciar contas</button>
+  <button type="button" id="btnSairFirebase" onclick="sairFirebase()">Sair</button>
 </header>
+
+<section id="painelAdministracao">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <h3>Administração de contas</h3>
+    <div style="display:flex;gap:8px">
+      <button type="button" onclick="carregarPainelAdministracao()">Atualizar lista</button>
+      <button type="button" onclick="fecharPainelAdministracao()">Fechar</button>
+    </div>
+  </div>
+  <p style="margin:4px 0 12px;color:#56616b;font-size:13px">Aprove professores e atribua perfis administrativos. A administração não libera acesso às notas particulares de outros professores.</p>
+  <div id="listaContasAdministracao">Carregando...</div>
+</section>
 
 <div class="toolbar">
   <button class="primary toolbar-btn toolbar-cor-azul" data-ajuda-titulo="Salvar" data-ajuda-texto="Salva o lançamento atual da turma e das notas. Use depois de fazer alterações." onclick="salvar()"><span class="toolbar-icon">💾</span><span class="toolbar-full">Salvar lançamento</span><span class="toolbar-short">Salvar</span></button>
@@ -1087,36 +1102,377 @@ body.disciplina-fechada #corpoTabela input{background:#f7f7f7;cursor:not-allowed
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-const firebaseConfig={apiKey:'AIzaSyDjmKNNXynwLo4lWr3-2I2nvaejELNaxUQ',authDomain:'diario-de-notas-do-profe-4085c.firebaseapp.com',projectId:'diario-de-notas-do-profe-4085c',storageBucket:'diario-de-notas-do-profe-4085c.firebasestorage.app',messagingSenderId:'839959456470',appId:'1:839959456470:web:3f766b3f2d7a7733957777'};
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),googleProvider=new GoogleAuthProvider();
-const $=id=>document.getElementById(id); const status=t=>{if($('statusLoginFirebase')) $('statusLoginFirebase').textContent=t||''};
-function utf8Chunks(str,maxBytes=400000){const out=[];let part='',bytes=0;for(const ch of str){const n=new TextEncoder().encode(ch).length;if(bytes+n>maxBytes){out.push(part);part='';bytes=0;}part+=ch;bytes+=n;}if(part||!out.length)out.push(part);return out;}
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import {
+  getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+
+const firebaseConfig={
+  apiKey:'AIzaSyDjmKNNXynwLo4lWr3-2I2nvaejELNaxUQ',
+  authDomain:'diario-de-notas-do-profe-4085c.firebaseapp.com',
+  projectId:'diario-de-notas-do-profe-4085c',
+  storageBucket:'diario-de-notas-do-profe-4085c.firebasestorage.app',
+  messagingSenderId:'839959456470',
+  appId:'1:839959456470:web:3f766b3f2d7a7733957777'
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const googleProvider=new GoogleAuthProvider();
+const ADMIN_PRINCIPAL_EMAIL='menezesba@gmail.com';
+const $=id=>document.getElementById(id);
+
+let registrationInProgress=false;
+let authProcessingUid='';
+let currentProfile=null;
+
+function status(message,kind='error'){
+  const el=$('statusLoginFirebase');
+  if(!el)return;
+  el.textContent=message||'';
+  el.classList.toggle('status-success',kind==='success');
+  el.classList.toggle('status-info',kind==='info');
+}
+function isPrincipalProfile(profile){
+  return !!profile && profile.role==='admin' &&
+    profile.adminLevel==='principal' && profile.status==='approved';
+}
+function isPrincipalEmail(user){
+  return (user?.email||'').toLowerCase()===ADMIN_PRINCIPAL_EMAIL;
+}
+function utf8Chunks(str,maxBytes=400000){
+  const out=[];let part='',bytes=0;
+  for(const ch of str){
+    const n=new TextEncoder().encode(ch).length;
+    if(bytes+n>maxBytes){out.push(part);part='';bytes=0;}
+    part+=ch;bytes+=n;
+  }
+  if(part||!out.length)out.push(part);
+  return out;
+}
+
 window.firebaseSalvarEstado=async json=>{
- const uid=auth.currentUser?.uid;if(!uid)throw new Error('Sua sessão expirou. Entre novamente.');
- const chunks=utf8Chunks(json);const generation=Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
- const root=`usuarios/${uid}`;
- for(let i=0;i<chunks.length;i++) await setDoc(doc(db,root,'estado_partes',`${generation}_${String(i).padStart(4,'0')}`),{generation,index:i,total:chunks.length,data:chunks[i]});
- await setDoc(doc(db,root,'estado','manifesto'),{generation,total:chunks.length,bytes:new TextEncoder().encode(json).length,updatedAt:serverTimestamp(),format:1});
+  const uid=auth.currentUser?.uid;
+  if(!uid || uid!==window.currentFirebaseUid) throw new Error('A sessão mudou. Entre novamente antes de salvar.');
+  const chunks=utf8Chunks(json);
+  const generation=Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
+  const root=`usuarios/${uid}`;
+  for(let i=0;i<chunks.length;i++){
+    if(auth.currentUser?.uid!==uid) throw new Error('A conta foi alterada durante a gravação. Tente novamente.');
+    await setDoc(doc(db,root,'estado_partes',`${generation}_${String(i).padStart(4,'0')}`),{
+      generation,index:i,total:chunks.length,data:chunks[i]
+    });
+  }
+  if(auth.currentUser?.uid!==uid) throw new Error('A conta foi alterada antes da confirmação da gravação.');
+  await setDoc(doc(db,root,'estado','manifesto'),{
+    generation,total:chunks.length,bytes:new TextEncoder().encode(json).length,
+    updatedAt:serverTimestamp(),format:1
+  });
 };
-window.firebaseCarregarEstado=async()=>{
- const uid=auth.currentUser?.uid;if(!uid)throw new Error('Nenhuma conta autenticada.');
- const root=`usuarios/${uid}`;const m=await getDoc(doc(db,root,'estado','manifesto'));if(!m.exists())return null;
- const meta=m.data();if(!meta.generation||!Number.isInteger(meta.total)||meta.total<1||meta.total>1000)throw new Error('Índice do backup na nuvem inválido.');
- const refs=await getDocs(collection(db,root,'estado_partes'));const parts=new Array(meta.total);
- refs.forEach(d=>{const x=d.data();if(x.generation===meta.generation&&Number.isInteger(x.index)&&x.index>=0&&x.index<meta.total)parts[x.index]=x.data;});
- if(parts.some(x=>typeof x!=='string'))throw new Error('A cópia na nuvem está incompleta. A versão anterior foi mantida.');
- const json=parts.join('');JSON.parse(json);if(new TextEncoder().encode(json).length!==meta.bytes)throw new Error('A cópia na nuvem falhou na verificação de integridade.');return json;
+
+window.firebaseCarregarEstado=async expectedUid=>{
+  const uid=auth.currentUser?.uid;
+  if(!uid || uid!==window.currentFirebaseUid || (expectedUid && uid!==expectedUid)){
+    throw new Error('A conta mudou. Atualize a página e entre novamente.');
+  }
+  const root=`usuarios/${uid}`;
+  const m=await getDoc(doc(db,root,'estado','manifesto'));
+  if(auth.currentUser?.uid!==uid || window.currentFirebaseUid!==uid) return null;
+  if(!m.exists())return null;
+  const meta=m.data();
+  if(!meta.generation||!Number.isInteger(meta.total)||meta.total<1||meta.total>1000)
+    throw new Error('Índice do backup na nuvem inválido.');
+  const refs=await getDocs(collection(db,root,'estado_partes'));
+  if(auth.currentUser?.uid!==uid || window.currentFirebaseUid!==uid) return null;
+  const parts=new Array(meta.total);
+  refs.forEach(d=>{
+    const x=d.data();
+    if(x.generation===meta.generation&&Number.isInteger(x.index)&&x.index>=0&&x.index<meta.total)parts[x.index]=x.data;
+  });
+  if(parts.some(x=>typeof x!=='string'))throw new Error('A cópia na nuvem está incompleta. A versão anterior foi mantida.');
+  const json=parts.join('');
+  JSON.parse(json);
+  if(new TextEncoder().encode(json).length!==meta.bytes)throw new Error('A cópia na nuvem falhou na verificação de integridade.');
+  return json;
 };
-function mostrarApp(user){$('telaLogin').style.display='none';$('appPrincipal').style.display='block';window.usuarioFirebase=user;window.dispatchEvent(new CustomEvent('firebase-usuario-pronto',{detail:{uid:user.uid,email:user.email||''}}));}
-function mostrarLogin(){$('appPrincipal').style.display='none';$('telaLogin').style.display='flex';}
-$('btnGoogleFirebase').addEventListener('click',async()=>{try{status('Abrindo acesso Google...');await signInWithPopup(auth,googleProvider);}catch(e){status('Não foi possível entrar com Google: '+(e.message||e));}});
-$('formLoginFirebase').addEventListener('submit',async e=>{e.preventDefault();try{status('Entrando...');await signInWithEmailAndPassword(auth,$('loginEmailFirebase').value.trim(),$('loginSenhaFirebase').value);}catch(err){status('Falha no login: '+(err.message||err));}});
-$('btnAlternarCadastroFirebase').addEventListener('click',()=>{const box=$('areaCadastroFirebase'),show=box.style.display==='none';box.style.display=show?'block':'none';$('btnAlternarCadastroFirebase').textContent=show?'Voltar ao login':'Criar uma conta';status('');});
-$('btnCriarContaFirebase').addEventListener('click',async()=>{const nome=$('cadNomeFirebase').value.trim(),email=$('cadEmailFirebase').value.trim(),senha=$('cadSenhaFirebase').value,conf=$('cadConfirmaFirebase').value,telefone=$('cadTelefoneFirebase').value.trim();if(!nome||!email||!senha){status('Preencha nome, e-mail e senha.');return;}if(senha.length<6){status('A senha precisa ter pelo menos 6 caracteres.');return;}if(senha!==conf){status('As senhas não conferem.');return;}try{status('Criando conta...');const cred=await createUserWithEmailAndPassword(auth,email,senha);await updateProfile(cred.user,{displayName:nome});await setDoc(doc(db,'usuarios',cred.user.uid,'perfil','dados'),{nome,email,telefone,criadoEm:serverTimestamp()});}catch(err){status('Não foi possível criar a conta: '+(err.message||err));}});
-window.sairFirebase=async()=>{const user=auth.currentUser;if(user){try{localStorage.removeItem('diario_notas_firebase_'+user.uid); }catch(e){ } }try{await signOut(auth);}catch(e){alert('Não foi possível encerrar a sessão: '+(e.message||e));}};
-onAuthStateChanged(auth,user=>{if(user){window.currentFirebaseUid=user.uid;window.diarioFirebaseAutenticado=true;mostrarApp(user);}else{window.currentFirebaseUid='';window.diarioFirebaseAutenticado=false;mostrarLogin();}});
+
+function mostrarApp(user,profile){
+  currentProfile=profile;
+  $('telaLogin').style.display='none';
+  $('appPrincipal').style.display='block';
+  window.usuarioFirebase=user;
+  window.perfilFirebaseAtual=profile;
+  const nome=profile?.nome||user.displayName||'';
+  const conta=$('firebaseContaAtual');
+  if(conta){
+    conta.textContent=nome && nome.toLowerCase()!==(user.email||'').toLowerCase()
+      ? `${nome} · ${user.email||''}` : (user.email||nome||'Conta Google');
+    conta.title=`Conta conectada: ${user.email||''}`;
+  }
+  const adminButton=$('btnAbrirAdmin');
+  if(adminButton)adminButton.style.display=isPrincipalProfile(profile)?'inline-flex':'none';
+  window.dispatchEvent(new CustomEvent('firebase-usuario-pronto',{
+    detail:{uid:user.uid,email:user.email||'',nome,role:profile?.role||'professional',profile}
+  }));
+}
+function mostrarLogin(){
+  $('appPrincipal').style.display='none';
+  $('telaLogin').style.display='flex';
+  currentProfile=null;
+  window.perfilFirebaseAtual=null;
+  window.usuarioFirebase=null;
+  const account=$('firebaseContaAtual');
+  if(account)account.textContent='Conta não identificada';
+  const adminButton=$('btnAbrirAdmin');
+  if(adminButton)adminButton.style.display='none';
+}
+
+async function obterOuCriarPerfil(user){
+  const ref=doc(db,'usuarios',user.uid);
+  const snap=await getDoc(ref);
+  const agora=serverTimestamp();
+
+  if(isPrincipalEmail(user)){
+    const profile={
+      uid:user.uid,nome:user.displayName||'Moisés Menezes',email:user.email||ADMIN_PRINCIPAL_EMAIL,
+      role:'admin',adminLevel:'principal',status:'approved',courseIds:[],
+      atualizadoEm:agora
+    };
+    await setDoc(ref,{...profile,criadoEm:snap.exists()?(snap.data().criadoEm||agora):agora},{merge:true});
+    return profile;
+  }
+
+  if(!snap.exists()){
+    const profile={
+      uid:user.uid,nome:user.displayName||'',email:user.email||'',
+      role:'professional',adminLevel:null,status:'pending',courseIds:[],
+      origem:user.providerData?.[0]?.providerId||'email',
+      criadoEm:agora,atualizadoEm:agora
+    };
+    await setDoc(ref,profile);
+    return profile;
+  }
+
+  const profile=snap.data();
+  if(!profile.role || !profile.status){
+    const migrated={
+      uid:user.uid,nome:profile.nome||user.displayName||'',email:user.email||profile.email||'',
+      role:'professional',adminLevel:null,status:'pending',courseIds:[],
+      criadoEm:profile.criadoEm||agora,atualizadoEm:agora
+    };
+    await setDoc(ref,migrated,{merge:true});
+    return migrated;
+  }
+  return profile;
+}
+
+async function processarUsuarioAutenticado(user){
+  if(!user){
+    authProcessingUid='';
+    window.currentFirebaseUid='';
+    window.diarioFirebaseAutenticado=false;
+    mostrarLogin();
+    return;
+  }
+  if(registrationInProgress)return;
+  if(authProcessingUid===user.uid)return;
+  authProcessingUid=user.uid;
+  window.currentFirebaseUid=user.uid;
+  window.diarioFirebaseAutenticado=true;
+
+  try{
+    const profile=await obterOuCriarPerfil(user);
+    if(auth.currentUser?.uid!==user.uid)return;
+
+    if(profile.status!=='approved'){
+      authProcessingUid='';
+      await signOut(auth);
+      mostrarLogin();
+      status(
+        profile.status==='pending'
+          ? 'Conta criada com sucesso! Seu cadastro está aguardando aprovação do administrador. Depois da aprovação, entre novamente com este e-mail.'
+          : 'Esta conta ainda não está autorizada a acessar o Diário. Procure o administrador.',
+        'info'
+      );
+      return;
+    }
+
+    if(profile.role!=='admin' && profile.role!=='professional'){
+      authProcessingUid='';
+      await signOut(auth);
+      mostrarLogin();
+      status('O perfil desta conta não está configurado. Procure o administrador.');
+      return;
+    }
+    mostrarApp(user,profile);
+  }catch(err){
+    authProcessingUid='';
+    window.diarioFirebaseAutenticado=false;
+    await signOut(auth).catch(()=>{});
+    mostrarLogin();
+    status('Não foi possível validar seu cadastro no Firestore: '+(err.message||err));
+  }
+}
+
+$('btnGoogleFirebase').addEventListener('click',async()=>{
+  try{status('Abrindo acesso Google...','info');await signInWithPopup(auth,googleProvider);}
+  catch(e){status('Não foi possível entrar com Google: '+(e.message||e));}
+});
+$('formLoginFirebase').addEventListener('submit',async e=>{
+  e.preventDefault();
+  try{status('Entrando...','info');await signInWithEmailAndPassword(auth,$('loginEmailFirebase').value.trim(),$('loginSenhaFirebase').value);}
+  catch(err){status('Falha no login: '+(err.message||err));}
+});
+$('btnAlternarCadastroFirebase').addEventListener('click',()=>{
+  const box=$('areaCadastroFirebase'),show=box.style.display==='none';
+  box.style.display=show?'block':'none';
+  $('btnAlternarCadastroFirebase').textContent=show?'Voltar ao login':'Criar uma conta';
+  status('');
+});
+$('btnCriarContaFirebase').addEventListener('click',async()=>{
+  const nome=$('cadNomeFirebase').value.trim();
+  const email=$('cadEmailFirebase').value.trim().toLowerCase();
+  const senha=$('cadSenhaFirebase').value;
+  const conf=$('cadConfirmaFirebase').value;
+  const telefone=$('cadTelefoneFirebase').value.trim();
+
+  if(!nome||!email||!senha){status('Preencha nome, e-mail e senha.');return;}
+  if(senha.length<6){status('A senha precisa ter pelo menos 6 caracteres.');return;}
+  if(senha!==conf){status('As senhas não conferem.');return;}
+
+  registrationInProgress=true;
+  try{
+    status('Criando conta...','info');
+    const cred=await createUserWithEmailAndPassword(auth,email,senha);
+    await updateProfile(cred.user,{displayName:nome});
+    const profile={
+      uid:cred.user.uid,nome,email,telefone,
+      role:'professional',adminLevel:null,status:'pending',courseIds:[],
+      origem:'email',criadoEm:serverTimestamp(),atualizadoEm:serverTimestamp()
+    };
+    await setDoc(doc(db,'usuarios',cred.user.uid),profile);
+    await setDoc(doc(db,'usuarios',cred.user.uid,'perfil','dados'),{
+      nome,email,telefone,criadoEm:serverTimestamp()
+    });
+    await signOut(auth);
+    registrationInProgress=false;
+    authProcessingUid='';
+    mostrarLogin();
+    $('areaCadastroFirebase').style.display='none';
+    $('btnAlternarCadastroFirebase').textContent='Criar uma conta';
+    $('loginEmailFirebase').value=email;
+    $('loginSenhaFirebase').value='';
+    status('Conta criada com sucesso! Seu cadastro foi enviado para aprovação. Assim que o administrador liberar o acesso, entre com seu e-mail e senha.','success');
+  }catch(err){
+    registrationInProgress=false;
+    authProcessingUid='';
+    status('Não foi possível criar a conta: '+(err.message||err));
+    if(auth.currentUser)await signOut(auth).catch(()=>{});
+  }
+});
+
+window.sairFirebase=async()=>{
+  const user=auth.currentUser;
+  try{
+    if(user){
+      try{localStorage.removeItem('diario_notas_firebase_'+user.uid);}catch(e){}
+    }
+    await signOut(auth);
+  }catch(e){alert('Não foi possível encerrar a sessão: '+(e.message||e));}
+};
+
+window.abrirPainelAdministracao=()=>{
+  if(!isPrincipalProfile(currentProfile))return;
+  const panel=$('painelAdministracao');
+  if(!panel)return;
+  panel.style.display='block';
+  window.carregarPainelAdministracao();
+};
+window.fecharPainelAdministracao=()=>{
+  const panel=$('painelAdministracao');
+  if(panel)panel.style.display='none';
+};
+
+window.carregarPainelAdministracao=async()=>{
+  if(!isPrincipalProfile(currentProfile))return;
+  const box=$('listaContasAdministracao');
+  if(!box)return;
+  box.textContent='Carregando contas...';
+  try{
+    const snap=await getDocs(collection(db,'usuarios'));
+    box.replaceChildren();
+    const contas=snap.docs.map(d=>({uid:d.id,...d.data()}))
+      .sort((a,b)=>(a.nome||a.email||'').localeCompare(b.nome||b.email||'','pt-BR'));
+    if(!contas.length){box.textContent='Nenhuma conta cadastrada.';return;}
+
+    contas.forEach(conta=>{
+      const row=document.createElement('div');row.className='admin-user-row';
+      const info=document.createElement('div');info.className='admin-user-info';
+      const name=document.createElement('strong');name.textContent=conta.nome||conta.email||conta.uid;
+      const details=document.createElement('div');
+      details.style.cssText='font-size:12px;color:#52616d;margin-top:3px';
+      const roleText=conta.role==='admin'
+        ? `Administrador (${conta.adminLevel==='principal'?'principal':'de curso'})`
+        : 'Professor';
+      details.textContent=`${conta.email||'Sem e-mail'} · ${roleText} · ${conta.status||'sem status'}`+
+        (Array.isArray(conta.courseIds)&&conta.courseIds.length?` · Cursos: ${conta.courseIds.join(', ')}`:'');
+      info.append(name,details);
+
+      const actions=document.createElement('div');actions.className='admin-user-actions';
+      if(conta.uid!==auth.currentUser?.uid && conta.status==='pending'){
+        const approve=document.createElement('button');approve.textContent='Aprovar professor';
+        approve.addEventListener('click',()=>alterarPerfilConta(conta.uid,{
+          role:'professional',adminLevel:null,status:'approved',courseIds:[]
+        }));
+        actions.append(approve);
+      }else if(conta.uid!==auth.currentUser?.uid && conta.status==='approved' && conta.role!=='admin'){
+        const courseAdmin=document.createElement('button');courseAdmin.textContent='Admin de curso';
+        courseAdmin.addEventListener('click',()=>{
+          const raw=prompt('Informe os nomes/IDs dos cursos atribuídos, separados por vírgula:');
+          if(raw===null)return;
+          const courseIds=raw.split(',').map(x=>x.trim()).filter(Boolean);
+          if(!courseIds.length){alert('Informe pelo menos um curso.');return;}
+          alterarPerfilConta(conta.uid,{role:'admin',adminLevel:'curso',status:'approved',courseIds});
+        });
+        const principal=document.createElement('button');principal.textContent='Administrador principal';
+        principal.addEventListener('click',()=>{
+          if(confirm(`Promover ${conta.email||conta.nome} a administrador principal?`))
+            alterarPerfilConta(conta.uid,{role:'admin',adminLevel:'principal',status:'approved',courseIds:[]});
+        });
+        actions.append(courseAdmin,principal);
+      }else if(conta.uid!==auth.currentUser?.uid && conta.role==='admin'){
+        const revoke=document.createElement('button');revoke.textContent='Revogar administrador';
+        revoke.addEventListener('click',()=>{
+          if(confirm(`Revogar o perfil administrativo de ${conta.email||conta.nome}?`))
+            alterarPerfilConta(conta.uid,{role:'professional',adminLevel:null,status:'approved',courseIds:[]});
+        });
+        actions.append(revoke);
+      }
+      if(!actions.childElementCount){
+        const none=document.createElement('span');none.style.cssText='font-size:12px;color:#77838c';
+        none.textContent=conta.uid===auth.currentUser?.uid?'Conta atual':'Sem ações disponíveis';
+        actions.append(none);
+      }
+      row.append(info,actions);box.append(row);
+    });
+  }catch(err){
+    box.textContent='Não foi possível carregar as contas: '+(err.message||err);
+  }
+};
+
+async function alterarPerfilConta(uid,changes){
+  if(!isPrincipalProfile(currentProfile))return;
+  try{
+    await setDoc(doc(db,'usuarios',uid),{...changes,atualizadoEm:serverTimestamp()},{merge:true});
+    await window.carregarPainelAdministracao();
+  }catch(err){alert('Não foi possível atualizar o perfil: '+(err.message||err));}
+}
+
+onAuthStateChanged(auth,user=>{processarUsuarioAutenticado(user);});
 </script>
 <script>
 let KEY = 'diario_notas_firebase_v1_sem_conta';
@@ -1785,9 +2141,11 @@ function carregarLocal(){
 }
 
 function carregarDaNuvemAoAbrir(){
+  const uidConsulta=window.currentFirebaseUid;
   contaNuvemCarregada=false;
   if($id('badgeUsuario')) $id('badgeUsuario').textContent='☁️ Carregando dados da nuvem...';
-  window.firebaseCarregarEstado().then(json=>{
+  window.firebaseCarregarEstado(uidConsulta).then(json=>{
+    if(!uidConsulta || uidConsulta!==window.currentFirebaseUid) return;
     try{
       if(json){
         const dados=JSON.parse(json);
@@ -1814,6 +2172,7 @@ function carregarDaNuvemAoAbrir(){
       alert('Falha ao carregar os dados da nuvem: '+(err?.message||err));
     }
   }).catch(err=>{
+    if(uidConsulta!==window.currentFirebaseUid) return;
     contaNuvemCarregada=false;
     if($id('badgeUsuario')) $id('badgeUsuario').textContent='⚠️ Nuvem indisponível';
     alert('Não foi possível acessar os dados da sua conta. Nenhuma informação local será enviada para evitar sobrescrever a nuvem.\n\n'+(err?.message||err));
@@ -4929,8 +5288,35 @@ function iniciarDiarioAposLogin(){
 
 </script>
 <script>
+let ultimoUidFirebaseAtivo='';
+function prepararEstadoLimpoDaConta(){
+  // Zera a memória da conta anterior antes de iniciar a leitura da nova conta.
+  nuvemPendente=null;
+  nuvemCallbacksPendentes=[];
+  nuvemSalvando=false;
+  contaNuvemCarregada=false;
+  inicializarEstruturaBase();
+  estado.config.professor=[];
+  estado.diarios={};
+  estado.alunos=[];
+  estado.assinatura={imagem:''};
+  if(estado.listasTurmas && typeof estado.listasTurmas==='object'){
+    Object.keys(estado.listasTurmas).forEach(curso=>{
+      const turmas=estado.listasTurmas[curso]||{};
+      Object.keys(turmas).forEach(turma=>{turmas[turma]=[];});
+    });
+  }
+  if(estado.disciplinasCursos && typeof estado.disciplinasCursos==='object'){
+    // Mantém as disciplinas padrão, mas não carrega notas/alunos da conta anterior.
+  }
+}
 window.addEventListener('firebase-usuario-pronto',function(ev){
  const uid=ev.detail.uid;
+ if(!uid)return;
+ if(ultimoUidFirebaseAtivo!==uid){
+   prepararEstadoLimpoDaConta();
+   ultimoUidFirebaseAtivo=uid;
+ }
  KEY='diario_notas_firebase_'+uid;
  try{localStorage.removeItem('diario_notas_firebase_v1_sem_conta');}catch(e){}
  if(typeof iniciarDiarioAposLogin==='function') iniciarDiarioAposLogin();
