@@ -5109,7 +5109,7 @@ function criarDocumentoPDFTexto(elemento){
     const subtitulo = sec.querySelector('.pdf-header h2')?.textContent?.trim() || 'DIÁRIO DE CLASSE E REGISTRO DE APROVEITAMENTO';
     doc.setFont('helvetica','bold'); doc.setFontSize(13);
     escreverTextoPDF(titulo, largura/2, y, 'center'); y += 6;
-    doc.setFontSize(9); escreverTextoPDF(subtitulo, largura/2, y, 'center'); y += 7;
+    doc.setFontSize(9); escreverTextoPDF(subtitulo, largura/2, y, 'center'); y += 10;
     const grid = sec.querySelector('.pdf-grid');
     if(grid){
       const itens = Array.from(grid.children).map(el => {
@@ -5119,21 +5119,38 @@ function criarDocumentoPDFTexto(elemento){
         return {rotulo, valor};
       }).filter(item => item.rotulo || item.valor);
       doc.setFontSize(8);
+      // A primeira metade das informações fica à esquerda. Turma, Professor
+      // e Critério ficam à direita, terminando exatamente na borda da tabela.
+      const margemTabelaEsquerda = 8;
+      const margemTabelaDireita = largura - 8;
       itens.forEach((item,i) => {
-        const x = 10 + (i%2)*(largura/2-5);
         const yy = y + Math.floor(i/2)*4.5;
+        const colunaDireita = (i % 2) === 1;
         if(item.rotulo){
           doc.setFont('helvetica','bold');
-          escreverTextoPDF(item.rotulo, x, yy);
-          const larguraRotulo = doc.getTextWidth(item.rotulo + ' ');
+          const rotuloTexto = item.rotulo + (item.valor ? ' ' : '');
+          const larguraRotulo = doc.getTextWidth(rotuloTexto);
           doc.setFont('helvetica','normal');
-          if(item.valor) escreverTextoPDF(item.valor, x + larguraRotulo, yy);
+          const larguraValor = item.valor ? doc.getTextWidth(item.valor) : 0;
+          if(colunaDireita){
+            const inicio = margemTabelaDireita - larguraRotulo - larguraValor;
+            doc.setFont('helvetica','bold');
+            escreverTextoPDF(item.rotulo, inicio, yy);
+            doc.setFont('helvetica','normal');
+            if(item.valor) escreverTextoPDF(item.valor, inicio + larguraRotulo, yy);
+          } else {
+            doc.setFont('helvetica','bold');
+            escreverTextoPDF(item.rotulo, margemTabelaEsquerda, yy);
+            doc.setFont('helvetica','normal');
+            if(item.valor) escreverTextoPDF(item.valor, margemTabelaEsquerda + larguraRotulo, yy);
+          }
         } else {
           doc.setFont('helvetica','normal');
-          escreverTextoPDF(item.valor, x, yy);
+          escreverTextoPDF(item.valor, colunaDireita ? margemTabelaDireita : margemTabelaEsquerda, yy,
+            colunaDireita ? 'right' : 'left');
         }
       });
-      y += Math.ceil(itens.length/2)*4.5 + 4;
+      y += Math.ceil(itens.length/2)*4.5 + 3;
     }
     const tabela = sec.querySelector('table');
     const cabecalho = Array.from(tabela.querySelectorAll('thead tr:last-child th')).map(c=>c.innerText.trim());
