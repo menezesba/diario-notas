@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diário de Notas do Professor | Teste Firebase</title>
 <!-- Biblioteca para download direto de PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
@@ -4726,106 +4728,103 @@ async function atualizarAssinaturaParaPDF(){
   assinaturaImagemPdfOrigem = src;
 }
 
+// Gera PDF com texto vetorial selecionável. A tabela e os dados são lidos
+// diretamente da área de exportação já montada pelo aplicativo.
+function criarDocumentoPDFTexto(elemento){
+  if(!window.jspdf || !window.jspdf.jsPDF) throw new Error('Biblioteca de PDF não carregada. Verifique a conexão e tente novamente.');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4', orientation:'landscape'});
+  const secoes = Array.from(elemento.querySelectorAll('section')).filter(sec => sec.querySelector('table'));
+  if(!secoes.length) throw new Error('Não foi possível localizar a tabela do diário para gerar o PDF.');
+  const largura = doc.internal.pageSize.getWidth();
+  secoes.forEach((sec, indice) => {
+    if(indice) doc.addPage('a4','landscape');
+    let y = 12;
+    const titulo = sec.querySelector('.pdf-header h1')?.textContent?.trim() || 'DIÁRIO DE NOTAS';
+    const subtitulo = sec.querySelector('.pdf-header h2')?.textContent?.trim() || 'DIÁRIO DE CLASSE E REGISTRO DE APROVEITAMENTO';
+    doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(titulo, largura/2, y, {align:'center'}); y += 6;
+    doc.setFontSize(9); doc.text(subtitulo, largura/2, y, {align:'center'}); y += 7;
+    const grid = sec.querySelector('.pdf-grid');
+    if(grid){
+      const linhas = Array.from(grid.children).map(el => el.innerText.replace(/\s+/g,' ').trim()).filter(Boolean);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8);
+      linhas.forEach((linha,i) => { doc.text(linha, 10 + (i%2)*(largura/2-5), y + Math.floor(i/2)*4.5); });
+      y += Math.ceil(linhas.length/2)*4.5 + 4;
+    }
+    const tabela = sec.querySelector('table');
+    const cabecalho = Array.from(tabela.querySelectorAll('thead tr:last-child th')).map(c=>c.innerText.trim());
+    const corpo = Array.from(tabela.querySelectorAll('tbody tr')).map(tr=>Array.from(tr.querySelectorAll('td')).map(td=>td.innerText.trim()));
+    if(!cabecalho.length) throw new Error('A tabela do diário está sem cabeçalho.');
+    doc.autoTable({
+      head:[cabecalho], body:corpo, startY:y, theme:'grid',
+      margin:{left:8,right:8,top:10,bottom:12},
+      styles:{font:'helvetica',fontSize:7,cellPadding:1.5,overflow:'linebreak',valign:'middle',textColor:[25,25,25]},
+      headStyles:{fillColor:[232,237,242],textColor:[20,35,50],fontStyle:'bold',lineWidth:0.2},
+      alternateRowStyles:{fillColor:[248,249,250]},
+      columnStyles:{0:{cellWidth:9},1:{cellWidth:45}},
+      didParseCell:function(data){
+        if(data.section==='body' && data.column.index===1) data.cell.styles.fontStyle='bold';
+        if(data.section==='body' && data.column.index===cabecalho.length-2){
+          const v=String(data.cell.raw||'').toLowerCase();
+          if(v.includes('aprov')) data.cell.styles.textColor=[11,92,171];
+          if(v.includes('reprov')) data.cell.styles.textColor=[180,35,24];
+        }
+      }
+    });
+    let fy = doc.lastAutoTable.finalY + 9;
+    if(fy > doc.internal.pageSize.getHeight()-22){ doc.addPage(); fy=18; }
+    const data = sec.querySelector('.pdf-data')?.textContent?.trim();
+    if(data){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(data, largura/2, fy, {align:'center'});fy+=8;}
+    const nome = sec.querySelector('.pdf-prof-nome')?.textContent?.trim();
+    const cargo = sec.querySelector('.pdf-prof-cargo')?.textContent?.trim();
+    const assinatura = sec.querySelector('.pdf-assinatura-img');
+    if(nome || cargo || assinatura){
+      if(assinatura && assinatura.src && assinatura.src.startsWith('data:image/')){
+        try{doc.addImage(assinatura.src,'PNG',largura/2-22,fy-12,44,10);}catch(e){}
+      }
+      doc.setDrawColor(80); doc.line(largura/2-35,fy,largura/2+35,fy); fy+=4;
+      doc.setFont('helvetica','bold');doc.setFontSize(8);if(nome)doc.text(nome,largura/2,fy,{align:'center'});fy+=4;
+      doc.setFont('helvetica','normal');doc.setFontSize(7);if(cargo)doc.text(cargo,largura/2,fy,{align:'center'});
+    }
+  });
+  return doc;
+}
+
 function gerarPDFDeDiarioParaEmail(diario){
   return new Promise(async (resolve, reject) => {
-    const campos = ['instituicao','curso','turma','disciplina','professor','tipoCalculo','periodoIni','periodoFim','notaMin'];
-    const valoresOriginais = {};
-    campos.forEach(id => {
-      const el = $id(id);
-      valoresOriginais[id] = el ? el.value : '';
-    });
-
-    const estadoOriginal = {
-      avaliacoes: estado.avaliacoes,
-      alunos: estado.alunos,
-      detalhesAvaliacoes: estado.detalhesAvaliacoes
-    };
-
-    const elPDF = $id('areaExportacaoPDF');
-
+    const campos=['instituicao','curso','turma','disciplina','professor','tipoCalculo','periodoIni','periodoFim','notaMin'];
+    const valoresOriginais={};
+    campos.forEach(id=>{const el=$id(id);valoresOriginais[id]=el?el.value:'';});
+    const estadoOriginal={avaliacoes:estado.avaliacoes,alunos:estado.alunos,detalhesAvaliacoes:estado.detalhesAvaliacoes};
+    const elPDF=$id('areaExportacaoPDF');
     try{
-      $id('instituicao').value = diario.instituicao || valoresOriginais.instituicao;
-      $id('curso').value = diario.curso || valoresOriginais.curso;
-      $id('turma').value = diario.turma || valoresOriginais.turma;
-      $id('disciplina').value = diario.disciplina || valoresOriginais.disciplina;
-      $id('professor').value = diario.professor || valoresOriginais.professor;
-      $id('tipoCalculo').value = diario.tipoCalculo || 'soma';
-      $id('periodoIni').value = diario.periodoIni || '';
-      $id('periodoFim').value = diario.periodoFim || '';
-      $id('notaMin').value = diario.notaMin || '6';
-
-      estado.avaliacoes = Array.isArray(diario.avaliacoes) && diario.avaliacoes.length
-        ? JSON.parse(JSON.stringify(diario.avaliacoes))
-        : ['1ª Aval.','2ª Aval.','3ª Aval.'];
-
-      estado.alunos = Array.isArray(diario.alunos)
-        ? JSON.parse(JSON.stringify(diario.alunos))
-        : [];
-
-      estado.detalhesAvaliacoes = Array.isArray(diario.detalhesAvaliacoes)
-        ? JSON.parse(JSON.stringify(diario.detalhesAvaliacoes))
-        : estado.avaliacoes.map(() => ({data:'',valor:'',observacao:''}));
-
+      $id('instituicao').value=diario.instituicao||valoresOriginais.instituicao;
+      $id('curso').value=diario.curso||valoresOriginais.curso;
+      $id('turma').value=diario.turma||valoresOriginais.turma;
+      $id('disciplina').value=diario.disciplina||valoresOriginais.disciplina;
+      $id('professor').value=diario.professor||valoresOriginais.professor;
+      $id('tipoCalculo').value=diario.tipoCalculo||'soma';
+      $id('periodoIni').value=diario.periodoIni||'';
+      $id('periodoFim').value=diario.periodoFim||'';
+      $id('notaMin').value=diario.notaMin||'6';
+      estado.avaliacoes=Array.isArray(diario.avaliacoes)&&diario.avaliacoes.length?JSON.parse(JSON.stringify(diario.avaliacoes)):['1ª Aval.','2ª Aval.','3ª Aval.'];
+      estado.alunos=Array.isArray(diario.alunos)?JSON.parse(JSON.stringify(diario.alunos)):[];
+      estado.detalhesAvaliacoes=Array.isArray(diario.detalhesAvaliacoes)?JSON.parse(JSON.stringify(diario.detalhesAvaliacoes)):estado.avaliacoes.map(()=>({data:'',valor:'',observacao:''}));
       await atualizarAssinaturaParaPDF();
       prepararHtmlExportacaoPDF();
-      elPDF.style.display = 'block';
+      elPDF.style.display='block';
       await aguardarImagensDoPDF(elPDF);
-
-      const opt = {
-        margin: [4.8, 4, 4, 4],
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      const nomeDisciplina = String(diario.disciplina || 'Disciplina')
-        .replace(/[\\/:*?"<>|]+/g, '_')
-        .replace(/\s+/g, '_');
-
-      html2pdf().set({
-        ...opt,
-        filename: `Diario_${nomeDisciplina}.pdf`
-      }).from(elPDF).outputPdf('datauristring').then(base64 => {
-        elPDF.style.display = 'none';
-
-        estado.avaliacoes = estadoOriginal.avaliacoes;
-        estado.alunos = estadoOriginal.alunos;
-        estado.detalhesAvaliacoes = estadoOriginal.detalhesAvaliacoes;
-        campos.forEach(id => {
-          const el = $id(id);
-          if(el) el.value = valoresOriginais[id];
-        });
-
-        if(!base64 || typeof base64 !== 'string' || !base64.includes(',')){
-          reject(new Error('Não foi possível gerar o PDF da disciplina ' + (diario.disciplina || '') + '.'));
-          return;
-        }
-
-        resolve({
-          nome: `Diario_${nomeDisciplina}.pdf`,
-          base64: base64
-        });
-      }).catch(err => {
-        elPDF.style.display = 'none';
-        estado.avaliacoes = estadoOriginal.avaliacoes;
-        estado.alunos = estadoOriginal.alunos;
-        estado.detalhesAvaliacoes = estadoOriginal.detalhesAvaliacoes;
-        campos.forEach(id => {
-          const el = $id(id);
-          if(el) el.value = valoresOriginais[id];
-        });
-        reject(err);
-      });
-    }catch(err){
-      elPDF.style.display = 'none';
-      estado.avaliacoes = estadoOriginal.avaliacoes;
-      estado.alunos = estadoOriginal.alunos;
-      estado.detalhesAvaliacoes = estadoOriginal.detalhesAvaliacoes;
-      campos.forEach(id => {
-        const el = $id(id);
-        if(el) el.value = valoresOriginais[id];
-      });
-      reject(err);
+      const nomeDisciplina=String(diario.disciplina||'Disciplina').replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_');
+      const base64=criarDocumentoPDFTexto(elPDF).output('datauristring');
+      resolve({nome:`Diario_${nomeDisciplina}.pdf`,base64});
+    }catch(err){reject(err);}
+    finally{
+      elPDF.style.display='none';
+      estado.avaliacoes=estadoOriginal.avaliacoes;
+      estado.alunos=estadoOriginal.alunos;
+      estado.detalhesAvaliacoes=estadoOriginal.detalhesAvaliacoes;
+      campos.forEach(id=>{const el=$id(id);if(el)el.value=valoresOriginais[id];});
     }
   });
 }
@@ -5129,31 +5128,16 @@ function prepararHtmlExportacaoTurmaPDF(){
 async function baixarPDFDireto(){
   await atualizarAssinaturaParaPDF();
   prepararHtmlExportacaoPDF();
-  const elPDF = $id('areaExportacaoPDF');
-  elPDF.style.display = 'block';
+  const elPDF=$id('areaExportacaoPDF');
+  elPDF.style.display='block';
   await aguardarImagensDoPDF(elPDF);
-  if(document.fonts && document.fonts.ready){
-    try { await document.fonts.ready; } catch(e) {}
-  }
-
-  const turma = $id('turma').value || 'Turma';
-  const disc = $id('disciplina').value || 'Disciplina';
-  const nomeArquivo = `Diario_${turma}_${disc}.pdf`.replace(/\s+/g, '_');
-
-  const opt = {
-    margin: [4.8, 4, 4, 4],
-    filename: nomeArquivo,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-  };
-
-  html2pdf().set(opt).from(elPDF).save().then(() => {
-    elPDF.style.display = 'none';
-  }).catch(() => {
-    elPDF.style.display = 'none';
-  });
+  const turma=$id('turma').value||'Turma';
+  const disc=$id('disciplina').value||'Disciplina';
+  const nomeArquivo=`Diario_${turma}_${disc}.pdf`.replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_');
+  try{
+    const docPDF=criarDocumentoPDFTexto(elPDF);
+    docPDF.save(nomeArquivo);
+  }finally{elPDF.style.display='none';}
 }
 
 function gerarConteudoCSV(){
@@ -5296,24 +5280,13 @@ async function executarCompartilhamentoPDF(){
       .replace(/\s+/g, '_')
       .substring(0, 180);
 
-    const opt = {
-      margin: [4.8, 4, 4, 4],
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-
-    const instanciaPDF = html2pdf().set({
-      ...opt,
-      filename: `${nomeBase}.pdf`
-    }).from(elPDF);
+    const docPDF = criarDocumentoPDFTexto(elPDF);
 
     if(modoCompartilhamentoPDF === 'download'){
       // No download usamos save() diretamente. Em alguns aparelhos/navegadores,
       // montar primeiro uma data URI deixa o clique sem efeito, principalmente
       // em PDFs com várias páginas.
-      await instanciaPDF.save();
+      docPDF.save(`${nomeBase}.pdf`);
       elPDF.style.display = 'none';
 
       status.style.background = '#e8f5e9';
@@ -5332,7 +5305,7 @@ async function executarCompartilhamentoPDF(){
     // Para envio por e-mail, gerar primeiro como Blob. Isso evita o custo
     // de uma data URI gigante, que pode travar em algumas turmas/PDFs.
     status.textContent = 'PDF sendo preparado para o envio...';
-    const pdfBlob = await instanciaPDF.outputPdf('blob');
+    const pdfBlob = docPDF.output('blob');
     elPDF.style.display = 'none';
 
     if(!pdfBlob || !pdfBlob.size){
