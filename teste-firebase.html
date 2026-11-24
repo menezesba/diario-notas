@@ -5119,38 +5119,50 @@ function criarDocumentoPDFTexto(elemento){
         return {rotulo, valor};
       }).filter(item => item.rotulo || item.valor);
       doc.setFontSize(8);
-      // A primeira metade das informações fica à esquerda. Turma, Professor
-      // e Critério ficam à direita, terminando exatamente na borda da tabela.
+      // O cabeçalho usa exatamente as mesmas margens laterais da tabela.
+      // Os campos da direita terminam na mesma coordenada da data do PDF.
       const margemTabelaEsquerda = 8;
-      const margemTabelaDireita = largura - 8;
-      itens.forEach((item,i) => {
-        const yy = y + Math.floor(i/2)*4.5;
-        const colunaDireita = (i % 2) === 1;
-        if(item.rotulo){
-          doc.setFont('helvetica','bold');
-          const rotuloTexto = item.rotulo + (item.valor ? ' ' : '');
-          const larguraRotulo = doc.getTextWidth(rotuloTexto);
+      const bordaDireitaTabela = largura - 8;
+      itens.forEach(item => {
+        const rotuloNormalizado = String(item.rotulo || '').toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/:$/,'').trim();
+        const colunaDireita = /^(turma|professor|criterio)/.test(rotuloNormalizado);
+        let linha = 0;
+        if(/^(disciplina|professor)/.test(rotuloNormalizado)) linha = 1;
+        else if(/^(periodo|criterio)/.test(rotuloNormalizado)) linha = 2;
+        const yy = y + linha * 4.5;
+
+        if(!item.rotulo){
           doc.setFont('helvetica','normal');
-          const larguraValor = item.valor ? doc.getTextWidth(item.valor) : 0;
-          if(colunaDireita){
-            const inicio = margemTabelaDireita - larguraRotulo - larguraValor;
-            doc.setFont('helvetica','bold');
-            escreverTextoPDF(item.rotulo, inicio, yy);
-            doc.setFont('helvetica','normal');
-            if(item.valor) escreverTextoPDF(item.valor, inicio + larguraRotulo, yy);
-          } else {
-            doc.setFont('helvetica','bold');
-            escreverTextoPDF(item.rotulo, margemTabelaEsquerda, yy);
-            doc.setFont('helvetica','normal');
-            if(item.valor) escreverTextoPDF(item.valor, margemTabelaEsquerda + larguraRotulo, yy);
-          }
-        } else {
-          doc.setFont('helvetica','normal');
-          escreverTextoPDF(item.valor, colunaDireita ? margemTabelaDireita : margemTabelaEsquerda, yy,
+          escreverTextoPDF(item.valor,
+            colunaDireita ? bordaDireitaTabela : margemTabelaEsquerda,
+            yy,
             colunaDireita ? 'right' : 'left');
+          return;
+        }
+
+        const rotuloComEspaco = item.rotulo + (item.valor ? ' ' : '');
+        doc.setFont('helvetica','bold');
+        const larguraRotulo = doc.getTextWidth(rotuloComEspaco);
+        doc.setFont('helvetica','normal');
+        const larguraValor = item.valor ? doc.getTextWidth(item.valor) : 0;
+
+        if(colunaDireita){
+          // Calcula o início do conjunto para que o último caractere do valor
+          // fique exatamente sobre a borda direita, como acontece com a data.
+          const inicio = bordaDireitaTabela - larguraRotulo - larguraValor;
+          doc.setFont('helvetica','bold');
+          escreverTextoPDF(item.rotulo, inicio, yy);
+          doc.setFont('helvetica','normal');
+          if(item.valor) escreverTextoPDF(item.valor, inicio + larguraRotulo, yy);
+        }else{
+          doc.setFont('helvetica','bold');
+          escreverTextoPDF(item.rotulo, margemTabelaEsquerda, yy);
+          doc.setFont('helvetica','normal');
+          if(item.valor) escreverTextoPDF(item.valor, margemTabelaEsquerda + larguraRotulo, yy);
         }
       });
-      y += Math.ceil(itens.length/2)*4.5 + 3;
+      y += 3 * 4.5 + 3;
     }
     const tabela = sec.querySelector('table');
     const cabecalho = Array.from(tabela.querySelectorAll('thead tr:last-child th')).map(c=>c.innerText.trim());
@@ -5205,7 +5217,7 @@ function criarDocumentoPDFTexto(elemento){
     if(fy > doc.internal.pageSize.getHeight()-35){ doc.addPage(); fy=18; }
     const data = sec.querySelector('.pdf-data')?.textContent?.trim();
     // Data fica abaixo da tabela, alinhada à direita, sem cruzar a assinatura.
-    const bordaDireitaTabela = 8 + larguraColunas.reduce((soma,w)=>soma + w*fatorAjuste,0);
+    const bordaDireitaTabela = largura - 8;
     if(data){doc.setFont('helvetica','normal');doc.setFontSize(8);escreverTextoPDF(data, bordaDireitaTabela, fy, 'right');}
     fy += 13;
     const nome = sec.querySelector('.pdf-prof-nome')?.textContent?.trim();
