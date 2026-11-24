@@ -4733,12 +4733,13 @@ async function atualizarAssinaturaParaPDF(){
 function criarDocumentoPDFTexto(elemento){
   if(!window.jspdf || !window.jspdf.jsPDF) throw new Error('Biblioteca de PDF não carregada. Verifique a conexão e tente novamente.');
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({unit:'mm', format:'a4', orientation:'landscape'});
+  // A4 retrato: mantém o relatório compacto e facilita a impressão.
+  const doc = new jsPDF({unit:'mm', format:'a4', orientation:'portrait'});
   const secoes = Array.from(elemento.querySelectorAll('section')).filter(sec => sec.querySelector('table'));
   if(!secoes.length) throw new Error('Não foi possível localizar a tabela do diário para gerar o PDF.');
   const largura = doc.internal.pageSize.getWidth();
   secoes.forEach((sec, indice) => {
-    if(indice) doc.addPage('a4','landscape');
+    if(indice) doc.addPage('a4','portrait');
     let y = 12;
     const titulo = sec.querySelector('.pdf-header h1')?.textContent?.trim() || 'DIÁRIO DE NOTAS';
     const subtitulo = sec.querySelector('.pdf-header h2')?.textContent?.trim() || 'DIÁRIO DE CLASSE E REGISTRO DE APROVEITAMENTO';
@@ -4756,13 +4757,32 @@ function criarDocumentoPDFTexto(elemento){
     const cabecalho = Array.from(tabela.querySelectorAll('thead tr:last-child th')).map(c=>c.innerText.trim());
     const corpo = Array.from(tabela.querySelectorAll('tbody tr')).map(tr=>Array.from(tr.querySelectorAll('td')).map(td=>td.innerText.trim()));
     if(!cabecalho.length) throw new Error('A tabela do diário está sem cabeçalho.');
+    // Larguras pensadas para A4 retrato. Colunas de avaliação ficam
+    // compactas; nome e observações recebem mais espaço.
+    const larguraColunas = cabecalho.map((h, i) => {
+      const t = String(h || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+      if(i === 0 || t === 'nº' || t === 'no') return 7;
+      if(t.includes('nome')) return 52;
+      if(t.includes('aval') || t.includes('ava')) return 13;
+      if(t.includes('total')) return 13;
+      if(t.includes('recup') || t.includes('reco')) return 14;
+      if(t.includes('situ')) return 21;
+      if(t.includes('observ')) return 32;
+      return 15;
+    });
+    const somaLarguras = larguraColunas.reduce((a,b)=>a+b,0);
+    const areaUtil = largura - 16;
+    const fatorAjuste = somaLarguras > areaUtil ? areaUtil / somaLarguras : 1;
+    const estilosColunas = {};
+    larguraColunas.forEach((w,i)=>{ estilosColunas[i]={cellWidth:w*fatorAjuste}; });
     doc.autoTable({
       head:[cabecalho], body:corpo, startY:y, theme:'grid',
       margin:{left:8,right:8,top:10,bottom:12},
-      styles:{font:'helvetica',fontSize:7,cellPadding:1.5,overflow:'linebreak',valign:'middle',textColor:[25,25,25]},
-      headStyles:{fillColor:[232,237,242],textColor:[20,35,50],fontStyle:'bold',lineWidth:0.2},
+      tableWidth:areaUtil,
+      styles:{font:'helvetica',fontSize:6.5,cellPadding:1.1,overflow:'linebreak',valign:'middle',textColor:[25,25,25],minCellHeight:5},
+      headStyles:{fillColor:[232,237,242],textColor:[20,35,50],fontStyle:'bold',lineWidth:0.2,fontSize:6.3},
       alternateRowStyles:{fillColor:[248,249,250]},
-      columnStyles:{0:{cellWidth:9},1:{cellWidth:45}},
+      columnStyles:estilosColunas,
       didParseCell:function(data){
         if(data.section==='body' && data.column.index===1) data.cell.styles.fontStyle='bold';
         if(data.section==='body' && data.column.index===cabecalho.length-2){
@@ -4781,7 +4801,16 @@ function criarDocumentoPDFTexto(elemento){
     const assinatura = sec.querySelector('.pdf-assinatura-img');
     if(nome || cargo || assinatura){
       if(assinatura && assinatura.src && assinatura.src.startsWith('data:image/')){
-        try{doc.addImage(assinatura.src,'PNG',largura/2-22,fy-12,44,10);}catch(e){}
+        try{
+          // Preserva a proporção original da assinatura, sem esticar a imagem.
+          const props = doc.getImageProperties(assinatura.src);
+          const proporcao = (props.width || 1) / (props.height || 1);
+          const maxW = 48, maxH = 13;
+          let imgW = maxW, imgH = imgW / proporcao;
+          if(imgH > maxH){ imgH = maxH; imgW = imgH * proporcao; }
+          doc.addImage(assinatura.src, props.fileType || 'PNG',
+            (largura-imgW)/2, fy-imgH-1, imgW, imgH, undefined, 'FAST');
+        }catch(e){}
       }
       doc.setDrawColor(80); doc.line(largura/2-35,fy,largura/2+35,fy); fy+=4;
       doc.setFont('helvetica','bold');doc.setFontSize(8);if(nome)doc.text(nome,largura/2,fy,{align:'center'});fy+=4;
