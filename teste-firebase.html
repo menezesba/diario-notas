@@ -3206,6 +3206,18 @@ document.addEventListener('pointerup', encerrarArrasteGrade, true);
 document.addEventListener('pointercancel', encerrarArrasteGrade, true);
 window.addEventListener('blur', encerrarArrasteGrade);
 
+// Ao tocar/clicar fora das células de nota, remove o destaque da seleção.
+// Cliques dentro de uma célula ou em seu campo de edição preservam a seleção.
+document.addEventListener('click', e => {
+  const dentroDaCelula = e.target.closest?.('#corpoTabela td.grade-selectable');
+  if(!dentroDaCelula && gradeCelulasSelecionadas.size){
+    limparSelecaoGrade();
+    gradeCelulaAncora = null;
+    gradeArrastando = false;
+    gradePonteiroAtivo = false;
+  }
+}, true);
+
 // Colagem em várias células selecionadas. Se o conteúdo copiado for uma
 // única nota, ela é aplicada a todas as células selecionadas. Se vier em
 // linhas/colunas (Excel), começa na célula âncora e preenche a matriz.
@@ -4820,7 +4832,7 @@ function criarDocumentoPDFTexto(elemento){
     if(fy > doc.internal.pageSize.getHeight()-35){ doc.addPage(); fy=18; }
     const data = sec.querySelector('.pdf-data')?.textContent?.trim();
     // Data fica abaixo da tabela, alinhada à direita, sem cruzar a assinatura.
-    if(data){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(data, doc.lastAutoTable.finalX, fy, {align:'right'});}
+    if(data){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(data, largura-8, fy, {align:'right'});}
     fy += 13;
     const nome = sec.querySelector('.pdf-prof-nome')?.textContent?.trim();
     const cargo = 'Prof.: Radiologia';
