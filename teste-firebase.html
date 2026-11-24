@@ -810,6 +810,12 @@ header{gap:12px;padding:12px 18px}
   stroke-linejoin:round;
   display:block;
 }
+ 
+#btnCopiarListaAlunos{background:#64748b!important;color:#fff!important;}
+#btnCopiarNotasGrade{background:#16834a!important;color:#fff!important;}
+#btnCopiarListaAlunos:hover,#btnCopiarNotasGrade:hover{filter:brightness(.92);}
+#btnCopiarListaAlunos.copia-ok,#btnCopiarNotasGrade.copia-ok{background:#0f766e!important;}
+
 </style>
 </head>
 <body>
@@ -909,18 +915,11 @@ header{gap:12px;padding:12px 18px}
 <div class="panel">
   <div class="panel-body">
     <div class="acoes-grade" style="margin-bottom:12px">
-      <button type="button" class="acao-icone acao-azul" id="btnAdicionarAluno" data-tooltip="Adicionar aluno — cadastra um novo aluno na disciplina." aria-label="Adicionar aluno" title="Adicionar aluno" onclick="adicionarAluno()">👤<span class="acao-simbolo">＋</span></button>
       <button type="button" class="acao-icone acao-azul" id="btnColarListaAlunos" data-tooltip="Colar lista de alunos — permite colar vários nomes de uma vez." aria-label="Colar lista de alunos" title="Colar lista de alunos" onclick="abrirListaAlunos()">📋</button>
       <button type="button" class="acao-icone acao-azul" id="btnAdicionarAvaliacao" data-tooltip="Adicionar avaliação — cria uma nova coluna de avaliação." aria-label="Adicionar avaliação" title="Adicionar avaliação" onclick="adicionarAvaliacao()">📝<span class="acao-simbolo">＋</span></button>
       <button type="button" class="acao-icone acao-cinza" id="btnLimparNotas" data-tooltip="Limpar todas as notas — apaga as notas lançadas nesta disciplina." aria-label="Limpar todas as notas" title="Limpar todas as notas" onclick="limparTodasNotas()">🧹</button>
       <button type="button" class="acao-icone acao-vermelha" id="btnExcluirSelecionados" data-tooltip="Excluir selecionados — remove os alunos marcados na tabela." aria-label="Excluir selecionados" title="Excluir selecionados" onclick="return excluirSelecionadosAgora(event)">🗑️</button>
       
-      <div class="filtro-grade">
-        <input id="filtroRapidoAluno" type="text" placeholder="🔍 Filtrar aluno na lista..." oninput="filtrarAlunosTabela()" aria-label="Filtrar aluno na lista">
-        <button type="button" class="acao-filtro-limpar" onclick="limparFiltroRapido()" title="Limpar busca" aria-label="Limpar busca">✕</button>
-      </div>
-
-      <button type="button" class="acao-ordenar" onclick="ordenarAlunos()" title="Ordenar alunos em ordem alfabética" aria-label="Ordenar alunos de A a Z">A-Z</button>
       <button type="button" class="acao-ordenar icone-transferencia" id="btnCopiarListaAlunos" onclick="copiarListaAlunos()" title="Copiar lista de alunos" aria-label="Copiar lista de alunos"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg></button>
       <button type="button" class="acao-ordenar icone-transferencia" id="btnCopiarNotasGrade" onclick="copiarSelecaoNotas()" title="Copiar notas selecionadas" aria-label="Copiar notas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg></button>
       <button type="button" class="acao-ordenar icone-transferencia" id="btnRecortarNotasGrade" onclick="recortarSelecaoNotas()" title="Recortar notas selecionadas" aria-label="Recortar notas"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="m8 8 12 12M8 16 20 4"/></svg></button>
@@ -3211,10 +3210,13 @@ function configurarSelecaoGrade(td, linha, coluna){
 // Seleção por arraste no computador e com caneta: começa na célula pressionada
 // e acompanha o ponteiro mesmo quando ele passa por cima dos campos de nota.
 let gradePonteiroAtivo = false;
+let gradePonteiroMoveu = false;
+let gradeSuprimirCliqueAte = 0;
 document.addEventListener('pointerdown', e => {
   if(e.pointerType === 'touch' || e.button !== 0) return;
   const td = e.target.closest?.('#corpoTabela td.grade-selectable');
   if(!td) return;
+  gradePonteiroMoveu = false;
   prepararSelecaoGrade(td, e);
   gradePonteiroAtivo = true;
   gradeArrastando = true;
@@ -3224,15 +3226,33 @@ document.addEventListener('pointermove', e => {
   if(!gradePonteiroAtivo || (e.buttons !== 1 && e.pointerType !== 'pen')) return;
   const alvo = document.elementFromPoint(e.clientX, e.clientY);
   const td = alvo?.closest?.('#corpoTabela td.grade-selectable');
-  if(td && gradeCelulaAncora) selecionarIntervaloGrade(gradeCelulaAncora, td);
+  if(td && gradeCelulaAncora) {
+    if(td.dataset.gradeCell !== gradeCelulaAncora.dataset.gradeCell) gradePonteiroMoveu = true;
+    selecionarIntervaloGrade(gradeCelulaAncora, td);
+  }
 }, true);
 
 function encerrarArrasteGrade(){
+  if(gradePonteiroAtivo && gradePonteiroMoveu){
+    // O click sintético disparado ao soltar o mouse não deve substituir
+    // a seleção retangular recém-construída por uma única célula.
+    gradeSuprimirCliqueAte = Date.now() + 450;
+  }
   gradePonteiroAtivo = false;
   gradeArrastando = false;
 }
 document.addEventListener('pointerup', encerrarArrasteGrade, true);
 document.addEventListener('pointercancel', encerrarArrasteGrade, true);
+
+// Após arrastar, bloqueia somente o click sintético final. Cliques simples
+// continuam permitindo editar/focar normalmente uma célula.
+document.addEventListener('click', e => {
+  if(Date.now() <= gradeSuprimirCliqueAte && e.target.closest?.('#corpoTabela td.grade-selectable')){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    gradeSuprimirCliqueAte = 0;
+  }
+}, true);
 window.addEventListener('blur', encerrarArrasteGrade);
 
 // Ao tocar/clicar fora das células de nota, remove o destaque da seleção.
@@ -3540,6 +3560,13 @@ async function copiarSelecaoNotas(){
   if(!dados){ alert('Selecione uma ou mais células de notas primeiro.'); return; }
   try{
     await escreverAreaTransferencia(dados.texto);
+    const botao=$id('btnCopiarNotasGrade');
+    if(botao){
+      const tituloOriginal=botao.title;
+      botao.classList.add('copia-ok');
+      botao.title='Notas copiadas!';
+      setTimeout(()=>{if(botao.isConnected){botao.classList.remove('copia-ok');botao.title=tituloOriginal;}},1800);
+    }
     const aviso=$id('aviso');
     if(aviso){aviso.textContent='Notas copiadas. Você já pode colar no Excel ou em outro aplicativo.';aviso.style.display='block';}
   }catch(err){ alert('Não foi possível copiar as notas. '+(err?.message||'')); }
@@ -4160,9 +4187,15 @@ async function copiarListaAlunos(){
 
     const botao = $id('btnCopiarListaAlunos');
     if(botao){
-      const textoOriginal = botao.textContent;
-      botao.textContent = '✓ Copiados!';
-      setTimeout(()=>{ if(botao.isConnected) botao.textContent=textoOriginal; },1800);
+      const tituloOriginal = botao.title;
+      botao.classList.add('copia-ok');
+      botao.title = 'Lista de alunos copiada!';
+      setTimeout(()=>{
+        if(botao.isConnected){
+          botao.classList.remove('copia-ok');
+          botao.title = tituloOriginal;
+        }
+      },1800);
     }
     const aviso = $id('aviso');
     if(aviso){
