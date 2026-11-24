@@ -5110,6 +5110,26 @@ function criarDocumentoPDFTexto(elemento){
     doc.setFont('helvetica','bold'); doc.setFontSize(13);
     escreverTextoPDF(titulo, largura/2, y, 'center'); y += 6;
     doc.setFontSize(9); escreverTextoPDF(subtitulo, largura/2, y, 'center'); y += 10;
+    const tabelaParaMedir = sec.querySelector('table');
+    const cabecalhoParaMedir = Array.from(tabelaParaMedir?.querySelectorAll('thead tr:last-child th') || [])
+      .map(c => c.innerText.trim());
+    const largurasParaMedir = cabecalhoParaMedir.map((h, i) => {
+      const t = String(h || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+      if(i === 0 || t === 'nº' || t === 'no') return 7;
+      if(t.includes('nome')) return 52;
+      if(t.includes('aval') || t.includes('ava')) return 13;
+      if(t.includes('total')) return 13;
+      if(t.includes('recup') || t.includes('reco')) return 14;
+      if(t.includes('situ')) return 21;
+      if(t.includes('observ')) return 32;
+      return 15;
+    });
+    const somaLargurasCabecalho = largurasParaMedir.reduce((a,b)=>a+b,0);
+    const areaUtilCabecalho = largura - 16;
+    const fatorCabecalho = somaLargurasCabecalho > areaUtilCabecalho
+      ? areaUtilCabecalho / somaLargurasCabecalho : 1;
+    const bordaDireitaRealTabela = 8 + somaLargurasCabecalho * fatorCabecalho;
+
     const grid = sec.querySelector('.pdf-grid');
     if(grid){
       const itens = Array.from(grid.children).map(el => {
@@ -5122,7 +5142,7 @@ function criarDocumentoPDFTexto(elemento){
       // O cabeçalho usa exatamente as mesmas margens laterais da tabela.
       // Os campos da direita terminam na mesma coordenada da data do PDF.
       const margemTabelaEsquerda = 8;
-      const bordaDireitaTabela = largura - 8;
+      const bordaDireitaTabela = bordaDireitaRealTabela;
       itens.forEach(item => {
         const rotuloNormalizado = String(item.rotulo || '').toLowerCase()
           .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/:$/,'').trim();
@@ -5217,7 +5237,7 @@ function criarDocumentoPDFTexto(elemento){
     if(fy > doc.internal.pageSize.getHeight()-35){ doc.addPage(); fy=18; }
     const data = sec.querySelector('.pdf-data')?.textContent?.trim();
     // Data fica abaixo da tabela, alinhada à direita, sem cruzar a assinatura.
-    const bordaDireitaTabela = largura - 8;
+    const bordaDireitaTabela = 8 + larguraColunas.reduce((soma,w)=>soma + w*fatorAjuste,0);
     if(data){doc.setFont('helvetica','normal');doc.setFontSize(8);escreverTextoPDF(data, bordaDireitaTabela, fy, 'right');}
     fy += 13;
     const nome = sec.querySelector('.pdf-prof-nome')?.textContent?.trim();
