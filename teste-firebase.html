@@ -983,11 +983,11 @@ header{gap:12px;padding:12px 18px}
     </div>
   </button>
 
-  <button type="button" class="share-option-btn" onclick="opcaoEnviarEmail()">
+  <button type="button" class="share-option-btn" onclick="opcaoCompartilharPDF()">
     <span class="icon">📧</span>
     <div>
-      <b>Enviar por E-mail</b>
-      <div class="small" style="margin-top:2px">Encaminha o documento desta disciplina diretamente via Gmail para o destinatário.</div>
+      <b>Compartilhar PDF</b>
+      <div class="small" style="margin-top:2px">Abre as opções do aparelho, como Gmail, WhatsApp e outros aplicativos.</div>
     </div>
   </button>
 
@@ -1025,14 +1025,14 @@ header{gap:12px;padding:12px 18px}
  </div>
 </div>
 
-<!-- MODAL DE ENVIO POR EMAIL -->
+<!-- MODAL DE SELEÇÃO DE DISCIPLINAS PARA COMPARTILHAMENTO -->
 <div class="modal" id="modalEmail">
  <div class="modal-box" style="max-width:560px">
-  <h2 id="tituloModalCompartilhamento">📧 Enviar Diários por E-mail</h2>
-  <p class="small" id="descricaoModalCompartilhamento">Marque as disciplinas que deseja reunir em um único PDF. Ao confirmar, escolha Gmail no menu de compartilhamento do Android e informe o destinatário diretamente na mensagem.</p>
+  <h2 id="tituloModalCompartilhamento">📤 Compartilhar PDF</h2>
+  <p class="small" id="descricaoModalCompartilhamento">Marque as disciplinas que deseja reunir em um único PDF. Depois, toque em Compartilhar para abrir as opções do aparelho, como Gmail, WhatsApp e outros aplicativos.</p>
 
   <div class="small" id="campoEmailDestino" style="margin-bottom:12px;padding:10px;border-radius:8px;background:#eef5fb;color:#23415c">
-    O PDF será anexado automaticamente ao abrir o aplicativo de e-mail escolhido. Você poderá conferir o arquivo, preencher o destinatário e enviar.
+    O PDF será preparado e anexado ao aplicativo que você escolher no menu de compartilhamento.
   </div>
 
   <div class="field" style="margin-bottom:12px">
@@ -1049,8 +1049,8 @@ header{gap:12px;padding:12px 18px}
   </div>
 
   <div class="field" id="campoMensagemEmail" style="margin-bottom:12px">
-    <label>Mensagem adicional (opcional):</label>
-    <textarea id="msgAdicionalEmail" placeholder="Escreva uma observação ou recado..."></textarea>
+    <label>Mensagem (opcional):</label>
+    <textarea id="msgAdicionalEmail" placeholder="Escreva uma mensagem para acompanhar o PDF..."></textarea>
   </div>
 
   <div id="statusEmail" style="display:none;padding:8px;border-radius:6px;font-size:12px;margin-bottom:12px"></div>
@@ -4622,9 +4622,9 @@ function alternarTodasDisciplinasEmail(marcar){
   atualizarSelecaoDisciplinasEmail();
 }
 
-function opcaoEnviarEmail(){
+function opcaoCompartilharPDF(){
   fecharModalCompartilharPDF();
-  modoCompartilhamentoPDF = 'email';
+  modoCompartilhamentoPDF = 'share';
   modoEnvioEmail = 'diario';
   disciplinasSelecionadasEmail = [];
   abrirModalEmail();
@@ -5270,11 +5270,11 @@ function abrirModalEmail(){
     btn.textContent = 'Gerar e Baixar PDF';
     btn.onclick = executarCompartilhamentoPDF;
   }else{
-    titulo.textContent = '📧 Enviar Diários por E-mail';
-    descricao.textContent = 'Informe o destinatário e marque quais disciplinas deseja enviar. A lista mostra somente as disciplinas que já possuem pelo menos uma nota lançada. As selecionadas serão reunidas em um único PDF.';
+    titulo.textContent = '📤 Compartilhar PDF';
+    descricao.textContent = 'Marque as disciplinas que deseja reunir em um único PDF. Ao continuar, você poderá escolher Gmail, WhatsApp ou outro aplicativo disponível no aparelho.';
     campoEmail.style.display = 'block';
     campoMsg.style.display = 'block';
-    btn.textContent = 'Confirmar e Enviar';
+    btn.textContent = 'Compartilhar PDF';
     btn.onclick = executarCompartilhamentoPDF;
   }
 
@@ -5412,7 +5412,7 @@ async function executarCompartilhamentoPDF(){
 }
 
 function dispararEnvioEmail(){
-  modoCompartilhamentoPDF = 'email';
+  modoCompartilhamentoPDF = 'share';
   executarCompartilhamentoPDF();
 }
 
