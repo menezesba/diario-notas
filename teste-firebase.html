@@ -1029,12 +1029,10 @@ header{gap:12px;padding:12px 18px}
 <div class="modal" id="modalEmail">
  <div class="modal-box" style="max-width:560px">
   <h2 id="tituloModalCompartilhamento">📧 Enviar Diários por E-mail</h2>
-  <p class="small" id="descricaoModalCompartilhamento">Informe o destinatário e marque quais disciplinas deseja enviar. As disciplinas selecionadas serão reunidas em um único PDF.</p>
+  <p class="small" id="descricaoModalCompartilhamento">Marque as disciplinas que deseja reunir em um único PDF. Ao confirmar, escolha Gmail no menu de compartilhamento do Android e informe o destinatário diretamente na mensagem.</p>
 
-  <div class="field" id="campoEmailDestino" style="margin-bottom:12px">
-    <label>E-mail do Destinatário:</label>
-    <input type="text" id="emailDestino" inputmode="email" autocomplete="email" placeholder="exemplo@instituicao.com.br; outro@instituicao.com.br">
-    <div class="small" style="margin-top:5px;color:#5f6368">Para enviar para mais de uma pessoa, separe os endereços com ponto e vírgula (;).</div>
+  <div class="small" id="campoEmailDestino" style="margin-bottom:12px;padding:10px;border-radius:8px;background:#eef5fb;color:#23415c">
+    O PDF será anexado automaticamente ao abrir o aplicativo de e-mail escolhido. Você poderá conferir o arquivo, preencher o destinatário e enviar.
   </div>
 
   <div class="field" style="margin-bottom:12px">
@@ -1058,7 +1056,7 @@ header{gap:12px;padding:12px 18px}
   <div id="statusEmail" style="display:none;padding:8px;border-radius:6px;font-size:12px;margin-bottom:12px"></div>
 
   <div class="flex">
-    <button class="primary" id="btnConfirmarEnvioEmail" onclick="executarCompartilhamentoPDF()">Confirmar e Enviar</button>
+    <button class="primary" id="btnConfirmarEnvioEmail" onclick="executarCompartilhamentoPDF()">Compartilhar PDF</button>
     <button onclick="fecharModalEmail()">Cancelar</button>
   </div>
  </div>
@@ -5310,47 +5308,19 @@ async function executarCompartilhamentoPDF(){
   }
 
   window.diariosSelecionadosParaExportacaoPDF = diariosSelecionados;
-
-  let destinatariosEmail = [];
-  let destinoEmailNormalizado = '';
-
-  if(modoCompartilhamentoPDF === 'email'){
-    const entradaDestinatarios = ($id('emailDestino').value || '').trim();
-    destinatariosEmail = entradaDestinatarios
-      .split(/[;,]+/)
-      .map(email => email.trim())
-      .filter(Boolean);
-
-    const emailsInvalidos = destinatariosEmail.filter(email => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
-    if(!destinatariosEmail.length || emailsInvalidos.length){
-      alert('Informe um ou mais endereços de e-mail válidos, separados por ponto e vírgula (;).');
-      return;
-    }
-
-    // O Apps Script recebe os destinatários em uma única string.
-    // Normalizamos ; para , para que vários endereços sejam enviados juntos.
-    destinoEmailNormalizado = destinatariosEmail.join(', ');
-
-    if(typeof google === 'undefined' || !google.script || !google.script.run){
-      alert('Este recurso precisa ser executado pelo aplicativo publicado no Google Apps Script.');
-      return;
-    }
-  }
-
   btn.disabled = true;
-  btn.textContent = modoCompartilhamentoPDF === 'download'
-    ? 'Gerando PDF...'
-    : 'Gerando PDF...';
+  btn.textContent = 'Gerando PDF...';
 
   status.style.display = 'block';
   status.style.background = '#e3f2fd';
   status.style.color = '#0d47a1';
   status.textContent = `Preparando ${diariosSelecionados.length} disciplina${diariosSelecionados.length > 1 ? 's' : ''} em um único PDF...`;
 
+  let elPDF = null;
   try{
     await atualizarAssinaturaParaPDF();
     prepararHtmlExportacaoTurmaPDF();
-    const elPDF = $id('areaExportacaoTurmaPDF');
+    elPDF = $id('areaExportacaoTurmaPDF');
     elPDF.style.display = 'block';
     await aguardarImagensDoPDF(elPDF);
     if(document.fonts && document.fonts.ready){
@@ -5363,109 +5333,80 @@ async function executarCompartilhamentoPDF(){
       .replace(/[\\/:*?"<>|]+/g, '_')
       .replace(/\s+/g, '_')
       .substring(0, 180);
-
+    const nomeArquivo = `${nomeBase || 'Diario_Notas'}.pdf`;
     const docPDF = criarDocumentoPDFTexto(elPDF);
 
     if(modoCompartilhamentoPDF === 'download'){
-      // No download usamos save() diretamente. Em alguns aparelhos/navegadores,
-      // montar primeiro uma data URI deixa o clique sem efeito, principalmente
-      // em PDFs com várias páginas.
-      docPDF.save(`${nomeBase}.pdf`);
+      docPDF.save(nomeArquivo);
       elPDF.style.display = 'none';
-
       status.style.background = '#e8f5e9';
       status.style.color = '#1b5e20';
       status.textContent = `✅ PDF gerado com ${disciplinas.length} disciplina${disciplinas.length > 1 ? 's' : ''} e baixado com sucesso!`;
-
-      // O mesmo botão é reutilizado para Download e E-mail.
-      // Se ele continuar disabled depois do download, ao abrir o modal
-      // novamente o envio por e-mail fica aparentemente travado até um F5.
       btn.disabled = false;
       btn.textContent = 'Gerar e Baixar PDF';
       setTimeout(() => fecharModalEmail(), 1800);
       return;
     }
 
-    // Para envio por e-mail, gerar primeiro como Blob. Isso evita o custo
-    // de uma data URI gigante, que pode travar em algumas turmas/PDFs.
-    status.textContent = 'PDF sendo preparado para o envio...';
+    status.textContent = 'Preparando o PDF para compartilhar...';
     const pdfBlob = docPDF.output('blob');
     elPDF.style.display = 'none';
-
     if(!pdfBlob || !pdfBlob.size){
-      throw new Error('Não foi possível gerar o PDF para envio.');
+      throw new Error('Não foi possível gerar o PDF para compartilhamento.');
     }
 
-    const base64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ''));
-      reader.onerror = () => reject(new Error('Não foi possível preparar o PDF para o e-mail.'));
-      reader.readAsDataURL(pdfBlob);
-    });
-
-    if(!base64 || !base64.includes(',')){
-      throw new Error('Não foi possível converter o PDF para envio.');
-    }
-
-    const destino = destinoEmailNormalizado;
-    const msgExtra = ($id('msgAdicionalEmail').value || '').trim();
+    const arquivoPDF = new File([pdfBlob], nomeArquivo, {type:'application/pdf'});
+    const msgExtra = ($id('msgAdicionalEmail')?.value || '').trim();
     const curso = $id('curso').value || 'Curso';
     const professor = $id('professor').value || 'Professor';
-    const turmaAtual = $id('turma').value || 'Turma';
-    const assunto = disciplinas.length === 1
-      ? `Diário de Notas - ${turmaAtual} - ${disciplinas[0]}`
-      : `Diários de Notas - ${turmaAtual}`;
+    const textoCompartilhamento = [
+      `Diário de Notas | ${turma}`,
+      `Curso: ${curso}`,
+      `Professor: ${professor}`,
+      `Disciplinas: ${disciplinas.join(', ')}`,
+      msgExtra
+    ].filter(Boolean).join('\n');
 
-    status.textContent = 'PDF pronto. Enviando pelo Google...';
-
-    google.script.run
-      .withSuccessHandler(res => {
-        btn.disabled = false;
-        btn.textContent = 'Confirmar e Enviar';
-
-        if(res && res.sucesso){
-          $id('areaExportacaoTurmaPDF').style.display = 'none';
-          status.style.background = '#e8f5e9';
-          status.style.color = '#1b5e20';
-          status.textContent = `✅ Um único PDF com ${disciplinas.length} disciplina${disciplinas.length > 1 ? 's' : ''} foi enviado com sucesso!`;
-          setTimeout(() => fecharModalEmail(), 2500);
+    if(navigator.share && (!navigator.canShare || navigator.canShare({files:[arquivoPDF]}))){
+      status.textContent = 'Abrindo as opções de compartilhamento...';
+      try{
+        await navigator.share({
+          files:[arquivoPDF],
+          title:`Diário de Notas - ${turma}`,
+          text:textoCompartilhamento
+        });
+        status.style.background = '#e8f5e9';
+        status.style.color = '#1b5e20';
+        status.textContent = '✅ PDF compartilhado. Escolha Gmail, confira o anexo, informe o destinatário e envie.';
+        setTimeout(() => fecharModalEmail(), 2200);
+      }catch(shareError){
+        if(shareError && shareError.name === 'AbortError'){
+          status.style.background = '#fff8e1';
+          status.style.color = '#795548';
+          status.textContent = 'Compartilhamento cancelado. O PDF não foi enviado.';
         }else{
-          status.style.background = '#ffebee';
-          status.style.color = '#b71c1c';
-          status.textContent = '❌ O Google não enviou o e-mail: ' + (res?.erro || 'erro desconhecido.');
+          // Fallback: baixa o PDF para que o usuário possa anexá-lo manualmente.
+          docPDF.save(nomeArquivo);
+          status.style.background = '#fff8e1';
+          status.style.color = '#795548';
+          status.textContent = 'Não foi possível abrir o compartilhamento. O PDF foi baixado; anexe-o manualmente no Gmail.';
         }
-      })
-      .withFailureHandler(err => {
-        btn.disabled = false;
-        btn.textContent = 'Confirmar e Enviar';
-        status.style.background = '#ffebee';
-        status.style.color = '#b71c1c';
-        status.textContent = '❌ Erro no Google Apps Script: ' + (err?.message || String(err || 'erro desconhecido'));
-      })
-      .enviarDiarioPorEmail({
-        destino,
-        destinatarios: destinatariosEmail,
-        assunto,
-        formato: 'pdf',
-        turma: turmaAtual,
-        disciplina: disciplinas.join(', '),
-        disciplinas: disciplinas.join(', '),
-        curso,
-        professor,
-        msgExtra,
-        base64Pdf: base64
-      });
-
+      }
+    }else{
+      // Navegadores sem compartilhamento de arquivos recebem o PDF por download.
+      docPDF.save(nomeArquivo);
+      status.style.background = '#fff8e1';
+      status.style.color = '#795548';
+      status.textContent = 'Este navegador não permite anexar arquivos pelo compartilhamento. O PDF foi baixado; anexe-o manualmente no Gmail.';
+    }
   }catch(err){
-    $id('areaExportacaoTurmaPDF').style.display = 'none';
-    btn.disabled = false;
-    btn.textContent = modoCompartilhamentoPDF === 'download'
-      ? 'Gerar e Baixar PDF'
-      : 'Confirmar e Enviar';
+    if(elPDF) elPDF.style.display = 'none';
     status.style.background = '#ffebee';
     status.style.color = '#b71c1c';
     status.textContent = '❌ Não foi possível preparar o PDF: ' + (err?.message || 'erro desconhecido.');
   }finally{
+    btn.disabled = false;
+    btn.textContent = modoCompartilhamentoPDF === 'download' ? 'Gerar e Baixar PDF' : 'Compartilhar PDF';
     window.diariosSelecionadosParaExportacaoPDF = [];
   }
 }
