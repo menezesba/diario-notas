@@ -211,6 +211,15 @@ th.col-nome, td.name{
 
 td input{border:0;border-radius:0;padding:4px;text-align:center;width:100%;background:transparent}
 td input:focus{outline:2px solid #75a9d2;background:white}
+#tabela td.col-nota input::placeholder{
+  color:#888!important;
+  opacity:1!important;
+  -webkit-text-fill-color:#888!important;
+  text-align:center!important;
+}
+#tabela td.col-nota input{
+  text-align:center!important;
+}
 
 .aprovado{color:#0b5cab!important;font-weight:700}
 .reprovado{color:var(--vermelho)!important;font-weight:700}
@@ -894,6 +903,7 @@ header{gap:12px;padding:12px 18px}
       </div>
 
       <button type="button" class="acao-ordenar" onclick="ordenarAlunos()" title="Ordenar alunos em ordem alfabética" aria-label="Ordenar alunos de A a Z">A-Z</button>
+      <button type="button" class="acao-ordenar" id="btnCopiarListaAlunos" onclick="copiarListaAlunos()" title="Copiar todos os nomes dos alunos desta disciplina" aria-label="Copiar lista de alunos">📋 Copiar lista</button>
       
     </div>
     <div id="aviso" class="mensagem"></div>
@@ -3637,55 +3647,103 @@ function alternarDisciplinaFechada(){
 // Seleção de alunos por arraste: tocar uma caixa continua selecionando
 // individualmente; arrastar sobre outras caixas marca a sequência percorrida.
 (function configurarArrasteSelecaoAlunos(){
-  let ativo = false;
-  let iniciou = false;
-  let ponteiroId = null;
-  let x0 = 0, y0 = 0;
-  let ultimaCaixa = null;
+  // Toque simples alterna uma caixa normalmente. Ao arrastar o dedo,
+  // marca continuamente as caixas das linhas atravessadas.
+  let toqueAtivo = false;
+  let toqueIniciouArraste = false;
+  let toqueId = null;
+  let toqueX = 0, toqueY = 0;
+  let ultimaCaixaToque = null;
   let suprimirCliqueAte = 0;
 
-  function caixaEm(x, y){
-    const el = document.elementFromPoint(x, y);
-    return el?.closest?.('#corpoTabela input.sel[type="checkbox"]') || null;
+  function caixaDaLinhaEm(x, y){
+    const elemento = document.elementFromPoint(x, y);
+    const linha = elemento?.closest?.('#corpoTabela tr');
+    return linha?.querySelector?.('input.sel[type="checkbox"]') || null;
   }
-  document.addEventListener('pointerdown', e => {
+
+  function iniciarToque(e){
+    if(!e.touches || e.touches.length !== 1) return;
     const ck = e.target.closest?.('#corpoTabela input.sel[type="checkbox"]');
-    if(!ck || e.button !== 0) return;
-    ativo = true;
-    iniciou = false;
+    if(!ck) return;
+    const toque = e.touches[0];
+    toqueAtivo = true;
+    toqueIniciouArraste = false;
+    toqueId = toque.identifier;
+    toqueX = toque.clientX;
+    toqueY = toque.clientY;
+    ultimaCaixaToque = ck;
+  }
+
+  function moverToque(e){
+    if(!toqueAtivo || !e.touches) return;
+    const toque = Array.from(e.touches).find(t => t.identifier === toqueId);
+    if(!toque) return;
+
+    const dx = Math.abs(toque.clientX - toqueX);
+    const dy = Math.abs(toque.clientY - toqueY);
+    if(!toqueIniciouArraste && (dx > 8 || dy > 8)){
+      toqueIniciouArraste = true;
+      suprimirCliqueAte = Date.now() + 650;
+      if(ultimaCaixaToque) ultimaCaixaToque.checked = true;
+    }
+    if(!toqueIniciouArraste) return;
+
+    const ck = caixaDaLinhaEm(toque.clientX, toque.clientY);
+    if(ck && ck !== ultimaCaixaToque){
+      ck.checked = true;
+      ultimaCaixaToque = ck;
+    }
+    // Depois que o gesto vira arraste de seleção, impede a página de rolar.
+    e.preventDefault();
+  }
+
+  function finalizarToque(){
+    if(toqueIniciouArraste) suprimirCliqueAte = Date.now() + 650;
+    toqueAtivo = false;
+    toqueIniciouArraste = false;
+    toqueId = null;
+    ultimaCaixaToque = null;
+  }
+
+  document.addEventListener('touchstart', iniciarToque, {capture:true, passive:true});
+  document.addEventListener('touchmove', moverToque, {capture:true, passive:false});
+  document.addEventListener('touchend', finalizarToque, true);
+  document.addEventListener('touchcancel', finalizarToque, true);
+
+  // Mouse e S Pen: mantém a seleção por arraste com ponteiro.
+  let ponteiroAtivo = false;
+  let ponteiroId = null;
+  let ultimaCaixaPonteiro = null;
+
+  document.addEventListener('pointerdown', e => {
+    if(e.pointerType === 'touch' || e.button !== 0) return;
+    const ck = e.target.closest?.('#corpoTabela input.sel[type="checkbox"]');
+    if(!ck) return;
+    ponteiroAtivo = true;
     ponteiroId = e.pointerId;
-    x0 = e.clientX; y0 = e.clientY;
-    ultimaCaixa = ck;
+    ultimaCaixaPonteiro = ck;
   }, true);
 
   document.addEventListener('pointermove', e => {
-    if(!ativo || e.pointerId !== ponteiroId) return;
-    const dx = Math.abs(e.clientX - x0), dy = Math.abs(e.clientY - y0);
-    if(!iniciou && (dx > 8 || dy > 8)) {
-      iniciou = true;
-      suprimirCliqueAte = Date.now() + 450;
-      // A primeira caixa passa a integrar a seleção por arraste.
-      if(ultimaCaixa) ultimaCaixa.checked = true;
-    }
-    if(!iniciou) return;
-    const ck = caixaEm(e.clientX, e.clientY);
-    if(ck && ck !== ultimaCaixa){
+    if(!ponteiroAtivo || e.pointerId !== ponteiroId || (e.buttons !== 1 && e.pointerType !== 'pen')) return;
+    const ck = caixaDaLinhaEm(e.clientX, e.clientY);
+    if(ck && ck !== ultimaCaixaPonteiro){
       ck.checked = true;
-      ultimaCaixa = ck;
+      ultimaCaixaPonteiro = ck;
     }
-    if(e.pointerType === 'touch') e.preventDefault();
-  }, {passive:false, capture:true});
+  }, true);
 
-  function finalizar(e){
-    if(!ativo || (e && e.pointerId !== ponteiroId)) return;
-    if(iniciou) suprimirCliqueAte = Date.now() + 450;
-    ativo = false;
-    iniciou = false;
+  function finalizarPonteiro(e){
+    if(!ponteiroAtivo || (e && e.pointerId !== ponteiroId)) return;
+    ponteiroAtivo = false;
     ponteiroId = null;
-    ultimaCaixa = null;
+    ultimaCaixaPonteiro = null;
   }
-  document.addEventListener('pointerup', finalizar, true);
-  document.addEventListener('pointercancel', finalizar, true);
+  document.addEventListener('pointerup', finalizarPonteiro, true);
+  document.addEventListener('pointercancel', finalizarPonteiro, true);
+
+  // Evita que o clique sintético após um arraste desmarque a primeira caixa.
   document.addEventListener('click', e => {
     if(Date.now() < suprimirCliqueAte && e.target.closest?.('#corpoTabela input.sel[type="checkbox"]')){
       e.preventDefault();
@@ -3797,8 +3855,10 @@ function render(){
       let inp = document.createElement('input');
       inp.type = 'text';
       inp.inputMode = 'decimal';
-      inp.placeholder = '0,0';
-      inp.value = a.notas[j] ? String(a.notas[j]).replace('.', ',') : '';
+      inp.setAttribute('placeholder', '0,0');
+      inp.setAttribute('aria-label', `Nota da avaliação ${j + 1} de ${(a.nome || 'aluno')}`);
+      inp.value = a.notas[j] !== undefined && a.notas[j] !== null && String(a.notas[j]).trim() !== ''
+        ? String(a.notas[j]).replace('.', ',') : '';
       
       inp.addEventListener('keydown', e => {
         const celulaAtual = e.target.closest('td.grade-selectable');
@@ -3888,6 +3948,52 @@ function render(){
   filtrarAlunosTabela();
   atualizarStats();
   aplicarBloqueioDisciplinaNaUI();
+}
+
+async function copiarListaAlunos(){
+  const nomes = (estado.alunos || [])
+    .map(aluno => String(aluno?.nome || '').replace(/\s+/g,' ').trim())
+    .filter(Boolean);
+
+  if(!nomes.length){
+    alert('Não há nomes de alunos para copiar nesta disciplina.');
+    return;
+  }
+
+  const texto = nomes.join('\n');
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(texto);
+    }else{
+      const temporario = document.createElement('textarea');
+      temporario.value = texto;
+      temporario.setAttribute('readonly','');
+      temporario.style.position='fixed';
+      temporario.style.left='-9999px';
+      temporario.style.top='0';
+      document.body.appendChild(temporario);
+      temporario.select();
+      temporario.setSelectionRange(0, temporario.value.length);
+      const ok = document.execCommand('copy');
+      temporario.remove();
+      if(!ok) throw new Error('O navegador não permitiu copiar automaticamente.');
+    }
+
+    const botao = $id('btnCopiarListaAlunos');
+    if(botao){
+      const textoOriginal = botao.textContent;
+      botao.textContent = '✓ Copiados!';
+      setTimeout(()=>{ if(botao.isConnected) botao.textContent=textoOriginal; },1800);
+    }
+    const aviso = $id('aviso');
+    if(aviso){
+      aviso.style.display='block';
+      aviso.textContent = `Lista copiada: ${nomes.length} aluno(s). Você já pode colar no Excel, Word ou em uma mensagem.`;
+      setTimeout(()=>{aviso.style.display='none';},3000);
+    }
+  }catch(err){
+    alert('Não foi possível copiar a lista. ' + (err?.message || 'Tente novamente.'));
+  }
 }
 
 function filtrarAlunosTabela(){
