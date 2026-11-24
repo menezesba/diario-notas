@@ -4806,7 +4806,8 @@ function criarDocumentoPDFTexto(elemento){
         const titulo = String(cabecalho[indice] || '').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
         const colunaNota = titulo.includes('ava') || titulo.includes('aval') ||
           titulo.includes('total') || titulo.includes('recup') || titulo.includes('reco');
-        if(colunaNota) data.cell.styles.halign='center';
+        if(data.section==='head') data.cell.styles.halign='center';
+        if(data.section==='body' && colunaNota) data.cell.styles.halign='center';
         if(data.section==='body' && indice===1) data.cell.styles.fontStyle='bold';
         if(data.section==='body' && indice===cabecalho.length-2){
           const v=String(data.cell.raw||'').toLowerCase();
@@ -4819,7 +4820,7 @@ function criarDocumentoPDFTexto(elemento){
     if(fy > doc.internal.pageSize.getHeight()-35){ doc.addPage(); fy=18; }
     const data = sec.querySelector('.pdf-data')?.textContent?.trim();
     // Data fica abaixo da tabela, alinhada à direita, sem cruzar a assinatura.
-    if(data){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(data, largura-8, fy, {align:'right'});}
+    if(data){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(data, doc.lastAutoTable.finalX, fy, {align:'right'});}
     fy += 13;
     const nome = sec.querySelector('.pdf-prof-nome')?.textContent?.trim();
     const cargo = 'Prof.: Radiologia';
@@ -4830,7 +4831,7 @@ function criarDocumentoPDFTexto(elemento){
           // Preserva a proporção original da assinatura, sem esticar a imagem.
           const props = doc.getImageProperties(assinatura.src);
           const proporcao = (props.width || 1) / (props.height || 1);
-          const maxW = 42, maxH = 9;
+          const maxW = 54.6, maxH = 11.7;
           let imgW = maxW, imgH = imgW / proporcao;
           if(imgH > maxH){ imgH = maxH; imgW = imgH * proporcao; }
           doc.addImage(assinatura.src, props.fileType || 'PNG',
