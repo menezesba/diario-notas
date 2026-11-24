@@ -792,6 +792,24 @@ header{gap:12px;padding:12px 18px}
 #appPrincipal.carregando-nuvem #avisoCarregamentoNuvem{display:flex}
 #avisoCarregamentoNuvem .carregamento-detalhe{font-size:13px;font-weight:400;color:#526579}
 
+.icone-transferencia{
+  width:38px!important;
+  min-width:38px!important;
+  padding:7px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.icone-transferencia svg{
+  width:19px;
+  height:19px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  display:block;
+}
 </style>
 </head>
 <body>
@@ -903,7 +921,10 @@ header{gap:12px;padding:12px 18px}
       </div>
 
       <button type="button" class="acao-ordenar" onclick="ordenarAlunos()" title="Ordenar alunos em ordem alfabética" aria-label="Ordenar alunos de A a Z">A-Z</button>
-      <button type="button" class="acao-ordenar" id="btnCopiarListaAlunos" onclick="copiarListaAlunos()" title="Copiar todos os nomes dos alunos desta disciplina" aria-label="Copiar lista de alunos">📋 Copiar lista</button>
+      <button type="button" class="acao-ordenar icone-transferencia" id="btnCopiarListaAlunos" onclick="copiarListaAlunos()" title="Copiar lista de alunos" aria-label="Copiar lista de alunos"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg></button>
+      <button type="button" class="acao-ordenar icone-transferencia" id="btnCopiarNotasGrade" onclick="copiarSelecaoNotas()" title="Copiar notas selecionadas" aria-label="Copiar notas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg></button>
+      <button type="button" class="acao-ordenar icone-transferencia" id="btnRecortarNotasGrade" onclick="recortarSelecaoNotas()" title="Recortar notas selecionadas" aria-label="Recortar notas"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="m8 8 12 12M8 16 20 4"/></svg></button>
+      <button type="button" class="acao-ordenar icone-transferencia" id="btnColarNotasGrade" onclick="colarDaAreaTransferencia()" title="Colar notas na célula selecionada" aria-label="Colar notas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v14h16V6a2 2 0 0 0-2-2h-2"/><rect x="8" y="2" width="8" height="5" rx="1"/><path d="M8 12h8M8 16h8"/></svg></button>
       
     </div>
     <div id="aviso" class="mensagem"></div>
@@ -3218,7 +3239,8 @@ window.addEventListener('blur', encerrarArrasteGrade);
 // Cliques dentro de uma célula ou em seu campo de edição preservam a seleção.
 document.addEventListener('click', e => {
   const dentroDaCelula = e.target.closest?.('#corpoTabela td.grade-selectable');
-  if(!dentroDaCelula && gradeCelulasSelecionadas.size){
+  const dentroDosControlesTransferencia = e.target.closest?.('#btnCopiarNotasGrade, #btnRecortarNotasGrade, #btnColarNotasGrade');
+  if(!dentroDaCelula && !dentroDosControlesTransferencia && gradeCelulasSelecionadas.size){
     limparSelecaoGrade();
     gradeCelulaAncora = null;
     gradeArrastando = false;
@@ -3465,6 +3487,163 @@ function calcular(aluno){
 
   return { soma, notaFinal, situacao, temNota: (notas.length > 0 || Number.isFinite(recupVal)) };
 }
+
+function obterMatrizSelecaoNotas(){
+  const selecionadas = Array.from(gradeCelulasSelecionadas || []).map(ch => {
+    const [r,c] = String(ch).split(':').map(Number);
+    return {r,c};
+  }).filter(x => Number.isInteger(x.r) && Number.isInteger(x.c));
+  if(!selecionadas.length) return null;
+
+  const minR = Math.min(...selecionadas.map(x=>x.r));
+  const maxR = Math.max(...selecionadas.map(x=>x.r));
+  const minC = Math.min(...selecionadas.map(x=>x.c));
+  const maxC = Math.max(...selecionadas.map(x=>x.c));
+  const conjunto = new Set(selecionadas.map(x=>`${x.r}:${x.c}`));
+  const linhas = [];
+
+  for(let r=minR;r<=maxR;r++){
+    const colunas = [];
+    for(let c=minC;c<=maxC;c++){
+      if(!conjunto.has(`${r}:${c}`)){ colunas.push(''); continue; }
+      const aluno = estado.alunos[r];
+      let valor = '';
+      if(c < estado.avaliacoes.length) valor = aluno?.notas?.[c] ?? '';
+      else if(c === estado.avaliacoes.length) valor = aluno?.recuperacao ?? '';
+      colunas.push(String(valor).replace('.', ','));
+    }
+    linhas.push(colunas.join('\t'));
+  }
+  return {texto:linhas.join('\n'), selecionadas};
+}
+
+async function escreverAreaTransferencia(texto){
+  if(navigator.clipboard?.writeText && window.isSecureContext){
+    await navigator.clipboard.writeText(texto);
+    return;
+  }
+  const campo=document.createElement('textarea');
+  campo.value=texto;
+  campo.setAttribute('readonly','');
+  campo.style.position='fixed';
+  campo.style.opacity='0';
+  campo.style.pointerEvents='none';
+  document.body.appendChild(campo);
+  campo.select();
+  const ok=document.execCommand('copy');
+  campo.remove();
+  if(!ok) throw new Error('O navegador bloqueou o acesso à área de transferência.');
+}
+
+async function copiarSelecaoNotas(){
+  const dados=obterMatrizSelecaoNotas();
+  if(!dados){ alert('Selecione uma ou mais células de notas primeiro.'); return; }
+  try{
+    await escreverAreaTransferencia(dados.texto);
+    const aviso=$id('aviso');
+    if(aviso){aviso.textContent='Notas copiadas. Você já pode colar no Excel ou em outro aplicativo.';aviso.style.display='block';}
+  }catch(err){ alert('Não foi possível copiar as notas. '+(err?.message||'')); }
+}
+
+async function recortarSelecaoNotas(){
+  if(disciplinaEstaFechada()){alert('Esta disciplina está fechada para edição.');return;}
+  const dados=obterMatrizSelecaoNotas();
+  if(!dados){alert('Selecione uma ou mais células de notas primeiro.');return;}
+  try{
+    await escreverAreaTransferencia(dados.texto);
+    const alteradas=new Set();
+    dados.selecionadas.forEach(({r,c})=>{
+      const aluno=estado.alunos[r]; if(!aluno)return;
+      if(c < estado.avaliacoes.length){
+        if(!Array.isArray(aluno.notas))aluno.notas=[];
+        aluno.notas[c]='';
+      }else if(c===estado.avaliacoes.length){aluno.recuperacao='';}
+      alteradas.add(r);
+    });
+    alteradas.forEach(r=>{
+      const tr=document.querySelector(`#corpoTabela tr:nth-child(${r+1})`);
+      if(tr)atualizarLinha(r,tr);
+    });
+    atualizarStats();
+    salvarDiarioAtual();
+    aplicarSelecaoGrade();
+  }catch(err){alert('Não foi possível recortar as notas. '+(err?.message||''));}
+}
+
+async function colarDaAreaTransferencia(){
+  if(disciplinaEstaFechada()){alert('Esta disciplina está fechada para edição.');return;}
+  const ancora=gradeCelulaAncora;
+  if(!ancora || !ehCelulaEditavelGrade(ancora)){
+    alert('Selecione a primeira célula onde deseja colar as notas.');
+    return;
+  }
+  if(!navigator.clipboard?.readText || !window.isSecureContext){
+    alert('Este navegador não liberou a leitura automática. Toque na célula inicial e use a opção Colar do teclado ou do menu do aparelho.');
+    focarCelulaGrade(ancora);
+    return;
+  }
+  try{
+    const texto=await navigator.clipboard.readText();
+    if(!texto){alert('A área de transferência está vazia.');return;}
+    const r0=Number(ancora.dataset.gradeRow), c0=Number(ancora.dataset.gradeCol);
+    const linhas=texto.replace(/\r/g,'').split('\n');
+    while(linhas.length && linhas[linhas.length-1]==='')linhas.pop();
+    const alteradas=new Set();
+    linhas.forEach((linha,ri)=>linha.split('\t').forEach((valor,ci)=>{
+      const r=r0+ri,c=c0+ci,aluno=estado.alunos[r];
+      if(!aluno || c<0 || c>estado.avaliacoes.length)return;
+      const limpo=valor.trim().replace(',','.');
+      if(c<estado.avaliacoes.length){
+        if(!Array.isArray(aluno.notas))aluno.notas=[];
+        const n=parseFloat(limpo);
+        aluno.notas[c]=limpo===''?'':(Number.isFinite(n)?Math.max(0,Math.min(10,n)).toFixed(1):'');
+      }else{
+        const n=parseFloat(limpo);
+        aluno.recuperacao=limpo===''?'':(Number.isFinite(n)?Math.max(0,Math.min(10,n)).toFixed(1):'');
+      }
+      alteradas.add(r);
+    }));
+    alteradas.forEach(r=>{
+      const tr=document.querySelector(`#corpoTabela tr:nth-child(${r+1})`);
+      if(tr)atualizarLinha(r,tr);
+    });
+    atualizarStats();
+    salvarDiarioAtual();
+    aplicarSelecaoGrade();
+  }catch(err){
+    alert('O navegador não permitiu ler a área de transferência. Use a opção Colar do teclado ou do menu do aparelho.');
+  }
+}
+
+// Suporte aos atalhos tradicionais do computador e teclados físicos no tablet.
+document.addEventListener('keydown', e=>{
+  const atalho=(e.ctrlKey||e.metaKey) && ['c','x','v'].includes(e.key.toLowerCase());
+  if(!atalho || !e.target.closest?.('#corpoTabela'))return;
+  if(e.target.matches?.('input, textarea') && e.target.value && e.key.toLowerCase()==='c')return;
+  if(e.key.toLowerCase()==='c'){e.preventDefault();copiarSelecaoNotas();}
+  if(e.key.toLowerCase()==='x'){e.preventDefault();recortarSelecaoNotas();}
+  if(e.key.toLowerCase()==='v'){
+    // O evento paste nativo existente trata Ctrl+V com dados do sistema.
+    // Se o foco estiver na célula selecionada sem input focado, direciona a colagem.
+    if(!e.target.matches?.('input, textarea, [contenteditable="true"]')){
+      e.preventDefault();colarDaAreaTransferencia();
+    }
+  }
+}, true);
+
+// Também preenche a área de transferência quando o sistema dispara copy/cut.
+document.addEventListener('copy', e=>{
+  if(!gradeCelulasSelecionadas?.size || !e.target.closest?.('#corpoTabela'))return;
+  const dados=obterMatrizSelecaoNotas(); if(!dados)return;
+  e.clipboardData?.setData('text/plain',dados.texto);
+  e.preventDefault();
+}, true);
+
+document.addEventListener('cut', e=>{
+  if(!gradeCelulasSelecionadas?.size || !e.target.closest?.('#corpoTabela'))return;
+  e.preventDefault();
+  recortarSelecaoNotas();
+}, true);
 
 function colarNotasGrade(e, linhaInicial, colunaInicial){
   if(disciplinaEstaFechada()){ e.preventDefault(); return; }
