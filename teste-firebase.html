@@ -816,6 +816,27 @@ header{gap:12px;padding:12px 18px}
 #btnCopiarListaAlunos:hover,#btnCopiarNotasGrade:hover{filter:brightness(.92);}
 #btnCopiarListaAlunos.copia-ok,#btnCopiarNotasGrade.copia-ok{background:#0f766e!important;}
 
+
+/* Separação visual entre ações principais e ferramentas compactas de transferência */
+.acoes-grade .grupo-acoes-principais,
+.acoes-grade .grupo-acoes-transferencia{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+}
+.acoes-grade .grupo-acoes-transferencia{
+  margin-left:10px;
+  padding-left:14px;
+  border-left:1px solid #d5dce5;
+}
+@media(max-width:700px){
+  .acoes-grade .grupo-acoes-transferencia{
+    margin-left:4px;
+    padding-left:9px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -915,16 +936,19 @@ header{gap:12px;padding:12px 18px}
 <div class="panel">
   <div class="panel-body">
     <div class="acoes-grade" style="margin-bottom:12px">
-      <button type="button" class="acao-icone acao-azul" id="btnColarListaAlunos" data-tooltip="Colar lista de alunos — permite colar vários nomes de uma vez." aria-label="Colar lista de alunos" title="Colar lista de alunos" onclick="abrirListaAlunos()">📋</button>
-      <button type="button" class="acao-icone acao-azul" id="btnAdicionarAvaliacao" data-tooltip="Adicionar avaliação — cria uma nova coluna de avaliação." aria-label="Adicionar avaliação" title="Adicionar avaliação" onclick="adicionarAvaliacao()">📝<span class="acao-simbolo">＋</span></button>
-      <button type="button" class="acao-icone acao-cinza" id="btnLimparNotas" data-tooltip="Limpar todas as notas — apaga as notas lançadas nesta disciplina." aria-label="Limpar todas as notas" title="Limpar todas as notas" onclick="limparTodasNotas()">🧹</button>
-      <button type="button" class="acao-icone acao-vermelha" id="btnExcluirSelecionados" data-tooltip="Excluir selecionados — remove os alunos marcados na tabela." aria-label="Excluir selecionados" title="Excluir selecionados" onclick="return excluirSelecionadosAgora(event)">🗑️</button>
-      
-      <button type="button" class="acao-ordenar icone-transferencia" id="btnCopiarListaAlunos" onclick="copiarListaAlunos()" title="Copiar lista de alunos" aria-label="Copiar lista de alunos"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg></button>
+      <div class="grupo-acoes-principais">
+      <button type="button" class="acao-icone acao-azul" id="btnColarListaAlunos" aria-label="Colar lista de alunos" title="Colar lista de alunos" onclick="abrirListaAlunos()">📋</button>
+      <button type="button" class="acao-icone acao-azul" id="btnAdicionarAvaliacao" aria-label="Adicionar avaliação" title="Adicionar avaliação" onclick="adicionarAvaliacao()">📝<span class="acao-simbolo">＋</span></button>
+      <button type="button" class="acao-icone acao-cinza" id="btnLimparNotas" aria-label="Limpar todas as notas" title="Limpar todas as notas" onclick="limparTodasNotas()">🧹</button>
+      <button type="button" class="acao-icone acao-vermelha" id="btnExcluirSelecionados" aria-label="Excluir selecionados" title="Excluir selecionados" onclick="return excluirSelecionadosAgora(event)">🗑️</button>
+      </div>
+      <div class="grupo-acoes-transferencia">
+            <button type="button" class="acao-ordenar icone-transferencia" id="btnCopiarListaAlunos" onclick="copiarListaAlunos()" title="Copiar lista de alunos" aria-label="Copiar lista de alunos"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg></button>
       <button type="button" class="acao-ordenar icone-transferencia" id="btnCopiarNotasGrade" onclick="copiarSelecaoNotas()" title="Copiar notas selecionadas" aria-label="Copiar notas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg></button>
       <button type="button" class="acao-ordenar icone-transferencia" id="btnRecortarNotasGrade" onclick="recortarSelecaoNotas()" title="Recortar notas selecionadas" aria-label="Recortar notas"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="m8 8 12 12M8 16 20 4"/></svg></button>
       <button type="button" class="acao-ordenar icone-transferencia" id="btnColarNotasGrade" onclick="colarDaAreaTransferencia()" title="Colar notas na célula selecionada" aria-label="Colar notas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v14h16V6a2 2 0 0 0-2-2h-2"/><rect x="8" y="2" width="8" height="5" rx="1"/><path d="M8 12h8M8 16h8"/></svg></button>
       
+          </div>
     </div>
     <div id="aviso" class="mensagem"></div>
     <div class="grade-layout">
